@@ -52,22 +52,25 @@ required:
 
 # Setup #
 
-There is no (yet) auto configure tool, but `Makefile` is used. If, for instance, *gcc* compiler is not in the path, command line parameters should be
-given to the Makefile:
+To compile:
 
 ```shell
-gmake CXX=/usr/local/gcc-4.8.2/bin/g++ all
+./configure
+make
 ```
 
-Variables that can be altered this way are `CXX` (compiler executable path), `BOOST_DIR` (Boost installation directory), `AR` (archiver executable path),
-`DOXYGEN` (doxygen executable path). Alternative approach is to edit `Makefile`.
+The library can be installed with:
 
-Run `gmake all`. The resulting static and shared library should be in newly created `lib` directory.
+```shell
+make install
+```
 
-Example are stored in `examples` directory. Run `gmake examples` to compile them. They will be placed in `build/examples` directory.
+Example are stored in `examples` directory. 
 
-Documentation can be generated if [Doxygen](http://www.doxygen.org) is installed. By executing `gmake doc` it will be generated in `doc`
+Documentation can be generated if [Doxygen](http://www.doxygen.org) is installed. By executing `make doc` it will be generated in `doc`
 directory.
+
+This release includes libmailio.pc for pkg-config.
 
 # Features #
 
@@ -108,3 +111,7 @@ The following features are planned:
 
 The library is one man show. In case you find a bug, please drop me a mail to contact (at) alepho.com. Since this is my
 side project, I'll do my best to be responsive.
+
+# Contributors #
+
+Tim Schwartz <tim@metaverse.systems>
