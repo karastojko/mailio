@@ -25,14 +25,14 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <codec.hpp>
-#include <base64.hpp>
-#include <quoted_printable.hpp>
-#include <bit7.hpp>
-#include <bit8.hpp>
-#include <q_codec.hpp>
-#include <mime.hpp>
-#include <message.hpp>
+#include <libmailio/codec.hpp>
+#include <libmailio/base64.hpp>
+#include <libmailio/quoted_printable.hpp>
+#include <libmailio/bit7.hpp>
+#include <libmailio/bit8.hpp>
+#include <libmailio/q_codec.hpp>
+#include <libmailio/mime.hpp>
+#include <libmailio/message.hpp>
 
 
 using std::string;

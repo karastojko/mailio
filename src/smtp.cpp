@@ -18,8 +18,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <tuple>
 #include <algorithm>
 #include <boost/asio/ip/host_name.hpp>
-#include <base64.hpp>
-#include <smtp.hpp>
+#include <libmailio/base64.hpp>
+#include <libmailio/smtp.hpp>
 
 
 using std::cout;

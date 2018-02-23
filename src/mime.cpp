@@ -20,13 +20,13 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <base64.hpp>
-#include <quoted_printable.hpp>
-#include <bit7.hpp>
-#include <bit8.hpp>
-#include <binary.hpp>
-#include <q_codec.hpp>
-#include <mime.hpp>
+#include <libmailio/base64.hpp>
+#include <libmailio/quoted_printable.hpp>
+#include <libmailio/bit7.hpp>
+#include <libmailio/bit8.hpp>
+#include <libmailio/binary.hpp>
+#include <libmailio/q_codec.hpp>
+#include <libmailio/mime.hpp>
 
 
 using std::string;

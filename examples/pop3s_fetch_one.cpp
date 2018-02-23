@@ -14,8 +14,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
-#include <message.hpp>
-#include <pop3.hpp>
+#include <libmailio/message.hpp>
+#include <libmailio/pop3.hpp>
 #include <iostream>
 
 

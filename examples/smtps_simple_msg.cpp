@@ -15,8 +15,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 #include <iostream>
-#include <message.hpp>
-#include <smtp.hpp>
+#include <libmailio/message.hpp>
+#include <libmailio/smtp.hpp>
 
 
 using mailio::message;

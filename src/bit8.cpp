@@ -14,7 +14,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <string>
 #include <vector>
 #include <boost/algorithm/string/trim.hpp>
-#include <bit8.hpp>
+#include <libmailio/bit8.hpp>
 
 
 using std::string;
