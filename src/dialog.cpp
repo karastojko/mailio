@@ -14,7 +14,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <dialog.hpp>
+#include <mailio/dialog.hpp>
 
 
 using std::string;

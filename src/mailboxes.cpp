@@ -11,7 +11,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
-#include "mailboxes.hpp"
+#include "mailio/mailboxes.hpp"
 
 
 using std::string;

@@ -12,9 +12,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 #include <boost/algorithm/string.hpp>
-#include <base64.hpp>
-#include <quoted_printable.hpp>
-#include <q_codec.hpp>
+#include <mailio/base64.hpp>
+#include <mailio/quoted_printable.hpp>
+#include <mailio/q_codec.hpp>
 
 
 using boost::iequals;

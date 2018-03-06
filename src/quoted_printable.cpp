@@ -15,7 +15,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <vector>
 #include <stdexcept>
 #include <boost/algorithm/string/trim.hpp>
-#include <quoted_printable.hpp>
+#include <mailio/quoted_printable.hpp>
 
 
 using std::string;

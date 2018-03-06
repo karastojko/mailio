@@ -12,7 +12,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 #include <string>
-#include <codec.hpp>
+#include <mailio/codec.hpp>
 
 
 using std::string;

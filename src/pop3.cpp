@@ -19,7 +19,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <pop3.hpp>
+#include <mailio/pop3.hpp>
 
 
 using std::cout;

@@ -13,7 +13,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <vector>
-#include <binary.hpp>
+#include <mailio/binary.hpp>
 
 
 using std::string;

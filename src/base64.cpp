@@ -13,7 +13,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string> 
 #include <boost/algorithm/string/trim.hpp>
-#include <base64.hpp>
+#include <mailio/base64.hpp>
 
 
 using std::string;
