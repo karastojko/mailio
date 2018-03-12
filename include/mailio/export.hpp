@@ -13,11 +13,15 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #ifndef MAILIO_EXPORT_H
 #define MAILIO_EXPORT_H
 
-#if defined(MAILIO_BUILDING_DLL) || defined(MAILIO_USING_DLL)
-# if defined(MAILIO_BUILDING_DLL)
-#  define MAILIO_EXPORT __declspec(dllexport)
+#if defined(_WIN32)
+# if defined(MAILIO_BUILDING_DLL) || defined(MAILIO_USING_DLL)
+#  if defined(MAILIO_BUILDING_DLL)
+#   define MAILIO_EXPORT __declspec(dllexport)
+#  else
+#   define MAILIO_EXPORT __declspec(dllimport)
+#  endif
 # else
-#  define MAILIO_EXPORT __declspec(dllimport)
+#  define MAILIO_EXPORT 
 # endif
 #else
 # define MAILIO_EXPORT

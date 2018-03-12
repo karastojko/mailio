@@ -13,7 +13,9 @@ include_directories(include)
 add_library(${LIBNAME} STATIC ${LIBSRC} ${LIBINC})
 
 add_library(${DLLNAME} SHARED ${LIBSRC} ${LIBINC})
-target_compile_definitions(${DLLNAME} PUBLIC "-DMAILIO_BUILDING_DLL")
+if(WIN32)
+    target_compile_definitions(${DLLNAME} PUBLIC "-DMAILIO_BUILDING_DLL")
+endif(WIN32)
 
 if(Boost_FOUND)
 	target_include_directories(${LIBNAME} PUBLIC ${Boost_INCLUDE_DIRS})
