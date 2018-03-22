@@ -5,6 +5,9 @@ include(cmake/vars.cmake)
 cmake_policy(SET CMP0048 NEW)
 project (${PROJ} VERSION 0.7.0)
 
+set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 include(cmake/src.cmake)
 include(cmake/req.cmake)
 
@@ -31,7 +34,7 @@ endif()
 
 FILE(GLOB HDRS ${PROJECT_SOURCE_DIR}/include/mailio/*.hpp)
 
-install(FILES ${HDRS}  
+install(FILES ${HDRS}
 		 DESTINATION include/mailio
 )
 
