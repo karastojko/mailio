@@ -19,7 +19,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
-#include <imap.hpp>
+#include <mailio/imap.hpp>
 
 
 using std::cout;
