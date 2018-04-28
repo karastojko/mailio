@@ -45,37 +45,59 @@ More advanced features are shown in `examples` directory, see below how to compi
 
 # Requirements #
 
+Mailio library is supposed to work on all platforms supporting C++ 11 compiler, recent Boost libraries and CMake build tool.
+
 For Linux the following configuration is tested:
 
-* gcc 4.8.2.
-* Boost 1.54 with Regex, Date Time, Random available.
+* gcc 7.3.0.
+* Boost 1.66 with Regex, Date Time, Random available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
+* CMake 3.11
 
 For MacOS the following configuration is tested:
 
 * Apple LLVM 9.0.0.
 * Boost 1.66.
 * OpenSSL 1.0.2n available on the system.
+* CMake 3.10.
+
+For Microsoft Windows the following configuration is tested:
+
+* Windows 10.
+* Visual Studio 2015 Community Edition.
+* Boost 1.66.
+* OpenSSL 1.0.2n available on the system.
+* CMake 3.11.
 
 
 # Setup #
 
-There is no (yet) auto configure tool, but `Makefile` is used. If, for instance, *gcc* compiler is not in the path, command line parameters should be
-given to the Makefile:
+Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could set environment variables `OPENSSL_ROOT_DIR` and `BOOST_ROOT` to their
+respective paths. Boost must be built with OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include`
+parameters of `b2` script (after `bootstrap` finishes).
 
-```shell
-gmake CXX=/usr/local/gcc-4.8.2/bin/g++ all
+
+## Linux, MacOS ##
+
+From the terminal go into the directory where the library is downloaded to, and execute:
 ```
+mkdir build
+cd ./build
+cmake ..
+make
+```
+Both static and dynamic libraries should be built.
 
-Variables that can be altered this way are `CXX` (compiler executable path), `BOOST_DIR` (Boost installation directory), OPENSSL_DIR (OpenSSL installation
-directory), `AR` (archiver executable path), `DOXYGEN` (doxygen executable path). Alternative approach is to edit `Makefile`.
 
-Run `gmake all`. The resulting static and shared library should be in newly created `lib` directory.
+## Microsoft Windows ##
 
-Examples are stored in `examples` directory. Run `gmake examples` to compile them. They will be placed in `build/examples` directory.
-
-Documentation can be generated if [Doxygen](http://www.doxygen.org) is installed. By executing `gmake doc` it will be generated in `doc`
-directory.
+From the command prompt go into the directory where the library is downloaded, and execute:
+```
+mkdir build
+cd .\build
+cmake ..
+```
+A solution file will be built, open it from Visual Studio and build the project.
 
 
 # Features #
@@ -113,6 +135,11 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * version 0.14.0 (Q4/2017): Mail content is sent with attachments as another MIME part.
 * version 0.15.0 (Q1/2018): Line policy applied to the header. Clang/MacOS build support in Makefile.
 * version 0.16.0 (Q1/2018): Autoconfig, Visual Studio/Windows build. From/Sender headers fix.
+
+
+# Contributors #
+
+* [Trevor Mellon](https://github.com/TrevorMellon): CMake build scripts.
 
 
 # Contact #
