@@ -24,6 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include "q_codec.hpp"
 #include "mime.hpp"
 #include "mailboxes.hpp"
+#include "export.hpp"
 
 
 namespace mailio
@@ -33,7 +34,7 @@ namespace mailio
 /**
 Mail message and applied parsing/formatting algorithms.
 **/
-class message : public mime
+class MAILIO_EXPORT message : public mime
 {
 public:
 

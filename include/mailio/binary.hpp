@@ -15,59 +15,60 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <vector>
-#include <mailio/codec.hpp>
-#include <mailio/export.hpp>
+#include "codec.hpp"
+#include "export.hpp"
+
 
 namespace mailio
 {
 
 
-	/**
-	Binary codec.
-	**/
-	class MAILIO_EXPORT binary : public codec
-	{
-	public:
+/**
+Binary codec.
+**/
+class MAILIO_EXPORT binary : public codec
+{
+public:
 
-		/**
-		Setting the line policy.
+    /**
+    Setting the line policy.
 
-		@param line_policy Line length policy to set.
-		**/
-		binary(codec::line_len_policy_t line_policy = codec::line_len_policy_t::NONE);
+    @param line_policy Line length policy to set.
+    **/
+    binary(codec::line_len_policy_t line_policy = codec::line_len_policy_t::NONE);
 
-		binary(const binary&) = delete;
+    binary(const binary&) = delete;
 
-		binary(binary&&) = delete;
+    binary(binary&&) = delete;
 
-		/**
-		Default destructor.
-		**/
-		~binary() = default;
+    /**
+    Default destructor.
+    **/
+    ~binary() = default;
 
-		void operator=(const binary&) = delete;
+    void operator=(const binary&) = delete;
 
-		void operator=(binary&&) = delete;
+    void operator=(binary&&) = delete;
 
-		/**
-		Encoding a string into vector of binary encoded strings.
+    /**
+    Encoding a string into vector of binary encoded strings.
 
-		@param text String to encode.
-		@return     Vector with binary encoded strings.
-		**/
-		std::vector<std::string> encode(const std::string& text) const;
+    @param text String to encode.
+    @return     Vector with binary encoded strings.
+    **/
+    std::vector<std::string> encode(const std::string& text) const;
 
-		/**
-		Decoding a vector of binary encoded strings.
+    /**
+    Decoding a vector of binary encoded strings.
 
-		@param text Vector of binary encoded strings.
-		@return     Decoded string.
-		@todo       Line policy to be verified.
-		**/
-		std::string decode(const std::vector<std::string>& text) const;
+    @param text Vector of binary encoded strings.
+    @return     Decoded string.
+    @todo       Line policy to be verified.
+    **/
+    std::string decode(const std::vector<std::string>& text) const;
 
-	private:
-	};
+private:
+};
 
 
 } // namespace mailio
