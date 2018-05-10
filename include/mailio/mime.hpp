@@ -138,7 +138,10 @@ public:
     **/
     mime(const mime&) = default;
 
-    mime(mime&&) = delete;
+    /**
+    Default move constructor.
+    **/
+    mime(mime&&) = default;
 
     /**
     Default destructor.
@@ -146,11 +149,14 @@ public:
     virtual ~mime() = default;
 
     /**
-    Default assignment operator.
+    Default copy assignment operator.
     **/
     mime& operator=(const mime&) = default;
 
-    void operator=(mime&&) = delete;
+    /**
+    Default move assignment operator.
+    **/
+    mime& operator=(mime&&) = default;
 
     /**
     Formatting the mime part to a string.

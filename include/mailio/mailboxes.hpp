@@ -151,6 +151,16 @@ struct mailboxes
     mailboxes() = default;
 
     /**
+    Default copy constructor.
+    **/
+    mailboxes(const mailboxes&) = default;
+
+    /**
+    Default move constructor.
+    **/
+    mailboxes(mailboxes&&) = default;
+
+    /**
     Creating a mailbox with the given addresses and groups.
 
     @param address_list Mail addresses to set.
@@ -162,6 +172,16 @@ struct mailboxes
     Default destructor.
     **/
     ~mailboxes() = default;
+
+    /**
+    Default copy assignment operator.
+    **/
+    mailboxes& operator=(const mailboxes&) = default;
+
+    /**
+    Default move assignment operator.
+    **/
+    mailboxes& operator=(mailboxes&&) = default;
 
     /**
     Checking if the mailbox is empty.
