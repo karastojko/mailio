@@ -85,4 +85,11 @@ bool mailboxes::empty() const
     return addresses.empty() && groups.empty();
 }
 
+
+void mailboxes::clear()
+{
+    addresses.clear();
+    groups.clear();
+}
+
 } // namespace mailio

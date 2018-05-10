@@ -15,7 +15,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 #include <iostream>
-#include <pop3.hpp>
+#include <mailio/pop3.hpp>
 
 
 using mailio::pop3;

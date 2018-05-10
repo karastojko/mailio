@@ -14,8 +14,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
-#include <imap.hpp>
 #include <iostream>
+#include <mailio/imap.hpp>
 
 
 using mailio::imap;

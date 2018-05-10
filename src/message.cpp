@@ -10,7 +10,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */ 
 
-
 #include <string>
 #include <vector>
 #include <map>
@@ -72,6 +71,7 @@ namespace mailio
 const string message::ATEXT{"!#$%&'*+-./=?^_`{|}~"};
 const string message::DTEXT{"!#$%&'*+-.@/=?^_`{|}~"}; // atext with monkey
 const string message::FROM_HEADER{"From"};
+const string message::SENDER_HEADER{"Sender"};
 const string message::REPLY_TO_HEADER{"Reply-To"};
 const string message::TO_HEADER{"To"};
 const string message::CC_HEADER{"Cc"};
@@ -125,9 +125,45 @@ void message::format(string& message_str, bool dot_escape) const
 }
 
 
+void message::parse(const string& message_str, bool dot_escape)
+{
+    mime::parse(message_str, dot_escape);
+
+    if (_from.addresses.size() == 0)
+        throw message_error("No author address.");
+
+    // There is no check if there is a sender in case of multiple authors, not sure if that logic is needed.
+}
+
+
 bool message::empty() const
 {
     return _content.empty();
+}
+
+
+void message::from(const mail_address& mail)
+{
+    _from.clear();
+    _from.addresses.push_back(mail);
+}
+
+
+mailboxes message::from() const
+{
+    return _from;
+}
+
+
+void message::add_from(const mail_address& mail)
+{
+    _from.addresses.push_back(mail);
+}
+
+
+string message::from_to_string() const
+{
+    return format_address_list(_from);
 }
 
 
@@ -147,7 +183,6 @@ string message::sender_to_string() const
 {
     return format_address(_sender.name, _sender.address);
 }
-
 
 void message::reply_address(const mail_address& mail)
 {
@@ -221,9 +256,9 @@ void message::add_bcc_recipient(const mail_address& mail)
 }
 
 
-void message::add_bcc_recipient(const mail_group& mail)
+void message::add_bcc_recipient(const mail_group& group)
 {
-    _bcc_recipients.groups.push_back(mail);
+    _bcc_recipients.groups.push_back(group);
 }
 
 
@@ -324,9 +359,16 @@ string message::format_header() const
     string header;
     
     if (!_boundary.empty() && _content_type.type != media_type_t::MULTIPART)
-        throw message_error("Formatting failure of non multipart message with boundary.");
+        throw message_error("No boundary for multipart message.");
 
-    header += FROM_HEADER + COLON + sender_to_string() + codec::CRLF;
+    if (_from.addresses.size() == 0)
+        throw message_error("No author.");
+
+    if (_from.addresses.size() > 1 && _sender.empty())
+        throw message_error("No sender for multiple authors.");
+
+    header += FROM_HEADER + COLON + from_to_string() + codec::CRLF;
+    header += _sender.address.empty() ? "" : SENDER_HEADER + COLON + sender_to_string() + codec::CRLF;
     header += _reply_address.name.empty() ? "" : REPLY_TO_HEADER + COLON + reply_address_to_string() + codec::CRLF;
     header += TO_HEADER + COLON + recipients_to_string() + codec::CRLF;
     header += _cc_recipients.empty() ? "" : CC_HEADER + COLON + cc_recipients_to_string() + codec::CRLF;
@@ -372,17 +414,24 @@ void message::parse_header_line(const string& header_line)
     mime::parse_header_line(header_line);
 
     if (header_line.length() > string::size_type(_line_policy))
-        throw message_error("Parsing failure of header, line policy overflow.");
+        throw message_error("Line policy overflow in a header.");
 
     // TODO: header name and header value already parsed in `mime::parse_header_line`, so this is not the optimal way to do it
     string header_name, header_value;
     parse_header_name_value(header_line, header_name, header_value);
+
+
     if (iequals(header_name, FROM_HEADER))
     {
+        _from = parse_address_list(header_value);
+        if (_from.addresses.empty())
+            throw message_error("Empty author header.");
+    }
+    else if (iequals(header_name, SENDER_HEADER))
+    {
         mailboxes mbx = parse_address_list(header_value);
-        if (mbx.addresses.empty())
-            throw message_error("Parsing failure of header, no sender.");
-        _sender = mbx.addresses[0];
+        if (!mbx.addresses.empty())
+            _sender = mbx.addresses[0];
     }
     else if (iequals(header_name, REPLY_TO_HEADER))
     {

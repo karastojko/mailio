@@ -16,8 +16,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <iostream>
 #include <fstream>
-#include <message.hpp>
-#include <smtp.hpp>
+#include <mailio/message.hpp>
+#include <mailio/smtp.hpp>
 
 
 using mailio::message;
@@ -36,7 +36,7 @@ int main()
     {
         // create mail message
         message msg;
-        msg.sender(mail_address("mailio library", "mailio@gmail.com"));// set the correct sender name and address
+        msg.from(mail_address("mailio library", "mailio@gmail.com"));// set the correct sender name and address
         msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));// set the correct recipent name and address
         msg.subject("smtps message with attachment");
         ifstream ifs1("aleph0.png");

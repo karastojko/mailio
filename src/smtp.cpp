@@ -79,7 +79,10 @@ void smtp::authenticate(const string& username, const string& password, auth_met
 
 void smtp::submit(const message& msg)
 {
-    _dlg->send("MAIL FROM: <" + msg.sender().address + ">");
+    if (!msg.sender().address.empty())
+        _dlg->send("MAIL FROM: <" + msg.sender().address + ">");
+    else
+        _dlg->send("MAIL FROM: <" + msg.from().addresses.at(0).address + ">");
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))

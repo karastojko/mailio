@@ -15,9 +15,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 #include <iostream>
-#include <message.hpp>
-#include <mime.hpp>
-#include <smtp.hpp>
+#include <mailio/message.hpp>
+#include <mailio/mime.hpp>
+#include <mailio/smtp.hpp>
 
 
 using mailio::message;
@@ -37,7 +37,7 @@ int main()
         // create mail message
         message msg;
         msg.header_codec(message::header_codec_t::BASE64);
-        msg.sender(mail_address("mailio library", "mailio@mailserver.com"));// set the correct sender name and address
+        msg.from(mail_address("mailio library", "mailio@mailserver.com"));// set the correct sender name and address
         msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));// set the correct recipent name and address
         msg.add_recipient(mail_address("mailio library", "mailio@outlook.com"));// add more recipients
         msg.add_cc_recipient(mail_address("mailio library", "mailio@yahoo.com"));// add CC recipient
