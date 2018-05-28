@@ -563,6 +563,7 @@ digraph address_list
     nameaddrgrp -> name [label = "space"];
     nameaddrgrp -> addr [label = "monkey"];
     nameaddrgrp -> groupbeg [label = "colon"];
+    nameaddrgrp -> addrbrbeg [label = "left_bracket"];
     nameaddrgrp -> begin [label = "comma"];
     name -> name [label = "atext, space"];
     name -> addrbrbeg [label = "left_bracket"];
@@ -709,6 +710,14 @@ mailboxes message::parse_address_list(const string& address_list) const
                     token.clear();
                     group_found = true;
                     state = state_t::GROUPBEG;
+                }
+                else if (*ch == codec::LESS_THAN_CHAR)
+                {
+                    cur_address.name = token;
+                    trim(cur_address.name);
+                    cur_address.name = parse_address_name(cur_address.name);
+                    token.clear();
+                    state = state_t::ADDRBRBEG;
                 }
                 else
                     throw message_error("Parsing failure of address or group at `" + string(1, *ch) + "`.");
