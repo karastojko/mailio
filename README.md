@@ -6,12 +6,12 @@ mailio is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP p
 
 # Examples #
 
-To send mail, one has to create `message` object and set it's attributes as sender, recipient, subject and so on. Then, an SMTP connection
+To send a mail, one has to create `message` object and set it's attributes as author, recipient, subject and so on. Then, an SMTP connection
 is created by constructing `smtp` (or `smtps`) class. The message is sent over the connection:
 
 ```cpp
 message msg;
-msg.sender(mail_address("mailio library", "mailio@gmail.com"));
+msg.from(mail_address("mailio library", "mailio@gmail.com"));
 msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));
 msg.subject("smtps simple message");
 msg.content("Hello, World!");
