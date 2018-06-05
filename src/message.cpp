@@ -84,7 +84,7 @@ const string message::MIME_VERSION_HEADER{"MIME-Version"};
 message::message() : mime()
 {
     time_zone_ptr tz(new posix_time_zone("00:00"));
-    _date_time = make_shared<local_date_time>(second_clock::local_time(), tz);
+    _date_time = make_shared<local_date_time>(second_clock::universal_time(), tz);
 }
 
 
