@@ -140,7 +140,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 # Contributors #
 
 * [Trevor Mellon](https://github.com/TrevorMellon): CMake build scripts.
-* [Kira Backes](kira.backes [at] nrwsoft.de): Fix for correct default message date.
+* [Kira Backes](mailto:kira.backes[at]nrwsoft.de): Fix for correct default message date.
 
 
 # Contact #
