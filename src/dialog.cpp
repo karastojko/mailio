@@ -53,7 +53,7 @@ dialog::dialog(const string& hostname, unsigned port, unsigned long timeout) : _
         }
         else
         {
-            bool rc = connect_timed_out();
+            bool rc = connect_async();
             if (!rc)
                 throw dialog_error("Server asynchronous connecting failed.");
         }
@@ -88,20 +88,48 @@ dialog::~dialog()
 
 void dialog::send(const string& line)
 {
+    if (_timeout == 0)
+        send_sync(_socket, line);
+    else
+    {
+        string l = line + "\r\n";
+        bool rc = send_async(l);
+        if (!rc)
+            throw dialog_error("Network sending error.");
+    }
+}
+
+
+// TODO: perhaps the implementation should be common with `receive_raw()`
+string dialog::receive()
+{
+    if (_timeout == 0)
+        return receive_sync(_socket, false);
+    else
+    {
+        string line;
+        bool rc = receive_async(line);
+        if (!rc)
+            throw dialog_error("Network receiving error.");
+        return line;
+    }
+}
+
+
+string dialog::receive_raw()
+{
+    if (_timeout == 0)
+        return receive_sync(_socket, true);
+}
+
+
+template<typename Socket>
+void dialog::send_sync(Socket& socket, const string& line)
+{
     try
     {
-        if (_timeout == 0)
-        {
-            string l = line + "\r\n";
-            write(_socket, buffer(l, l.size()));
-        }
-        else
-        {
-            string l = line + "\r\n";
-            bool rc = send_timed_out(l);
-            if (!rc)
-                throw dialog_error("Network sending error.");
-        }
+        string l = line + "\r\n";
+        write(socket, buffer(l, l.size()));
     }
     catch (system_error&)
     {
@@ -110,42 +138,16 @@ void dialog::send(const string& line)
 }
 
 
-// TODO: perhaps the implementation should be common with `receive_raw()`
-string dialog::receive()
+template<typename Socket>
+string dialog::receive_sync(Socket& socket, bool raw)
 {
     try
     {
-        if (_timeout == 0)
-        {
-            read_until(_socket, *_strmbuf, "\n");
-            string line;
-            getline(*_istrm, line, '\n');
-            trim_if(line, is_any_of("\r\n"));
-            return line;
-        }
-        else
-        {
-            string line;
-            bool rc = receive_timed_out(line);
-            if (!rc)
-                throw dialog_error("Network receiving error.");
-            return line;
-        }
-    }
-    catch (system_error&)
-    {
-        throw dialog_error("Network receiving error.");
-    }
-}
-
-
-string dialog::receive_raw()
-{
-    try
-    {
-        read_until(_socket, *_strmbuf, "\n");
+        read_until(socket, *_strmbuf, "\n");
         string line;
         getline(*_istrm, line, '\n');
+        if (raw)
+            trim_if(line, is_any_of("\r\n"));
         return line;
     }
     catch (system_error&)
@@ -155,7 +157,7 @@ string dialog::receive_raw()
 }
 
 
-bool dialog::connect_timed_out()
+bool dialog::connect_async()
 {
     tcp::resolver res(*_ios);
     tcp::resolver::query q(_hostname, to_string(_port));
@@ -184,7 +186,7 @@ bool dialog::connect_timed_out()
 }
 
 
-bool dialog::send_timed_out(string line)
+bool dialog::send_async(string line)
 {
     _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
     bool has_written = false;
@@ -204,7 +206,7 @@ bool dialog::send_timed_out(string line)
 }
 
 
-bool dialog::receive_timed_out(string& line)
+bool dialog::receive_async(string& line)
 {
     _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
     bool has_read = false;
@@ -274,8 +276,8 @@ void dialog_ssl::send(const string& line)
 
     try
     {
-        string l = line + "\r\n";
-        write(_ssl_socket, buffer(l, l.size()));
+        if (_timeout == 0)
+            send_sync(_ssl_socket, line);
     }
     catch (system_error&)
     {
@@ -291,11 +293,8 @@ string dialog_ssl::receive()
 
     try
     {
-        read_until(_ssl_socket, *_strmbuf, "\n");
-        string line;
-        getline(*_istrm, line, '\n');
-        trim_if(line, is_any_of("\r\n"));
-        return line;
+        if (_timeout == 0)
+            return receive_sync(_ssl_socket, false);
     }
     catch (system_error&)
     {
@@ -311,16 +310,13 @@ string dialog_ssl::receive_raw()
 
     try
     {
-        read_until(_ssl_socket, *_strmbuf, "\n");
-        string line;
-        getline(*_istrm, line, '\n');
-        return line;
+        if (_timeout == 0)
+            return receive_sync(_ssl_socket, true);
     }
     catch (system_error&)
     {
         throw dialog_error("Network receiving error.");
     }
-
 }
 
 

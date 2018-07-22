@@ -88,11 +88,17 @@ public:
 
 protected:
 
-    bool connect_timed_out();
+    template<typename Socket>
+    void send_sync(Socket& socket, const std::string& line);
 
-    bool send_timed_out(std::string line);
+    template<typename Socket>
+    std::string receive_sync(Socket& socket, bool raw);
 
-    bool receive_timed_out(std::string& line);
+    bool connect_async();
+
+    bool send_async(std::string line);
+
+    bool receive_async(std::string& line);
 
     void check_deadline(const boost::system::error_code& error);
 
