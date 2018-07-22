@@ -77,7 +77,7 @@ public:
     @param port     Port of the server.
     @throw *        `dialog::dialog(const string&, unsigned)`.
     **/
-    pop3(const std::string& hostname, unsigned port);
+    pop3(const std::string& hostname, unsigned port, unsigned long timeout = 0);
 
     /**
     Sending the quit command and closing the connection.

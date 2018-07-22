@@ -67,7 +67,7 @@ public:
     @param port     Port of the server.
     @throw *        `dialog::dialog(const string&, unsigned)`.
     **/
-    imap(const std::string& hostname, unsigned port);
+    imap(const std::string& hostname, unsigned port, unsigned long timeout = 0);
 
     /**
     Sending the logout command and closing the connection.

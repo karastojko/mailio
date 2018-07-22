@@ -108,7 +108,7 @@ string dialog::receive()
     else
     {
         string line;
-        bool rc = receive_async(line);
+        bool rc = receive_async(line, false);
         if (!rc)
             throw dialog_error("Network receiving error.");
         return line;
@@ -120,6 +120,14 @@ string dialog::receive_raw()
 {
     if (_timeout == 0)
         return receive_sync(_socket, true);
+    else
+    {
+        string line;
+        bool rc = receive_async(line, true);
+        if (!rc)
+            throw dialog_error("Network receiving error.");
+        return line;
+    }
 }
 
 
@@ -146,7 +154,7 @@ string dialog::receive_sync(Socket& socket, bool raw)
         read_until(socket, *_strmbuf, "\n");
         string line;
         getline(*_istrm, line, '\n');
-        if (raw)
+        if (!raw)
             trim_if(line, is_any_of("\r\n"));
         return line;
     }
@@ -206,16 +214,17 @@ bool dialog::send_async(string line)
 }
 
 
-bool dialog::receive_async(string& line)
+bool dialog::receive_async(string& line, bool raw)
 {
     _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
     bool has_read = false;
-    async_read_until(_socket, *_strmbuf, "\n", [&has_read, this, &line](const boost::system::error_code& error, size_t /*bytes_no*/)
+    async_read_until(_socket, *_strmbuf, "\n", [&has_read, this, &line, raw](const boost::system::error_code& error, size_t /*bytes_no*/)
     {
         if (!error)
         {
             getline(*_istrm, line, '\n');
-            trim_if(line, is_any_of("\r\n"));
+            if (!raw)
+                trim_if(line, is_any_of("\r\n"));
             has_read = true;
         }
 

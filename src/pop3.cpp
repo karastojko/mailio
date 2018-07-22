@@ -47,7 +47,8 @@ namespace mailio
 {
 
 
-pop3::pop3(const string& hostname, unsigned port) : _dlg(new dialog(hostname, port))
+pop3::pop3(const string& hostname, unsigned port, unsigned long timeout) :
+    _dlg(new dialog(hostname, port, timeout))
 {
 }
 

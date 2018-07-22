@@ -98,7 +98,7 @@ protected:
 
     bool send_async(std::string line);
 
-    bool receive_async(std::string& line);
+    bool receive_async(std::string& line, bool raw);
 
     void check_deadline(const boost::system::error_code& error);
 

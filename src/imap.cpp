@@ -50,7 +50,8 @@ namespace mailio
 {
 
 
-imap::imap(const string& hostname, unsigned port) : _dlg(new dialog(hostname, port)), _tag(0), _optional_part_state(false), _atom_state(false),
+imap::imap(const string& hostname, unsigned port, unsigned long timeout) :
+    _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(false),
     _parenthesis_list_counter(0), _literal_state(string_literal_state_t::NONE), _literal_bytes_read(0), _eols_no(2)
 {
 }
