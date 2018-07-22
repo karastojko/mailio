@@ -12,6 +12,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <algorithm>
+#include <future>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <mailio/dialog.hpp>
@@ -21,6 +22,8 @@ using std::string;
 using std::to_string;
 using std::move;
 using std::istream;
+using std::future;
+using std::future_status;
 using boost::asio::ip::tcp;
 using boost::asio::buffer;
 using boost::asio::streambuf;
@@ -35,15 +38,25 @@ namespace mailio
 {
 
 
-dialog::dialog(const string& hostname, unsigned port) : _hostname(hostname), _port(port), _ios(new io_service()),  _socket(*_ios), _strmbuf(new streambuf()), _istrm(new istream(_strmbuf.get()))
+dialog::dialog(const string& hostname, unsigned port, unsigned long timeout) : _hostname(hostname), _port(port), _ios(new io_service()), _socket(*_ios), _timer(*_ios),
+    _strmbuf(new streambuf()), _istrm(new istream(_strmbuf.get())), _timeout(timeout), _timer_expired(false)
 {
     try
     {
-        tcp::resolver res(*_ios);
-        tcp::resolver::query q(_hostname, to_string(_port));
-        tcp::resolver::iterator it = res.resolve(q);
-        tcp::endpoint end_point = *it;
-        _socket.connect(end_point);
+        if (_timeout == 0)
+        {
+            tcp::resolver res(*_ios);
+            tcp::resolver::query q(_hostname, to_string(_port));
+            tcp::resolver::iterator it = res.resolve(q);
+            tcp::endpoint end_point = *it;
+            _socket.connect(end_point);
+        }
+        else
+        {
+            bool rc = connect_timed_out();
+            if (!rc)
+                throw dialog_error("Server asynchronous connecting failed.");
+        }
     }
     catch (system_error&)
     {
@@ -52,7 +65,8 @@ dialog::dialog(const string& hostname, unsigned port) : _hostname(hostname), _po
 }
 
 
-dialog::dialog(dialog&& other) : _hostname(move(other._hostname)), _port(other._port), _socket(move(other._socket))
+dialog::dialog(dialog&& other) : _hostname(move(other._hostname)), _port(other._port), _socket(move(other._socket)), _timer(move(other._timer)),
+    _timeout(other._timeout), _timer_expired(other._timer_expired)
 {
     _ios.reset(other._ios.release());
     _strmbuf.reset(other._strmbuf.release());
@@ -76,8 +90,18 @@ void dialog::send(const string& line)
 {
     try
     {
-        string l = line + "\r\n";
-        write(_socket, buffer(l, l.size()));
+        if (_timeout == 0)
+        {
+            string l = line + "\r\n";
+            write(_socket, buffer(l, l.size()));
+        }
+        else
+        {
+            string l = line + "\r\n";
+            bool rc = send_timed_out(l);
+            if (!rc)
+                throw dialog_error("Network sending error.");
+        }
     }
     catch (system_error&)
     {
@@ -91,11 +115,22 @@ string dialog::receive()
 {
     try
     {
-        read_until(_socket, *_strmbuf, "\n");
-        string line;
-        getline(*_istrm, line, '\n');
-        trim_if(line, is_any_of("\r\n"));
-        return line;
+        if (_timeout == 0)
+        {
+            read_until(_socket, *_strmbuf, "\n");
+            string line;
+            getline(*_istrm, line, '\n');
+            trim_if(line, is_any_of("\r\n"));
+            return line;
+        }
+        else
+        {
+            string line;
+            bool rc = receive_timed_out(line);
+            if (!rc)
+                throw dialog_error("Network receiving error.");
+            return line;
+        }
     }
     catch (system_error&)
     {
@@ -117,6 +152,94 @@ string dialog::receive_raw()
     {
         throw dialog_error("Network receiving error.");
     }
+}
+
+
+bool dialog::connect_timed_out()
+{
+    tcp::resolver res(*_ios);
+    tcp::resolver::query q(_hostname, to_string(_port));
+    tcp::resolver::iterator it = res.resolve(q);
+    tcp::endpoint end_point = *it;
+
+    _timer.expires_at(boost::posix_time::pos_infin);
+    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
+    boost::system::error_code error;
+    check_deadline(error);
+
+    bool has_connected = false;
+    _socket.async_connect(end_point, [&has_connected](const boost::system::error_code& error)
+    {
+        if (!error)
+            has_connected = true;
+    });
+    do
+    {
+        if (_timer_expired)
+            return false;
+        _ios->run_one();
+    }
+    while (!has_connected);
+    return true;
+}
+
+
+bool dialog::send_timed_out(string line)
+{
+    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
+    bool has_written = false;
+    async_write(_socket, buffer(line, line.size()), [&has_written, &line](const boost::system::error_code& error, size_t /*bytes_no*/)
+    {
+        if (!error)
+            has_written = true;
+    });
+    do
+    {
+        if (_timer_expired)
+            return false;
+        _ios->run_one();
+    }
+    while (!has_written);
+    return true;
+}
+
+
+bool dialog::receive_timed_out(string& line)
+{
+    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
+    bool has_read = false;
+    async_read_until(_socket, *_strmbuf, "\n", [&has_read, this, &line](const boost::system::error_code& error, size_t /*bytes_no*/)
+    {
+        if (!error)
+        {
+            getline(*_istrm, line, '\n');
+            trim_if(line, is_any_of("\r\n"));
+            has_read = true;
+        }
+
+    });
+    do
+    {
+        if (_timer_expired)
+            return false;
+        _ios->run_one();
+    }
+    while (!has_read);
+    return true;
+}
+
+
+void dialog::check_deadline(const boost::system::error_code& error)
+{
+    if (_timer.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+    {
+        _timer_expired = true;
+        std::cout << "Deadline has passed." << std::endl;
+        boost::system::error_code ignored_ec;
+        _socket.close(ignored_ec);
+        _timer.expires_at(boost::posix_time::pos_infin);
+    }
+    _timer.async_wait(std::bind(&dialog::check_deadline, this, error));
 }
 
 

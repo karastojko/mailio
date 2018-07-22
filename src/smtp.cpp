@@ -44,7 +44,7 @@ namespace mailio
 {
 
 
-smtp::smtp(const string& hostname, unsigned port) : _dlg(new dialog(hostname, port))
+smtp::smtp(const string& hostname, unsigned port, unsigned long timeout) : _dlg(new dialog(hostname, port, timeout))
 {
     _src_host = read_hostname();
 }

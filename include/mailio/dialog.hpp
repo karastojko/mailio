@@ -15,9 +15,12 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <stdexcept>
+#include <chrono>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "export.hpp"
 
 
@@ -39,7 +42,7 @@ public:
     @param port         Server port.
     @throw dialog_error Server connecting failed.
     **/
-    dialog(const std::string& hostname, unsigned port);
+    dialog(const std::string& hostname, unsigned port, unsigned long timeout = 0);
 
     /**
     Moving server parameters and connection.
@@ -85,6 +88,14 @@ public:
 
 protected:
 
+    bool connect_timed_out();
+
+    bool send_timed_out(std::string line);
+
+    bool receive_timed_out(std::string& line);
+
+    void check_deadline(const boost::system::error_code& error);
+
     /**
     Server hostname.
     **/
@@ -104,6 +115,12 @@ protected:
     Socket connection.
     **/
     boost::asio::ip::tcp::socket _socket;
+
+    boost::asio::deadline_timer _timer;
+
+    unsigned long _timeout;
+
+    bool _timer_expired;
 
     /**
     Stream buffer associated to the socket.

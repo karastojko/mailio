@@ -49,7 +49,7 @@ public:
     @throw smtp_error Empty source hostname not allowed.
     @throw *          `dialog::dialog`, `read_hostname`.
     **/
-    smtp(const std::string& hostname, unsigned port);
+    smtp(const std::string& hostname, unsigned port, unsigned long timeout = 0);
 
     /**
     Sending the quit command and closing the connection.
