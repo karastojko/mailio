@@ -94,21 +94,12 @@ void dialog::send(const string& line)
 
 
 // TODO: perhaps the implementation should be common with `receive_raw()`
-string dialog::receive()
+string dialog::receive(bool raw)
 {
     if (_timeout == 0)
-        return receive_sync(_socket, false);
+        return receive_sync(_socket, raw);
     else
-        return receive_async(_socket, false);
-}
-
-
-string dialog::receive_raw()
-{
-    if (_timeout == 0)
-        return receive_sync(_socket, true);
-    else
-        return receive_async(_socket, true);
+        return receive_async(_socket, raw);
 }
 
 
@@ -278,36 +269,17 @@ void dialog_ssl::send(const string& line)
 }
 
 
-string dialog_ssl::receive()
+string dialog_ssl::receive(bool raw)
 {
     if (!_ssl)
-        return dialog::receive();
+        return dialog::receive(raw);
 
     try
     {
         if (_timeout == 0)
-            return receive_sync(_ssl_socket, false);
+            return receive_sync(_ssl_socket, raw);
         else
-            return receive_async(_ssl_socket, false);
-    }
-    catch (system_error&)
-    {
-        throw dialog_error("Network receiving error.");
-    }
-}
-
-
-string dialog_ssl::receive_raw()
-{
-    if (!_ssl)
-        return dialog::receive_raw();
-
-    try
-    {
-        if (_timeout == 0)
-            return receive_sync(_ssl_socket, true);
-        else
-            return receive_async(_ssl_socket, true);
+            return receive_async(_ssl_socket, raw);
     }
     catch (system_error&)
     {

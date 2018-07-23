@@ -77,7 +77,7 @@ void imap::authenticate(const string& username, const string& password, auth_met
 }
 
 
-// fetching literal is the only place where line is ended with LF only, instead of CRLF; thus, `receive_raw()` and counting EOLs is performed
+// fetching literal is the only place where line is ended with LF only, instead of CRLF; thus, `receive(true)` and counting EOLs is performed
 void imap::fetch(const string& mailbox, unsigned long message_no, message& msg)
 {
     select(mailbox);
@@ -124,7 +124,7 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg)
                 // loop to read string literal
                 while (_literal_state == string_literal_state_t::READING)
                 {
-                    string line = _dlg->receive_raw();
+                    string line = _dlg->receive(true);
                     if (!line.empty())
                         trim_eol(line);
                     parse_response(line);
@@ -132,7 +132,7 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg)
                 // closing parenthesis not yet read
                 if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
                 {
-                    string line = _dlg->receive_raw();
+                    string line = _dlg->receive(true);
                     if (!line.empty())
                         trim_eol(line);
                     parse_response(line);

@@ -75,19 +75,11 @@ public:
     /**
     Receiving a line from network.
 
-    @return  Line read from network.
-    @throw * `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
+    @param raw Flag if the receiving is raw (no CRLF is truncated) or not.
+    @return    Line read from network.
+    @throw *   `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
     **/
-    virtual std::string receive();
-
-    /**
-    Receiving a line from network without removing CRLF characters.
-
-    @return  Line read from network.
-    @throw * `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
-    @todo    It should be merged to `receive()`.
-    **/
-    virtual std::string receive_raw();
+    virtual std::string receive(bool raw = false);
 
 protected:
 
@@ -253,18 +245,11 @@ public:
     /**
     Receiving an encrypted or unecrypted line, depending of SSL state.
 
-    @return  Line read from network
-    @throw * `dialog::receive()`, `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
+    @param raw Flag if the receiving is raw (no CRLF is truncated) or not.
+    @return    Line read from network
+    @throw *   `dialog::receive()`, `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
     **/
-    std::string receive();
-
-    /**
-    Receiving an encrypted or unecrypted line, depending of SSL flag, without removing CRLF characters.
-
-    @return  Line read from network.
-    @throw * `dialog::receive_raw()`, `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
-    **/
-    virtual std::string receive_raw();
+    std::string receive(bool raw = false);
 
 protected:
 
