@@ -18,6 +18,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <vector>
 #include <tuple>
 #include <list>
+#include <chrono>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -65,9 +66,10 @@ public:
 
     @param hostname Hostname of the server.
     @param port     Port of the server.
+    @param timeout  Network timeout after which I/O operations fail. If zero, then no timeout is set i.e. I/O operations are synchronous.
     @throw *        `dialog::dialog(const string&, unsigned)`.
     **/
-    imap(const std::string& hostname, unsigned port, unsigned long timeout = 0);
+    imap(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
 
     /**
     Sending the logout command and closing the connection.

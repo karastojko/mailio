@@ -12,7 +12,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <algorithm>
-#include <future>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <mailio/dialog.hpp>
@@ -22,8 +21,7 @@ using std::string;
 using std::to_string;
 using std::move;
 using std::istream;
-using std::future;
-using std::future_status;
+using std::chrono::milliseconds;
 using boost::asio::ip::tcp;
 using boost::asio::buffer;
 using boost::asio::streambuf;
@@ -38,13 +36,13 @@ namespace mailio
 {
 
 
-dialog::dialog(const string& hostname, unsigned port, unsigned long timeout) :
+dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
     _hostname(hostname), _port(port), _ios(new io_service()), _socket(*_ios), _timer(*_ios), _strmbuf(new streambuf()), _istrm(new istream(_strmbuf.get())),
     _timeout(timeout), _timer_expired(false)
 {
     try
     {
-        if (_timeout == 0)
+        if (_timeout.count() == 0)
         {
             tcp::resolver res(*_ios);
             tcp::resolver::query q(_hostname, to_string(_port));
@@ -86,7 +84,7 @@ dialog::~dialog()
 
 void dialog::send(const string& line)
 {
-    if (_timeout == 0)
+    if (_timeout.count() == 0)
         send_sync(_socket, line);
     else
         send_async(_socket, line);
@@ -96,7 +94,7 @@ void dialog::send(const string& line)
 // TODO: perhaps the implementation should be common with `receive_raw()`
 string dialog::receive(bool raw)
 {
-    if (_timeout == 0)
+    if (_timeout.count() == 0)
         return receive_sync(_socket, raw);
     else
         return receive_async(_socket, raw);
@@ -145,7 +143,7 @@ void dialog::connect_async()
     tcp::endpoint end_point = *it;
 
     _timer.expires_at(boost::posix_time::pos_infin);
-    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
+    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
     boost::system::error_code error;
     check_timeout(error);
 
@@ -170,7 +168,7 @@ void dialog::connect_async()
 template<typename Socket>
 void dialog::send_async(Socket& socket, string line)
 {
-    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
+    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
     bool has_written = false;
     string l = line + "\r\n";
     async_write(socket, buffer(l, l.size()), [&has_written](const boost::system::error_code& error, size_t /*bytes_no*/)
@@ -193,7 +191,7 @@ void dialog::send_async(Socket& socket, string line)
 template<typename Socket>
 string dialog::receive_async(Socket& socket, bool raw)
 {
-    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout));
+    _timer.expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
     bool has_read = false;
     string line;
     async_read_until(socket, *_strmbuf, "\n", [&has_read, this, &line, raw](const boost::system::error_code& error, size_t /*bytes_no*/)
@@ -232,7 +230,7 @@ void dialog::check_timeout(const boost::system::error_code& error)
 }
 
 
-dialog_ssl::dialog_ssl(const string& hostname, unsigned port, unsigned long timeout) :
+dialog_ssl::dialog_ssl(const string& hostname, unsigned port, milliseconds timeout) :
     dialog(hostname, port, timeout), _ssl(false), _context(context::sslv23), _ssl_socket(_socket, _context)
 {
 }
@@ -262,7 +260,7 @@ void dialog_ssl::send(const string& line)
         return;
     }
 
-    if (_timeout == 0)
+    if (_timeout.count() == 0)
         send_sync(_ssl_socket, line);
     else
         send_async(_ssl_socket, line);
@@ -276,7 +274,7 @@ string dialog_ssl::receive(bool raw)
 
     try
     {
-        if (_timeout == 0)
+        if (_timeout.count() == 0)
             return receive_sync(_ssl_socket, raw);
         else
             return receive_async(_ssl_socket, raw);

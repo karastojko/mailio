@@ -11,7 +11,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
-#include <iostream>
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -22,8 +21,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/smtp.hpp>
 
 
-using std::cout;
-using std::endl;
 using std::ostream;
 using std::istream;
 using std::vector;
@@ -35,16 +32,16 @@ using std::move;
 using std::runtime_error;
 using std::out_of_range;
 using std::invalid_argument;
+using std::chrono::milliseconds;
 using boost::asio::ip::host_name;
 using boost::system::system_error;
-
 
 
 namespace mailio
 {
 
 
-smtp::smtp(const string& hostname, unsigned port, unsigned long timeout) : _dlg(new dialog(hostname, port, timeout))
+smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) : _dlg(new dialog(hostname, port, timeout))
 {
     _src_host = read_hostname();
 }

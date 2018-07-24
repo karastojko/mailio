@@ -17,6 +17,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <memory>
 #include <tuple>
 #include <stdexcept>
+#include <chrono>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -46,10 +47,11 @@ public:
 
     @param hostname   Hostname of the server.
     @param port       Port of the server.
+    @param timeout    Network timeout after which I/O operations fail. If zero, then no timeout is set i.e. I/O operations are synchronous.
     @throw smtp_error Empty source hostname not allowed.
     @throw *          `dialog::dialog`, `read_hostname`.
     **/
-    smtp(const std::string& hostname, unsigned port, unsigned long timeout = 0);
+    smtp(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
 
     /**
     Sending the quit command and closing the connection.

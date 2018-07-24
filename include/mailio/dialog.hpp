@@ -44,7 +44,7 @@ public:
     @throw dialog_error Server connecting failed.
     @throw *             `connect_async()`.
     **/
-    dialog(const std::string& hostname, unsigned port, unsigned long timeout = 0);
+    dialog(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout);
 
     /**
     Moving server parameters and connection.
@@ -170,10 +170,8 @@ protected:
 
     /**
     Timeout on I/O operations in milliseconds.
-
-    @todo Chrono or POSIX duration?
     **/
-    unsigned long _timeout;
+    std::chrono::milliseconds _timeout;
 
     /**
     Flag to show whether the timeout has expired.
@@ -207,7 +205,7 @@ public:
     @param timeout  Network timeout after which I/O operations fail. If zero, then no timeout is set i.e. I/O operations are synchronous.
     @throw *        `dialog::dialog(const std::string&, unsigned)`.
     **/
-    dialog_ssl(const std::string& hostname, unsigned port, unsigned long timeout);
+    dialog_ssl(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout);
 
     /**
     Calling the parent constructor and members copy constructor.

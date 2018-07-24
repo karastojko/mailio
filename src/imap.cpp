@@ -36,6 +36,7 @@ using std::shared_ptr;
 using std::make_shared;
 using std::out_of_range;
 using std::invalid_argument;
+using std::chrono::milliseconds;
 using boost::system::system_error;
 using boost::iequals;
 using boost::regex;
@@ -50,7 +51,7 @@ namespace mailio
 {
 
 
-imap::imap(const string& hostname, unsigned port, unsigned long timeout) :
+imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
     _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(false),
     _parenthesis_list_counter(0), _literal_state(string_literal_state_t::NONE), _literal_bytes_read(0), _eols_no(2)
 {

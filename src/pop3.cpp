@@ -17,6 +17,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <stdexcept>
 #include <utility>
 #include <algorithm>
+#include <chrono>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <mailio/pop3.hpp>
@@ -39,6 +40,7 @@ using std::make_pair;
 using std::tuple;
 using std::make_tuple;
 using std::move;
+using std::chrono::milliseconds;
 using boost::algorithm::trim;
 using boost::iequals;
 
@@ -47,7 +49,7 @@ namespace mailio
 {
 
 
-pop3::pop3(const string& hostname, unsigned port, unsigned long timeout) :
+pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) :
     _dlg(new dialog(hostname, port, timeout))
 {
 }
