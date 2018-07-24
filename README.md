@@ -135,6 +135,8 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * version 0.14.0 (Q4/2017): Mail content is sent with attachments as another MIME part.
 * version 0.15.0 (Q1/2018): Line policy applied to the header. Clang/MacOS build support in Makefile.
 * version 0.16.0 (Q2/2018): Cmake scripts tested on Linux, MacOS and Windows. Sender header added.
+* version 0.17.0 (Q3/2018): Timeouts for I/O operations. Fetching only message header with IMAP.
+* version 0.18.0 (Q3/2018): Fetching only message header with POP3.
 
 
 # Contributors #
