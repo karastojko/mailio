@@ -102,16 +102,17 @@ public:
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
     
-    @param mailbox    Mailbox to fetch from.
-    @param message_no Number of the message to fetch.
-    @param msg        Message to store the result.
-    @throw imap_error Fetching message failure.
-    @throw imap_error Parsing failure.
-    @throw *          `parse_tag_result(const string&)`, `select(const string&)`, `parse_response(const string&)`,
-                      `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
-    @todo             Add server error messages to exceptions.
+    @param mailbox     Mailbox to fetch from.
+    @param message_no  Number of the message to fetch.
+    @param msg         Message to store the result.
+    @param header_only Flag if only the message header should be fetched.
+    @throw imap_error  Fetching message failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `select(const string&)`, `parse_response(const string&)`,
+                       `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
+    @todo              Add server error messages to exceptions.
     **/
-    void fetch(const std::string& mailbox, unsigned long message_no, message& msg);
+    void fetch(const std::string& mailbox, unsigned long message_no, message& msg, bool header_only = false);
 
     /**
     Getting the mailbox statistics.
@@ -344,9 +345,10 @@ public:
 
     @param hostname Hostname of the server.
     @param port     Port of the server.
+    @param timeout  Network timeout after which I/O operations fail. If zero, then no timeout is set i.e. I/O operations are synchronous.
     @throw *        `imap::imap(const std::string&, unsigned)`.
     **/
-    imaps(const std::string& hostname, unsigned port);
+    imaps(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
 
     /**
     Sending the logout command and closing the connection.

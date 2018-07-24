@@ -282,7 +282,7 @@ inline bool smtp::permanent_negative(int status)
 }
 
 
-smtps::smtps(const string& hostname, unsigned port) : smtp(hostname, port)
+smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp(hostname, port, timeout)
 {
 }
 

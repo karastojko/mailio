@@ -261,7 +261,7 @@ tuple<string, string> pop3::parse_status(const string& line)
 }
 
 
-pop3s::pop3s(const string& hostname, unsigned port) : pop3(hostname, port)
+pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3(hostname, port, timeout)
 {
 }
 

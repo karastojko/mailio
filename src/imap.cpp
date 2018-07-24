@@ -11,7 +11,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
  
 
-#include <iostream>
 #include <string>
 #include <tuple>
 #include <algorithm>
@@ -22,8 +21,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/imap.hpp>
 
 
-using std::cout;
-using std::endl;
 using std::string;
 using std::to_string;
 using std::stoul;
@@ -79,10 +76,11 @@ void imap::authenticate(const string& username, const string& password, auth_met
 
 
 // fetching literal is the only place where line is ended with LF only, instead of CRLF; thus, `receive(true)` and counting EOLs is performed
-void imap::fetch(const string& mailbox, unsigned long message_no, message& msg)
+void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, bool header_only)
 {
+    const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
     select(mailbox);
-    _dlg->send(format("FETCH " + to_string(message_no) + " RFC822"));
+    _dlg->send(format("FETCH " + to_string(message_no) + " " + RFC822_TOKEN));
 
     bool has_more = true;
     while (has_more)
@@ -102,7 +100,7 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg)
                         bool rfc_found = false;
                         for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
                         {
-                            if ((*token)->token_type == response_token_t::token_type_t::ATOM && iequals((*token)->atom, "RFC822"))
+                            if ((*token)->token_type == response_token_t::token_type_t::ATOM && iequals((*token)->atom, RFC822_TOKEN))
                             {
                                 rfc_found = true;
                                 continue;
@@ -517,7 +515,7 @@ list<shared_ptr<imap::response_token_t>>* imap::find_last_token_list(list<shared
 }
 
 
-imaps::imaps(const string& hostname, unsigned port) : imap(hostname, port)
+imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap(hostname, port, timeout)
 {
 }
 

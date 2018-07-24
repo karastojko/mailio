@@ -223,9 +223,10 @@ public:
 
     @param hostname Hostname of the server.
     @param port     Port of the server.
+    @param timeout  Network timeout after which I/O operations fail. If zero, then no timeout is set i.e. I/O operations are synchronous.
     @throw *        `smtp::smtp(const string&, unsigned)`.
     **/
-    smtps(const std::string& hostname, unsigned port);
+    smtps(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
 
     /**
     Sending the quit command and closing the connection.
