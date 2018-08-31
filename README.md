@@ -42,6 +42,10 @@ conn.fetch("inbox", 1, msg);
 
 More advanced features are shown in `examples` directory, see below how to compile them.
 
+Note for Gmail users: if 2FA is turned on, then instead of the primary password, the application password must be used. Follow
+[Gmail instructions](https://support.google.com/accounts/answer/185833) to add *mailio* as trusted application and use the generated password for all three
+protocols.
+
 
 # Requirements #
 
