@@ -90,7 +90,12 @@ cd ./build
 cmake ..
 make
 ```
-Both static and dynamic libraries should be built.
+Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default installation directory say `/opt/mailio`, then
+the last two steps should be:
+```
+cmake -DCMAKE_INSTALL_PREFIX=/opt/mailio ..
+make install
+```
 
 
 ## Microsoft Windows ##
