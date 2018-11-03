@@ -152,6 +152,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 
 * [Trevor Mellon](https://github.com/TrevorMellon): CMake build scripts.
 * [Kira Backes](mailto:kira.backes[at]nrwsoft.de): Fix for correct default message date.
+* [sledgehammer_999](mailto:hammered999[at]gmail.com): Replacement of Boost random function with the standard one.
 
 
 # Contact #
