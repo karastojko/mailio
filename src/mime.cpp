@@ -16,8 +16,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <sstream>
 #include <map>
 #include <vector>
-#include <boost/random/random_device.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
+#include <random>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <mailio/base64.hpp>
@@ -904,8 +903,8 @@ string mime::make_boundary() const
 {
     string bound;
     bound.reserve(10);
-    boost::random::random_device rng;
-    boost::random::uniform_int_distribution<> index_dist(0, codec::HEX_DIGITS.size() - 1);
+    std::random_device rng;
+    std::uniform_int_distribution<> index_dist(0, codec::HEX_DIGITS.size() - 1);
     for (int i = 0; i < 10; i++)
         bound += codec::HEX_DIGITS[index_dist(rng)];
     return "-------" + bound;

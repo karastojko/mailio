@@ -54,7 +54,7 @@ Mailio library is supposed to work on all platforms supporting C++ 11 compiler, 
 For Linux the following configuration is tested:
 
 * gcc 7.3.0.
-* Boost 1.66 with Regex, Date Time, Random available.
+* Boost 1.66 with Regex, Date Time available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
 * CMake 3.11
 
