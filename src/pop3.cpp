@@ -10,7 +10,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -23,8 +22,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/pop3.hpp>
 
 
-using std::cout;
-using std::endl;
 using std::istream;
 using std::string;
 using std::to_string;
@@ -169,13 +166,25 @@ auto pop3::statistics() -> mailbox_stat_t
 }
 
 
-void pop3::fetch(unsigned long message_no, message& msg)
+void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
 {
-    _dlg->send("RETR " + to_string(message_no));
-    string line = _dlg->receive();
-    tuple<string, string> stat_msg = parse_status(line);
-    if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Fetching message failure.");
+    string line;
+    if (header_only)
+    {
+        _dlg->send("TOP " + to_string(message_no) + " 0");
+        line = _dlg->receive();
+        tuple<string, string> stat_msg = parse_status(line);
+        if (iequals(std::get<0>(stat_msg), "-ERR"))
+            return;
+    }
+    else
+    {
+        _dlg->send("RETR " + to_string(message_no));
+        line = _dlg->receive();
+        tuple<string, string> stat_msg = parse_status(line);
+        if (iequals(std::get<0>(stat_msg), "-ERR"))
+            throw pop3_error("Fetching message failure.");
+    }
 
     // end of message is marked with crlf+dot+crlf sequence
     // empty_line marks the last empty line, so it could be used to detect end of message when dot is reached
@@ -186,6 +195,9 @@ void pop3::fetch(unsigned long message_no, message& msg)
         // reading line by line ensures that crlf are the last characters read; so, reaching single dot in the line means that it's end of message
         if (line == ".")
         {
+            // if header only, then mark the header end with the empty line
+            if (header_only)
+                msg.parse_by_line("");
             msg.parse_by_line("\r\n");
             break;
         }
