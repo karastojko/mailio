@@ -1,27 +1,28 @@
-cmake_minimum_required (VERSION 2.8)
-cmake_policy(SET CMP0048 NEW)
-set(PROJ mailio)
-project(${PROJ} VERSION 0.17.0)
+cmake_minimum_required (VERSION 3.9.6)
+
+project(mailio VERSION 0.17.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(LIBNAME ${PROJ}-static)
-set(DLLNAME ${PROJ})
-if(WIN32)
-    if(CMAKE_BUILD_TYPE MATCHES Debug)
-        set(LIBNAME ${PROJ}-static_d )
-        set(DLLNAME ${PROJ}_d)
-    endif()
-endif(WIN32)
+# options for mailio to control how the project is built.
+option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build mailio as a shared library." ON)
+option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
+option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
+
+# add a dependent option to build latex documentation or not.
+include(CMakeDependentOption)
+cmake_dependent_option(MAILIO_BUILD_LATEX_DOCUMENTATION "Build latex docs" ON "MAILIO_BUILD_DOCUMENTATION" ON)
+
 if(WIN32)
     set(Boost_USE_STATIC_LIBS ON)
 endif(WIN32)
 
 find_package(Boost REQUIRED COMPONENTS system date_time regex)
 find_package(OpenSSL)
+set(CMAKE_THREAD_PREFER_PTHREAD)
 find_package(Threads)
 
-set(LIBSRC 
+set(project_sources 
     ${PROJECT_SOURCE_DIR}/src/base64.cpp
     ${PROJECT_SOURCE_DIR}/src/binary.cpp
     ${PROJECT_SOURCE_DIR}/src/bit7.cpp
@@ -38,7 +39,7 @@ set(LIBSRC
     ${PROJECT_SOURCE_DIR}/src/smtp.cpp
 )
 
-set(LIBINC
+set(project_headers
     ${PROJECT_SOURCE_DIR}/include/mailio/base64.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/binary.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/bit7.hpp
@@ -53,73 +54,64 @@ set(LIBINC
     ${PROJECT_SOURCE_DIR}/include/mailio/quoted_printable.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/q_codec.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/smtp.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/export.hpp
 )
 
-cmake_policy(SET CMP0057 NEW)
-find_package(Doxygen OPTIONAL_COMPONENTS dot)
-if(DOXYGEN_FOUND)
-    SET(DOCOUTDIR ${PROJECT_BINARY_DIR}/docs)
-    SET (DOXYCONF ${PROJECT_BINARY_DIR}/doxygen.conf)
-    configure_file(${PROJECT_SOURCE_DIR}/doxygen.conf.in ${DOXYCONF})
-    add_custom_target( docs ALL
-    COMMAND ${DOXYGEN_EXECUTABLE}  ${DOXYCONF}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Doxygen ${DOXYCONF}"
-    VERBATIM )
-    install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
-    install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/latex DESTINATION docs)
-else(DOXYGEN_FOUND)
-    message(STATUS "doxygen was not found, documentation will not be built")
-endif(DOXYGEN_FOUND)
+# handle documentation
+if(${MAILIO_BUILD_DOCUMENTATION})
+	find_package(Doxygen COMPONENTS doxygen OPTIONAL_COMPONENTS dot)
+	if(DOXYGEN_FOUND)
+		set(DOCOUTDIR ${PROJECT_BINARY_DIR}/docs)	
+		set(DOXYGEN_GENERATE_LATEX ${MAILIO_BUILD_LATEX_DOCUMENTATION})
+		set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
 
-include_directories(include)
+		doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(${LIBNAME} STATIC ${LIBSRC} ${LIBINC})
-add_library(${DLLNAME} SHARED ${LIBSRC} ${LIBINC})
-if(WIN32)
-    target_compile_definitions(${DLLNAME} PUBLIC "-DMAILIO_BUILDING_DLL")
-endif(WIN32)
+		# install the documentation
+		install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
+		install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/latex DESTINATION docs)
+	else(DOXYGEN_FOUND)
+		message(STATUS "doxygen was not found, documentation will not be built")
+	endif(DOXYGEN_FOUND)
+endif(${MAILIO_BUILD_DOCUMENTATION})
+
+set(BUILD_SHARED_LIBS ${MAILIO_BUILD_SHARED_LIBRARY})
+
+add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
+
+# generate the export header for exporting symbols
+# this is needed to generate a shared library.
+include(GenerateExportHeader)
+generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME export.hpp)
+target_include_directories(${PROJECT_NAME} 
+	PUBLIC
+		"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}>"
+		"$<INSTALL_INTERFACE:include>"
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/export.hpp DESTINATION include/mailio)
 
 if(Boost_FOUND)
-    target_include_directories(${LIBNAME} PUBLIC ${Boost_INCLUDE_DIRS})
-    target_include_directories(${DLLNAME} PUBLIC ${Boost_INCLUDE_DIRS})
-    target_link_libraries(${DLLNAME} ${Boost_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 endif()
 
 if(OPENSSL_FOUND)
-    target_include_directories(${LIBNAME} PUBLIC ${OPENSSL_INCLUDE_DIR})
-    target_include_directories(${DLLNAME} PUBLIC ${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(${DLLNAME} ${OPENSSL_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${OPENSSL_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES})
 endif()
 
-file(GLOB HDRS ${PROJECT_SOURCE_DIR}/include/mailio/*.hpp)
+# install the project headers
+install(DIRECTORY include/mailio DESTINATION include)
 
-install(FILES ${HDRS} DESTINATION include/mailio)
-install(TARGETS ${LIBNAME} ${DLLNAME}
+# install the mailio library.
+install(TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
 )
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
-add_executable(imap_remove_msg examples/imap_remove_msg.cpp)
-add_executable(imaps_stat examples/imaps_stat.cpp)
-add_executable(pop3_remove_msg examples/pop3_remove_msg.cpp)
-add_executable(pop3s_attachment examples/pop3s_attachment.cpp)
-add_executable(pop3s_fetch_one examples/pop3s_fetch_one.cpp)
-add_executable(smtps_attachment examples/smtps_attachment.cpp)
-add_executable(smtps_simple_msg examples/smtps_simple_msg.cpp)
-add_executable(smtp_utf8_qp_msg examples/smtp_utf8_qp_msg.cpp)
-set_target_properties(imap_remove_msg imaps_stat pop3_remove_msg pop3s_attachment pop3s_fetch_one smtps_attachment smtps_simple_msg smtp_utf8_qp_msg PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
-target_link_libraries(imap_remove_msg ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(imaps_stat ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(pop3_remove_msg ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(pop3s_attachment ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(pop3s_fetch_one ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(smtps_attachment ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(smtps_simple_msg ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-target_link_libraries(smtp_utf8_qp_msg ${LIBNAME} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-install(TARGETS imap_remove_msg imaps_stat pop3_remove_msg pop3s_attachment pop3s_fetch_one smtps_attachment smtps_simple_msg smtp_utf8_qp_msg DESTINATION examples/)
-file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
-install(FILES ${PNGS} DESTINATION examples/)
+# optionally build examples
+if(${MAILIO_BUILD_EXAMPLES})
+	add_subdirectory(examples)
+	file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
+	install(FILES ${PNGS} DESTINATION examples/)
+endif(${MAILIO_BUILD_EXAMPLES})
