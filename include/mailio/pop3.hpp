@@ -192,7 +192,7 @@ protected:
 /**
 Secure version of POP3 client.
 **/
-class pop3s : public pop3
+class MAILIO_EXPORT pop3s : public pop3
 {
 public:
 
