@@ -329,7 +329,7 @@ protected:
 /**
 Secure version of `imap` class.
 **/
-class imaps : public imap
+class MAILIO_EXPORT imaps : public imap
 {
 public:
 
