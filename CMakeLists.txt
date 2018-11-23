@@ -58,20 +58,20 @@ set(project_headers
 
 # handle documentation
 if(${MAILIO_BUILD_DOCUMENTATION})
-	find_package(Doxygen COMPONENTS doxygen OPTIONAL_COMPONENTS dot)
-	if(DOXYGEN_FOUND)
-		set(DOCOUTDIR ${PROJECT_BINARY_DIR}/docs)	
-		set(DOXYGEN_GENERATE_LATEX ${MAILIO_BUILD_LATEX_DOCUMENTATION})
-		set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
+    find_package(Doxygen COMPONENTS doxygen OPTIONAL_COMPONENTS dot)
+    if(DOXYGEN_FOUND)
+        set(DOCOUTDIR ${PROJECT_BINARY_DIR}/docs)	
+        set(DOXYGEN_GENERATE_LATEX ${MAILIO_BUILD_LATEX_DOCUMENTATION})
+        set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
 
-		doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-		# install the documentation
-		install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
-		install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/latex DESTINATION docs)
-	else(DOXYGEN_FOUND)
-		message(STATUS "doxygen was not found, documentation will not be built")
-	endif(DOXYGEN_FOUND)
+        # install the documentation
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/latex DESTINATION docs)
+    else(DOXYGEN_FOUND)
+        message(STATUS "doxygen was not found, documentation will not be built")
+    endif(DOXYGEN_FOUND)
 endif(${MAILIO_BUILD_DOCUMENTATION})
 
 set(BUILD_SHARED_LIBS ${MAILIO_BUILD_SHARED_LIBRARY})
@@ -83,9 +83,9 @@ add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
 include(GenerateExportHeader)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME export.hpp)
 target_include_directories(${PROJECT_NAME} 
-	PUBLIC
-		"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}>"
-		"$<INSTALL_INTERFACE:include>"
+    PUBLIC
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<INSTALL_INTERFACE:include>"
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/export.hpp DESTINATION include/mailio)
 
@@ -111,7 +111,7 @@ install(TARGETS ${PROJECT_NAME}
 
 # optionally build examples
 if(${MAILIO_BUILD_EXAMPLES})
-	add_subdirectory(examples)
-	file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
-	install(FILES ${PNGS} DESTINATION examples/)
+    add_subdirectory(examples)
+    file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
+    install(FILES ${PNGS} DESTINATION examples/)
 endif(${MAILIO_BUILD_EXAMPLES})

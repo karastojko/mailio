@@ -96,7 +96,8 @@ the last two steps should be:
 cmake -DCMAKE_INSTALL_PREFIX=/opt/mailio ..
 make install
 ```
-
+Other available options are `MAILIO_BUILD_SHARED_LIBRARY` (by default is on, if turned off then the static library is built), `MAILIO_BUILD_DOCUMENTATION`
+(if Doxygen documentation is generated, by default is on) and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 ## Microsoft Windows ##
 
@@ -153,9 +154,9 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Trevor Mellon](https://github.com/TrevorMellon): CMake build scripts.
 * [Kira Backes](mailto:kira.backes[at]nrwsoft.de): Fix for correct default message date.
 * [sledgehammer_999](mailto:hammered999[at]gmail.com): Replacement of Boost random function with the standard one.
+* [Paul Tsouchlos](mailto:developer.paul.123[at]gmail.com): Modernizing build scripts. 
 
 
 # Contact #
 
-The library is one man show. In case you find a bug, please drop me a mail to contact (at) alepho.com. Since this is my
-side project, I'll do my best to be responsive.
+In case you find a bug, please drop me a mail to contact (at) alepho.com. Since this is my side project, I'll do my best to be responsive.
