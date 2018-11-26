@@ -156,7 +156,7 @@ protected:
     /**
     Asio input/output service.
     **/
-    std::unique_ptr<boost::asio::io_service> _ios;
+    std::unique_ptr<boost::asio::io_context> _ios;
 
     /**
     Socket connection.
