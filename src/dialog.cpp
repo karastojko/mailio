@@ -25,7 +25,7 @@ using std::chrono::milliseconds;
 using boost::asio::ip::tcp;
 using boost::asio::buffer;
 using boost::asio::streambuf;
-using boost::asio::io_service;
+using boost::asio::io_context;
 using boost::asio::ssl::context;
 using boost::system::system_error;
 using boost::algorithm::trim_if;
@@ -37,7 +37,7 @@ namespace mailio
 
 
 dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
-    _hostname(hostname), _port(port), _ios(new io_service()), _socket(*_ios), _timer(*_ios), _strmbuf(new streambuf()), _istrm(new istream(_strmbuf.get())),
+    _hostname(hostname), _port(port), _ios(new io_context()), _socket(*_ios), _timer(*_ios), _strmbuf(new streambuf()), _istrm(new istream(_strmbuf.get())),
     _timeout(timeout), _timer_expired(false)
 {
     try
@@ -45,10 +45,7 @@ dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
         if (_timeout.count() == 0)
         {
             tcp::resolver res(*_ios);
-            tcp::resolver::query q(_hostname, to_string(_port));
-            tcp::resolver::iterator it = res.resolve(q);
-            tcp::endpoint end_point = *it;
-            _socket.connect(end_point);
+            boost::asio::connect(_socket, res.resolve(_hostname, to_string(_port)));
         }
         else
             connect_async();
@@ -138,9 +135,6 @@ string dialog::receive_sync(Socket& socket, bool raw)
 void dialog::connect_async()
 {
     tcp::resolver res(*_ios);
-    tcp::resolver::query q(_hostname, to_string(_port));
-    tcp::resolver::iterator it = res.resolve(q);
-    tcp::endpoint end_point = *it;
 
     _timer.expires_at(boost::posix_time::pos_infin);
     _timer.expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
@@ -148,7 +142,8 @@ void dialog::connect_async()
     check_timeout(error);
 
     bool has_connected = false;
-    _socket.async_connect(end_point, [&has_connected](const boost::system::error_code& error)
+    boost::asio::async_connect(_socket, res.resolve(_hostname, to_string(_port)),
+                               [&has_connected](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint)
     {
         if (!error)
             has_connected = true;
