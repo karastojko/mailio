@@ -155,7 +155,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Kira Backes](mailto:kira.backes[at]nrwsoft.de): Fix for correct default message date.
 * [sledgehammer_999](mailto:hammered999[at]gmail.com): Replacement of Boost random function with the standard one.
 * [Paul Tsouchlos](mailto:developer.paul.123[at]gmail.com): Modernizing build scripts.
-* [Anton Zhvakin](mailio:a.zhvakin[at]galament.com): Replacement of deprecated Boost Asio entities.
+* [Anton Zhvakin](mailto:a.zhvakin[at]galament.com): Replacement of deprecated Boost Asio entities.
 
 
 # Contact #
