@@ -231,6 +231,12 @@ protected:
     unsigned _tag;
     
     /**
+    Currently selected mailbox.
+    @todo Keep mailbox statistics (EXISTS, RECENT, UNSEEN, etc...) and keep uptodate with unsolicited data messages
+    **/
+    std::string _mailbox;
+
+    /**
     Token of the response defined by the grammar.
     
     Its type is determined by the content, and can be either atom, string literal or parenthesized list. Thus, it can be considered as union of

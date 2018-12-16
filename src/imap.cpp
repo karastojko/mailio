@@ -226,17 +226,7 @@ void imap::remove(const string& mailbox, unsigned long message_no)
         {
             if (!iequals(std::get<1>(tag_result_response), "OK"))
                 throw imap_error("Deleting message failure.");
-            else
-            {
-                _dlg->send(format("CLOSE"));
-                string line = _dlg->receive();
-                
-                tuple<string, string, string> tag_result_response = parse_tag_result(line);
-                if (!iequals(std::get<0>(tag_result_response), to_string(_tag)))
-                    throw imap_error("Parsing failure.");
-                if (!iequals(std::get<1>(tag_result_response), "OK"))
-                    throw imap_error("Deleting message failure.");
-            }
+
             has_more = false;
         }
         else
@@ -282,6 +272,9 @@ void imap::auth_login(const string& username, const string& password)
 
 void imap::select(const string& mailbox)
 {
+    if (_mailbox == mailbox)
+        return;
+
     _dlg->send(format("SELECT " + mailbox));
 
     bool has_more = true;
@@ -297,6 +290,7 @@ void imap::select(const string& mailbox)
             if (!iequals(std::get<1>(tag_result_response), "OK"))
                 throw imap_error("Selecting mailbox failure.");
  
+            _mailbox = mailbox;
             has_more = false;
         }
         else
