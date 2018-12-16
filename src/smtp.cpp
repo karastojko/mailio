@@ -27,6 +27,7 @@ using std::vector;
 using std::string;
 using std::to_string;
 using std::tuple;
+using std::pair;
 using std::stoi;
 using std::move;
 using std::runtime_error;
@@ -86,45 +87,40 @@ void smtp::submit(const message& msg)
         _dlg->send("MAIL FROM: <" + msg.sender().address + ">");
     else
         _dlg->send("MAIL FROM: <" + msg.from().addresses.at(0).address + ">");
-    string line = _dlg->receive();
-    tuple<int, bool, string> tokens = parse_line(line);
-    if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))
-        throw smtp_error("Mail sender rejection.");
+    auto resp = read_response();
+    if (!positive_completion(std::get<0>(resp)))
+        throw smtp_error("Mail sender rejection.", std::get<1>(resp));
 
     for (const auto& recipients : { msg.recipients(), msg.cc_recipients(), msg.bcc_recipients() })
     {
         for (const auto& rcpt : recipients.addresses)
         {
             _dlg->send("RCPT TO: <" + rcpt.address + ">");
-            line = _dlg->receive();
-            tokens = parse_line(line);
-            if (!positive_completion(std::get<0>(tokens)))
-                throw smtp_error("Mail recipient rejection.");
+            resp = read_response();
+            if (!positive_completion(std::get<0>(resp)))
+                throw smtp_error("Mail recipient rejection.", std::get<1>(resp));
         }
 
         for (const auto& rcpt : recipients.groups)
         {
             _dlg->send("RCPT TO: <" + rcpt.name + ">");
-            line = _dlg->receive();
-            tokens = parse_line(line);
-            if (!positive_completion(std::get<0>(tokens)))
-                throw smtp_error("Mail group recipient rejection.");
+            resp = read_response();
+            if (!positive_completion(std::get<0>(resp)))
+                throw smtp_error("Mail group recipient rejection.", std::get<1>(resp));
         }
     }
 
     _dlg->send("DATA");
-    line = _dlg->receive();
-    tokens = parse_line(line);
-    if (!positive_intermediate(std::get<0>(tokens)))
-        throw smtp_error("Mail message rejection.");
+    resp = read_response();
+    if (!positive_intermediate(std::get<0>(resp)))
+        throw smtp_error("Mail message rejection.", std::get<1>(resp));
 
     string msg_str;
     msg.format(msg_str, true);
     _dlg->send(msg_str + "\r\n.");
-    line = _dlg->receive();
-    tokens = parse_line(line);
-    if (!positive_completion(std::get<0>(tokens)))
-        throw smtp_error("Mail message rejection.");
+    resp = read_response();
+    if (!positive_completion(std::get<0>(resp)))
+        throw smtp_error("Mail message rejection.", std::get<1>(resp));
 }
 
 
@@ -142,10 +138,9 @@ string smtp::source_hostname() const
 
 void smtp::connect()
 {
-    string line = _dlg->receive();
-    tuple<int, bool, string> tokens = parse_line(line);
-    if (std::get<0>(tokens) != 220)
-        throw smtp_error("Connection rejection.");
+    auto resp = read_response();
+    if (std::get<0>(resp) != 220)
+        throw smtp_error("Connection rejection.", std::get<1>(resp));
 }
 
 
@@ -155,7 +150,7 @@ void smtp::auth_login(const string& username, const string& password)
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_intermediate(std::get<0>(tokens)))
-        throw smtp_error("Authentication rejection.");
+        throw smtp_error("Authentication rejection.", std::get<2>(tokens));
 
     // TODO: use static encode from base64
     base64 b64;
@@ -163,40 +158,28 @@ void smtp::auth_login(const string& username, const string& password)
     line = _dlg->receive();
     tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_intermediate(std::get<0>(tokens)))
-        throw smtp_error("Username rejection.");
+        throw smtp_error("Username rejection.", std::get<2>(tokens));
 
     _dlg->send(b64.encode(password)[0]);
     line = _dlg->receive();
     tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))
-        throw smtp_error("Password rejection.");
+        throw smtp_error("Password rejection.", std::get<2>(tokens));
 }
 
 
 void smtp::ehlo()
 {
     _dlg->send("EHLO " + _src_host);
-    string line = _dlg->receive();
-    tuple<int, bool, string> tokens = parse_line(line);    
-    while (!std::get<1>(tokens))
-    {
-        line = _dlg->receive();
-        tokens = parse_line(line);
-    }
+    auto resp = read_response();
 
-    if (!positive_completion(std::get<0>(tokens)))
+    if (!positive_completion(std::get<0>(resp)))
     {
         _dlg->send("HELO " + _src_host);
-        
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        while (!std::get<1>(tokens))
-        {
-            line = _dlg->receive();
-            tokens = parse_line(line);
-        }
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Initial message rejection.");
+        resp = read_response();
+
+        if (!positive_completion(std::get<0>(resp)))
+            throw smtp_error("Initial message rejection.", std::get<1>(resp));
     }
 }
 
@@ -228,6 +211,23 @@ tuple<int, bool, string> smtp::parse_line(const string& line)
     {
         throw smtp_error("Parsing server failure.");
     }
+}
+
+
+pair<int, string> smtp::read_response()
+{
+    string response;
+    string line = _dlg->receive();
+    tuple<int, bool, string> tokens = parse_line(line);
+    response.append(std::get<2>(tokens));
+    while (!std::get<1>(tokens))
+    {
+        line = _dlg->receive();
+        tokens = parse_line(line);
+        response.append("\n");
+        response.append(std::get<2>(tokens));
+    }
+    return make_pair(std::get<0>(tokens), response);
 }
 
 
@@ -288,10 +288,9 @@ void smtps::authenticate(const string& username, const string& password, auth_me
 void smtps::start_tls()
 {
     _dlg->send("STARTTLS");
-    string line = _dlg->receive();
-    tuple<int, bool, string> tokens = parse_line(line);
-    if (std::get<1>(tokens) && std::get<0>(tokens) != 220)
-        throw smtp_error("Start tls refused by server.");
+    auto resp = read_response();
+    if (std::get<0>(resp) != 220)
+        throw smtp_error("Start tls refused by server.", std::get<1>(resp));
 
     switch_to_ssl();
     ehlo();

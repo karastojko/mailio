@@ -168,6 +168,14 @@ protected:
     static std::tuple<int, bool, std::string> parse_line(const std::string& response);
 
     /**
+    Read the response line(s) into status & text.
+
+    @return           Pair with a status number and response text.
+    @throw smtp_error Parsing server failure.
+    **/
+    std::pair<int, std::string> read_response();
+
+    /**
     Checking if the status is 2XX.
 
     @param status Status to check.
