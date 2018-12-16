@@ -304,11 +304,20 @@ tuple<string, string, string> imap::parse_tag_result(const string& line) const
     string::size_type tag_pos = line.find(' ');
     if (tag_pos == string::npos)
         throw imap_error("Parsing failure.");
-    
+
+    // Command continuation: "+" SP (resp-text / base64) CRLF
+    if (tag_pos == 1 && line.at(0) == '+')
+        return make_tuple(line.substr(0, tag_pos), "", line.substr(tag_pos + 1));
+
     string::size_type result_pos = line.find(' ', tag_pos + 1);
+
+    // Response data may not have any text component (ie. SEARCH)
+    if (result_pos == string::npos && tag_pos == 1 && line.at(0) == '*')
+        return make_tuple(line.substr(0, tag_pos), line.substr(tag_pos + 1), "");
+
     if (result_pos == string::npos)
         throw imap_error("Parsing failure.");
-    
+
     return make_tuple(line.substr(0, tag_pos), line.substr(tag_pos + 1, result_pos - tag_pos - 1), line.substr(result_pos + 1));
 }
 
