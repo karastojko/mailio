@@ -64,6 +64,12 @@ pop3::~pop3()
 }
 
 
+void pop3::set_trace_func(const std::function<dialog::trace_func> &func)
+{
+    _dlg->set_trace_func(func);
+}
+
+
 void pop3::authenticate(const string& username, const string& password, auth_method_t method)
 {
     connect();

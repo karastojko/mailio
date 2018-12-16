@@ -95,6 +95,13 @@ public:
     void operator=(pop3&&) = delete;
 
     /**
+    Set the tracing function.
+
+    @param func Tracing function.
+    **/
+    void set_trace_func(const std::function<dialog::trace_func> &func);
+
+    /**
     Authentication with the given credentials.
 
     The method should be called only once on an existing object - it is not possible to authenticate again within the same connection.

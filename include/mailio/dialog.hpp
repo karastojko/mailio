@@ -34,7 +34,6 @@ Dealing with network in a line oriented fashion.
 class MAILIO_EXPORT dialog
 {
 public:
-
     /**
     Making a connection to the server.
 
@@ -80,6 +79,18 @@ public:
     @throw *   `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
     **/
     virtual std::string receive(bool raw = false);
+
+    /**
+    Function type for tracing network traffic.
+    **/
+    typedef void trace_func(bool send, const std::string& line);
+
+    /**
+    Set the tracing function.
+
+    @param func Tracing function.
+    **/
+    void set_trace_func(const std::function<trace_func> &func);
 
 protected:
 
@@ -187,6 +198,11 @@ protected:
     Input stream associated to the buffer.
     **/
     std::unique_ptr<std::istream> _istrm;
+
+    /**
+    Trace function of sent/received data.
+    **/
+    std::function<trace_func> _trace_func;
 };
 
 
@@ -238,7 +254,7 @@ public:
     @param line Line to send.
     @throw *    `dialog::send(const std::string&)`, `send_sync<Socket>(Socket&, const std::string&)`, `send_async<Socket>(Socket&, const std::string&)`.
     **/
-    void send(const std::string& line);
+    virtual void send(const std::string& line) override;
 
     /**
     Receiving an encrypted or unecrypted line, depending of SSL state.
@@ -247,7 +263,7 @@ public:
     @return    Line read from network
     @throw *   `dialog::receive()`, `receive_sync<Socket>(Socket&, bool)`, `receive_async<Socket>(Socket&, bool)`.
     **/
-    std::string receive(bool raw = false);
+    virtual std::string receive(bool raw = false) override;
 
 protected:
 

@@ -59,6 +59,12 @@ smtp::~smtp()
 }
 
 
+void smtp::set_trace_func(const std::function<dialog::trace_func> &func)
+{
+    _dlg->set_trace_func(func);
+}
+
+
 void smtp::authenticate(const string& username, const string& password, auth_method_t method)
 {
     connect();

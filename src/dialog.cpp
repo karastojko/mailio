@@ -59,7 +59,7 @@ dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
 
 dialog::dialog(dialog&& other) :
     _hostname(move(other._hostname)), _port(other._port), _socket(move(other._socket)), _timer(move(other._timer)), _timeout(other._timeout),
-    _timer_expired(other._timer_expired)
+    _timer_expired(other._timer_expired), _trace_func(other._trace_func)
 {
     _ios.reset(other._ios.release());
     _strmbuf.reset(other._strmbuf.release());
@@ -76,6 +76,12 @@ dialog::~dialog()
     catch (...)
     {
     }
+}
+
+
+void dialog::set_trace_func(const std::function<trace_func> &func)
+{
+    _trace_func = func;
 }
 
 
@@ -103,6 +109,9 @@ void dialog::send_sync(Socket& socket, const string& line)
 {
     try
     {
+        if (_trace_func)
+            _trace_func(true, line);
+
         string l = line + "\r\n";
         write(socket, buffer(l, l.size()));
     }
@@ -123,6 +132,10 @@ string dialog::receive_sync(Socket& socket, bool raw)
         getline(*_istrm, line, '\n');
         if (!raw)
             trim_if(line, is_any_of("\r\n"));
+
+        if (_trace_func)
+            _trace_func(false, line);
+
         return line;
     }
     catch (system_error&)
@@ -163,6 +176,9 @@ void dialog::connect_async()
 template<typename Socket>
 void dialog::send_async(Socket& socket, string line)
 {
+    if (_trace_func)
+        _trace_func(true, line);
+
     _timer.expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
     bool has_written = false;
     string l = line + "\r\n";
@@ -208,6 +224,10 @@ string dialog::receive_async(Socket& socket, bool raw)
         _ios->run_one();
     }
     while (!has_read);
+
+    if (_trace_func)
+        _trace_func(false, line);
+
     return line;
 }
 
