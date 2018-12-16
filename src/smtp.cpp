@@ -91,58 +91,25 @@ void smtp::submit(const message& msg)
     if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))
         throw smtp_error("Mail sender rejection.");
 
-    for (const auto& rcpt : msg.recipients().addresses)
+    for (const auto& recipients : { msg.recipients(), msg.cc_recipients(), msg.bcc_recipients() })
     {
-        _dlg->send("RCPT TO: <" + rcpt.address + ">");
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Mail recipient rejection.");
-    }
+        for (const auto& rcpt : recipients.addresses)
+        {
+            _dlg->send("RCPT TO: <" + rcpt.address + ">");
+            line = _dlg->receive();
+            tokens = parse_line(line);
+            if (!positive_completion(std::get<0>(tokens)))
+                throw smtp_error("Mail recipient rejection.");
+        }
 
-    for (const auto& rcpt : msg.recipients().groups)
-    {
-        _dlg->send("RCPT TO: <" + rcpt.name + ">");
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Mail group recipient rejection.");
-    }
-
-    for (const auto& rcpt : msg.cc_recipients().addresses)
-    {
-        _dlg->send("RCPT TO: <" + rcpt.address + ">");
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Mail cc recipient rejection.");
-    }
-
-    for (const auto& rcpt : msg.cc_recipients().groups)
-    {
-        _dlg->send("RCPT TO: <" + rcpt.name + ">");
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Mail group cc recipient rejection.");
-    }
-
-    for (const auto& rcpt : msg.bcc_recipients().addresses)
-    {
-        _dlg->send("RCPT TO: <" + rcpt.address + ">");
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Mail bcc recipient rejection.");
-    }
-
-    for (const auto& rcpt : msg.bcc_recipients().groups)
-    {
-        _dlg->send("RCPT TO: <" + rcpt.name + ">");
-        line = _dlg->receive();
-        tokens = parse_line(line);
-        if (!positive_completion(std::get<0>(tokens)))
-            throw smtp_error("Mail group bcc recipient rejection.");
+        for (const auto& rcpt : recipients.groups)
+        {
+            _dlg->send("RCPT TO: <" + rcpt.name + ">");
+            line = _dlg->receive();
+            tokens = parse_line(line);
+            if (!positive_completion(std::get<0>(tokens)))
+                throw smtp_error("Mail group recipient rejection.");
+        }
     }
 
     _dlg->send("DATA");
