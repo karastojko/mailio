@@ -293,6 +293,27 @@ public:
     void date_time(const boost::local_time::local_date_time& mail_dt);
 
     /**
+    Setting the message id.
+
+    @param message_id Message ID to set.
+    */
+    void message_id(const std::string& message_id);
+
+    /**
+    Getting the message id.
+
+    @return Message ID value.
+    **/
+    std::string message_id() const;
+
+    /**
+    Generate a random message id using the supplied hostname.
+
+    @return Message ID value.
+    **/
+    static std::string generate_message_id(const std::string &hostname);
+
+    /**
     Attaching a file with the given media type.
 
     @param att_strm Stream to read the attachment.
@@ -377,6 +398,11 @@ protected:
     Mime version header name.
     **/
     static const std::string MIME_VERSION_HEADER;
+
+    /**
+    Message ID header name.
+    **/
+    static const std::string MESSAGE_ID_HEADER;
 
     /**
     Formatting the header to a string.
@@ -518,6 +544,11 @@ protected:
     Message date and time with time zone.
     **/
     std::shared_ptr<boost::local_time::local_date_time> _date_time;
+
+    /**
+    Message id.
+    **/
+    std::string _message_id;
 };
 
 

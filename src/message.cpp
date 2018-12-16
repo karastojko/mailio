@@ -24,6 +24,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <mailio/codec.hpp>
 #include <mailio/base64.hpp>
 #include <mailio/quoted_printable.hpp>
@@ -79,6 +81,7 @@ const string message::BCC_HEADER{"Bcc"};
 const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
+const string message::MESSAGE_ID_HEADER{"Message-ID"};
 
 
 message::message() : mime()
@@ -298,6 +301,27 @@ void message::date_time(const boost::local_time::local_date_time& mail_dt)
 }
 
 
+void message::message_id(const string& message_id)
+{
+    _message_id = message_id;
+}
+
+
+string message::message_id() const
+{
+    return _message_id;
+}
+
+
+string message::generate_message_id(const string &hostname)
+{
+    static boost::uuids::random_generator gen;
+    boost::uuids::uuid u = gen();
+
+    return "<" + to_string(u) + "@" + hostname + ">";
+}
+
+
 void message::attach(const istream& att_strm, const string& att_name, media_type_t type, const string& subtype)
 {
     if (_boundary.empty())
@@ -389,8 +413,9 @@ string message::format_header() const
         header += MIME_VERSION_HEADER + COLON + _version + codec::CRLF;
     header += mime::format_header();
 
+    header += _message_id.empty() ? "" : MESSAGE_ID_HEADER + COLON + _message_id + codec::CRLF;
     header += SUBJECT_HEADER + COLON + format_subject() + codec::CRLF;
-    
+
     return header;
 }
 
@@ -453,6 +478,8 @@ void message::parse_header_line(const string& header_line)
         *_date_time = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
         _version = trim_copy(header_value);
+    else if (iequals(header_name, MESSAGE_ID_HEADER))
+        _message_id = trim_copy(header_value);
 }
 
 
