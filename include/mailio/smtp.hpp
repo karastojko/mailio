@@ -296,6 +296,16 @@ public:
     }
 
     /**
+    Initialize with error message & server response.
+
+    @param msg      Error message.
+    @param response Server response.
+    **/
+    explicit smtp_error(const std::string& msg, const std::string& response) : std::runtime_error(msg), _response(response)
+    {
+    }
+
+    /**
     Calling the parent constructor.
 
     @param msg Error message.
@@ -303,6 +313,18 @@ public:
     explicit smtp_error(const char* msg) : std::runtime_error(msg)
     {
     }
+
+    std::string response()
+    {
+        return _response;
+    }
+
+protected:
+
+    /**
+    Last server response.
+    **/
+    std::string _response;
 };
 
 
