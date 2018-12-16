@@ -145,6 +145,31 @@ public:
     **/
     void remove(const std::string& mailbox, unsigned long message_no);
 
+    /**
+    Append a new message to the given mailbox.
+
+    @param mailbox    Mailbox to use.
+    @param msg        Number of the message to remove.
+    @throw imap_error Appending message failure.
+    @throw imap_error Parsing failure.
+    @throw *          `select(const string&)`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    **/
+    void append(const std::string& mailbox, const message& msg, const std::string& flags = "");
+
+    /**
+    Search for messages in the given mailbox.
+
+    @param mailbox    Mailbox to use.
+    @param filter     IMAP search string.
+    @param uid        Return UIDs or message numbers.
+    @throw imap_error Search failure.
+    @throw imap_error Parsing failure.
+    @throw *          `select(const string&)`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    **/
+    std::vector<unsigned long> search(const std::string& mailbox, const std::string& filter, bool uid = false);
+
 protected:
 
     /**

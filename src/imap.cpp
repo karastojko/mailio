@@ -18,6 +18,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
+#include <boost/tokenizer.hpp>
 #include <mailio/imap.hpp>
 
 
@@ -40,6 +41,7 @@ using boost::regex;
 using boost::regex_match;
 using boost::smatch;
 using boost::trim;
+using boost::tokenizer;
 using boost::algorithm::trim_if;
 using boost::algorithm::is_any_of;
 
@@ -232,6 +234,88 @@ void imap::remove(const string& mailbox, unsigned long message_no)
         else
             throw imap_error("Parsing failure.");
     }
+}
+
+
+void imap::append(const std::string& mailbox, const message& msg, const std::string& flags /* = "" */)
+{
+    string msg_str;
+    msg.format(msg_str);
+
+    string command = "APPEND " + mailbox;
+    command += flags.empty() ? "" : " (" + flags + ")";
+    command += " {" + to_string(msg_str.length()) + "}";
+
+    _dlg->send(format(command));
+    string line = _dlg->receive();
+    tuple<string, string, string> tag_result_response = parse_tag_result(line);
+
+    if (std::get<0>(tag_result_response) != "+")
+        throw imap_error("Parsing failure.");
+
+    _dlg->send(msg_str);
+
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = _dlg->receive();
+        tuple<string, string, string> tag_result_response = parse_tag_result(line);
+
+        if (std::get<0>(tag_result_response) == "*")
+            continue;
+        else if (std::get<0>(tag_result_response) == to_string(_tag))
+        {
+            if (!iequals(std::get<1>(tag_result_response), "OK"))
+                throw imap_error("Appending message failure.");
+
+            has_more = false;
+        }
+        else
+            throw imap_error("Parsing failure.");
+    }
+}
+
+
+vector<unsigned long> imap::search(const string& mailbox, const string& filter, bool uid /* = false */)
+{
+    select(mailbox);
+    _dlg->send(format((uid ? "UID SEARCH " : "SEARCH ") + filter));
+    vector<unsigned long> messages;
+
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = _dlg->receive();
+        tuple<string, string, string> tag_result_response = parse_tag_result(line);
+
+        if (std::get<0>(tag_result_response) == "*" && std::get<1>(tag_result_response) == "SEARCH")
+        {
+            parse_response(std::get<2>(tag_result_response));
+
+            for (const auto& token : _mandatory_part)
+            {
+                if (token->token_type == response_token_t::token_type_t::ATOM)
+                {
+                    tokenizer<> ids(token->atom);
+                    for (const auto& id : ids)
+                        messages.emplace_back(stoul(id));
+                }
+            }
+
+            reset_response_parser();
+        }
+        else if (std::get<0>(tag_result_response) == to_string(_tag))
+        {
+            if (!iequals(std::get<1>(tag_result_response), "OK"))
+                throw imap_error("Search failure.");
+
+            has_more = false;
+        }
+        else
+            throw imap_error("Parsing failure.");
+    }
+    reset_response_parser();
+    return messages;
 }
 
 
