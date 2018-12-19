@@ -16,6 +16,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <stdexcept>
 #include <tuple>
 #include <algorithm>
+#include <functional>
 #include <boost/asio/ip/host_name.hpp>
 #include <mailio/base64.hpp>
 #include <mailio/smtp.hpp>
@@ -30,6 +31,7 @@ using std::tuple;
 using std::pair;
 using std::stoi;
 using std::move;
+using std::cref;
 using std::runtime_error;
 using std::out_of_range;
 using std::invalid_argument;
@@ -91,9 +93,9 @@ void smtp::submit(const message& msg)
     if (!positive_completion(std::get<0>(resp)))
         throw smtp_error("Mail sender rejection.", std::get<1>(resp));
 
-    for (const auto& recipients : { msg.recipients(), msg.cc_recipients(), msg.bcc_recipients() })
+    for (const auto& recipients : { cref(msg.recipients()), cref(msg.cc_recipients()), cref(msg.bcc_recipients()) })
     {
-        for (const auto& rcpt : recipients.addresses)
+        for (const auto& rcpt : recipients.get().addresses)
         {
             _dlg->send("RCPT TO: <" + rcpt.address + ">");
             resp = read_response();
@@ -101,7 +103,7 @@ void smtp::submit(const message& msg)
                 throw smtp_error("Mail recipient rejection.", std::get<1>(resp));
         }
 
-        for (const auto& rcpt : recipients.groups)
+        for (const auto& rcpt : recipients.get().groups)
         {
             _dlg->send("RCPT TO: <" + rcpt.name + ">");
             resp = read_response();
