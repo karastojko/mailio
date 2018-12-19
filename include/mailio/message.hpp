@@ -196,7 +196,7 @@ public:
 
     @return List of recipients.
     **/
-    mailboxes recipients() const;
+    const mailboxes& recipients() const;
 
     /**
     Getting the recipients names and addresses as string.
@@ -225,7 +225,7 @@ public:
 
     @return List of CC recipients.
     **/
-    mailboxes cc_recipients() const;
+    const mailboxes& cc_recipients() const;
 
     /**
     Getting the CC recipients names and addresses as string.
@@ -254,7 +254,7 @@ public:
 
     @return List of BCC recipients.
     **/
-    mailboxes bcc_recipients() const;
+    const mailboxes& bcc_recipients() const;
 
     /**
     Getting the BCC recipients names and addresses as string.

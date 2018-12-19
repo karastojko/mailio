@@ -217,7 +217,7 @@ void message::add_recipient(const mail_group& group)
 }
 
 
-mailboxes message::recipients() const
+const mailboxes& message::recipients() const
 {
     return _recipients;
 }
@@ -241,7 +241,7 @@ void message::add_cc_recipient(const mail_group& group)
 }
 
 
-mailboxes message::cc_recipients() const
+const mailboxes& message::cc_recipients() const
 {
     return _cc_recipients;
 }
@@ -265,7 +265,7 @@ void message::add_bcc_recipient(const mail_group& group)
 }
 
 
-mailboxes message::bcc_recipients() const
+const mailboxes& message::bcc_recipients() const
 {
     return _bcc_recipients;
 }
