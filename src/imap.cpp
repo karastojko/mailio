@@ -396,7 +396,7 @@ void imap::parse_response(const string& response)
                 if (_parenthesis_list_counter == 0)
                     throw imap_error("Parser failure.");
                 _parenthesis_list_counter--;
-                
+                _atom_state = false;
             }
             break;
             
@@ -411,7 +411,6 @@ void imap::parse_response(const string& response)
                 token_list->push_back(cur_token);
                 _literal_state = string_literal_state_t::SIZE;
                 _atom_state = false;
-                
             }
             break;
             
@@ -426,14 +425,9 @@ void imap::parse_response(const string& response)
             
             case codec::SPACE_CHAR:
             {
-                if (_parenthesis_list_counter > 0)
-                {
-                    _atom_state = false;
-                    if (cur_token != nullptr)
-                        trim(cur_token->atom);
-                }
-                else
-                    cur_token->atom += ch;
+                _atom_state = false;
+                if (cur_token != nullptr)
+                    trim(cur_token->atom);
             }
             break;
             
