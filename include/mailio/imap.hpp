@@ -13,12 +13,12 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #pragma once
 
-#include <string>
-#include <stdexcept>
-#include <vector>
-#include <tuple>
-#include <list>
 #include <chrono>
+#include <list>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <vector>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -138,6 +138,16 @@ public:
     **/
     void remove(const std::string& mailbox, unsigned long message_no);
 
+    /**
+    Creating folder.
+
+    @param folder_tree Folder to be created.
+    @throw imap_error  Parsing failure.
+    @throw imap_error  Creating folder failure.
+    @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    void create_folder(std::vector<std::string> folder_tree);
+
 protected:
 
     /**
@@ -221,6 +231,8 @@ protected:
     @param line Line to trim.
     **/
     void trim_eol(std::string& line);
+
+    std::string folder_tree_to_string(std::vector<std::string> folder_tree, std::string delimiter) const;
 
     /**
     Dialog to use for send/receive operations.

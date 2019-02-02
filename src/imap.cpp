@@ -11,28 +11,28 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
  
 
-#include <string>
-#include <tuple>
 #include <algorithm>
 #include <memory>
+#include <string>
+#include <tuple>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
 #include <mailio/imap.hpp>
 
 
-using std::string;
-using std::to_string;
-using std::stoul;
-using std::vector;
-using std::tuple;
+using std::invalid_argument;
+using std::list;
+using std::make_shared;
 using std::make_tuple;
 using std::move;
-using std::list;
 using std::shared_ptr;
-using std::make_shared;
+using std::stoul;
+using std::string;
+using std::to_string;
+using std::tuple;
+using std::vector;
 using std::out_of_range;
-using std::invalid_argument;
 using std::chrono::milliseconds;
 using boost::system::system_error;
 using boost::iequals;
@@ -238,6 +238,20 @@ void imap::remove(const string& mailbox, unsigned long message_no)
     }
 }
 
+
+void imap::create_folder(vector<string> folder_tree)
+{
+    string delim = folder_delimiter();
+    string folder_str = folder_tree_to_string(folder_tree, delim);
+    _dlg->send(format("CREATE " + folder_str));
+
+    string line = _dlg->receive();
+    tuple<string, string, string> tag_result_response = parse_tag_result(line);
+    if (std::get<0>(tag_result_response) != to_string(_tag))
+        throw imap_error("Parsing failure.");
+    if (!iequals(std::get<1>(tag_result_response), "OK"))
+        throw imap_error("Creating folder failure.");
+}
 
 
 void imap::connect()
@@ -525,6 +539,18 @@ void imap::trim_eol(string& line)
     }
     else
         _eols_no = 1;
+}
+
+
+string imap::folder_tree_to_string(vector<string> folder_tree, string delimiter) const
+{
+    string folders;
+    for (auto st = folder_tree.begin(); st != folder_tree.end(); st++)
+        if (st != folder_tree.end() - 1)
+            folders += *st + delimiter;
+        else
+            folders += *st;
+    return folders;
 }
 
 
