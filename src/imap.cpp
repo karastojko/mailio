@@ -239,7 +239,7 @@ void imap::remove(const string& mailbox, unsigned long message_no)
 }
 
 
-void imap::create_folder(vector<string> folder_tree)
+void imap::create_folder(const vector<string>& folder_tree)
 {
     string delim = folder_delimiter();
     string folder_str = folder_tree_to_string(folder_tree, delim);
@@ -542,7 +542,7 @@ void imap::trim_eol(string& line)
 }
 
 
-string imap::folder_tree_to_string(vector<string> folder_tree, string delimiter) const
+string imap::folder_tree_to_string(const vector<string>& folder_tree, string delimiter) const
 {
     string folders;
     for (auto st = folder_tree.begin(); st != folder_tree.end(); st++)

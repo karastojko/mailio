@@ -146,7 +146,7 @@ public:
     @throw imap_error  Creating folder failure.
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
-    void create_folder(std::vector<std::string> folder_tree);
+    void create_folder(const std::vector<std::string>& folder_tree);
 
 protected:
 
@@ -232,7 +232,7 @@ protected:
     **/
     void trim_eol(std::string& line);
 
-    std::string folder_tree_to_string(std::vector<std::string> folder_tree, std::string delimiter) const;
+    std::string folder_tree_to_string(const std::vector<std::string>& folder_tree, std::string delimiter) const;
 
     /**
     Dialog to use for send/receive operations.
