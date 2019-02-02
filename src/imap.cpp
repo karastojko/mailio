@@ -40,7 +40,7 @@ using boost::regex;
 using boost::regex_match;
 using boost::smatch;
 using boost::trim;
-using boost::algorithm::trim_if;
+using boost::algorithm::trim_copy_if;
 using boost::algorithm::is_any_of;
 
 
@@ -239,6 +239,7 @@ void imap::remove(const string& mailbox, unsigned long message_no)
 }
 
 
+
 void imap::connect()
 {
     // read greetings message
@@ -282,7 +283,6 @@ void imap::select(const string& mailbox)
     while (has_more)
     {
         string line = _dlg->receive();
-        
         tuple<string, string, string> tag_result_response = parse_tag_result(line);
         if (std::get<0>(tag_result_response) == "*")
             continue;
@@ -296,6 +296,38 @@ void imap::select(const string& mailbox)
         else
             throw imap_error("Parsing failure.");
     }
+}
+
+
+string imap::folder_delimiter()
+{
+    string delimiter;
+    _dlg->send(format("LIST \"\" \"\""));
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = _dlg->receive();
+        tuple<string, string, string> tag_result_response = parse_tag_result(line);
+        if (std::get<0>(tag_result_response) == "*" && delimiter.empty())
+        {
+            parse_response(std::get<2>(tag_result_response));
+            if (_mandatory_part.size() < 3)
+                throw imap_error("Determining folder delimiter failure.");
+            auto it = _mandatory_part.begin();
+            if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
+                throw imap_error("Determining folder delimiter failure.");
+            delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == codec::QUOTE_CHAR; });
+            reset_response_parser();
+        }
+        else if (std::get<0>(tag_result_response) == to_string(_tag))
+        {
+            if (!iequals(std::get<1>(tag_result_response), "OK"))
+                throw imap_error("Determining folder delimiter failure.");
+
+            has_more = false;
+        }
+    }
+    return delimiter;
 }
 
 

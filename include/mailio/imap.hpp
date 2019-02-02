@@ -174,6 +174,15 @@ protected:
     void select(const std::string& mailbox);
 
     /**
+    Determining folder delimiter of a mailbox.
+
+    @return           Folder delimiter.
+    @throw imap_error Determining folder delimiter failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    std::string folder_delimiter();
+
+    /**
     Parsing a line into tag, result and response which is the rest of the line.
     
     @param line       Response line to parse.
