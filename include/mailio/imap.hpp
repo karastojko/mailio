@@ -328,7 +328,7 @@ protected:
     /**
     Parser state if an atom is reached.
     **/
-    bool _atom_state;
+    enum class atom_state_t {NONE, PLAIN, QUOTED} _atom_state;
     
     /**
     Counting open parenthesis of a parenthized list, thus it also keeps parser state if a parenthesized list is reached.

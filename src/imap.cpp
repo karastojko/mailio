@@ -46,6 +46,7 @@ using boost::smatch;
 using boost::split;
 using boost::trim;
 using boost::algorithm::trim_copy_if;
+using boost::algorithm::trim_if;
 using boost::algorithm::is_any_of;
 
 
@@ -54,7 +55,7 @@ namespace mailio
 
 
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
-    _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(false),
+    _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(atom_state_t::NONE),
     _parenthesis_list_counter(0), _literal_state(string_literal_state_t::NONE), _literal_bytes_read(0), _eols_no(2)
 {
 }
@@ -461,71 +462,124 @@ void imap::parse_response(const string& response)
         {
             case codec::LEFT_BRACKET_CHAR:
             {
-                if (_optional_part_state)
-                    throw imap_error("Parser failure.");
-                
-                _optional_part_state = true;
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    if (_optional_part_state)
+                        throw imap_error("Parser failure.");
+
+                    _optional_part_state = true;
+                }
             }
             break;
         
             case codec::RIGHT_BRACKET_CHAR:
             {
-                if (!_optional_part_state)
-                    throw imap_error("Parser failure.");
-                
-                _optional_part_state = false;
-                _atom_state = false;
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    if (!_optional_part_state)
+                        throw imap_error("Parser failure.");
+
+                    _optional_part_state = false;
+                    _atom_state = atom_state_t::NONE;
+                }
             }
             break;
             
             case codec::LEFT_PARENTHESIS_CHAR:
             {
-                cur_token = make_shared<response_token_t>();
-                cur_token->token_type = response_token_t::token_type_t::LIST;
-                token_list = _optional_part_state ? find_last_token_list(_optional_part) : find_last_token_list(_mandatory_part);
-                token_list->push_back(cur_token);
-                _parenthesis_list_counter++;
-                _atom_state = false;
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    cur_token = make_shared<response_token_t>();
+                    cur_token->token_type = response_token_t::token_type_t::LIST;
+                    token_list = _optional_part_state ? find_last_token_list(_optional_part) : find_last_token_list(_mandatory_part);
+                    token_list->push_back(cur_token);
+                    _parenthesis_list_counter++;
+                    _atom_state = atom_state_t::NONE;
+                }
             }
             break;
             
             case codec::RIGHT_PARENTHESIS_CHAR:
             {
-                if (_parenthesis_list_counter == 0)
-                    throw imap_error("Parser failure.");
-                _parenthesis_list_counter--;
-                _atom_state = false;
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    if (_parenthesis_list_counter == 0)
+                        throw imap_error("Parser failure.");
+
+                    _parenthesis_list_counter--;
+                    _atom_state = atom_state_t::NONE;
+                }
             }
             break;
             
             case codec::LEFT_BRACE_CHAR:
             {
-                if (_literal_state == string_literal_state_t::SIZE)
-                    throw imap_error("Parser failure.");
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    if (_literal_state == string_literal_state_t::SIZE)
+                        throw imap_error("Parser failure.");
 
-                cur_token = make_shared<response_token_t>();
-                cur_token->token_type = response_token_t::token_type_t::LITERAL;
-                token_list = _optional_part_state ? find_last_token_list(_optional_part) : find_last_token_list(_mandatory_part);
-                token_list->push_back(cur_token);
-                _literal_state = string_literal_state_t::SIZE;
-                _atom_state = false;
+                    cur_token = make_shared<response_token_t>();
+                    cur_token->token_type = response_token_t::token_type_t::LITERAL;
+                    token_list = _optional_part_state ? find_last_token_list(_optional_part) : find_last_token_list(_mandatory_part);
+                    token_list->push_back(cur_token);
+                    _literal_state = string_literal_state_t::SIZE;
+                    _atom_state = atom_state_t::NONE;
+                }
             }
             break;
             
             case codec::RIGHT_BRACE_CHAR:
             {
-                if (_literal_state == string_literal_state_t::NONE)
-                    throw imap_error("Parser failure.");
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    if (_literal_state == string_literal_state_t::NONE)
+                        throw imap_error("Parser failure.");
 
-                _literal_state = string_literal_state_t::WAITING;
+                    _literal_state = string_literal_state_t::WAITING;
+                }
             }
             break;
             
             case codec::SPACE_CHAR:
             {
-                _atom_state = false;
-                if (cur_token != nullptr)
-                    trim(cur_token->atom);
+                if (_atom_state == atom_state_t::QUOTED)
+                    cur_token->atom +=ch;
+                else
+                {
+                    if (cur_token != nullptr)
+                    {
+                        trim(cur_token->atom);
+                        _atom_state = atom_state_t::NONE;
+                    }
+                }
+            }
+            break;
+
+            case codec::QUOTE_CHAR:
+            {
+                if (_atom_state == atom_state_t::NONE)
+                {
+                    cur_token = make_shared<response_token_t>();
+                    cur_token->token_type = response_token_t::token_type_t::ATOM;
+                    token_list = _optional_part_state ? find_last_token_list(_optional_part) : find_last_token_list(_mandatory_part);
+                    token_list->push_back(cur_token);
+                    _atom_state = atom_state_t::QUOTED;
+                }
+                else if (_atom_state == atom_state_t::QUOTED)
+                    _atom_state = atom_state_t::NONE;
             }
             break;
             
@@ -545,13 +599,13 @@ void imap::parse_response(const string& response)
                 }
                 else
                 {
-                    if (!_atom_state)
+                    if (_atom_state == atom_state_t::NONE)
                     {
                         cur_token = make_shared<response_token_t>();
                         cur_token->token_type = response_token_t::token_type_t::ATOM;
                         token_list = _optional_part_state ? find_last_token_list(_optional_part) : find_last_token_list(_mandatory_part);
                         token_list->push_back(cur_token);
-                        _atom_state = true;
+                        _atom_state = atom_state_t::PLAIN;
                     }
                     cur_token->atom += ch;
                 }
@@ -560,7 +614,6 @@ void imap::parse_response(const string& response)
     }
     if (_literal_state == string_literal_state_t::WAITING)
         _literal_state = string_literal_state_t::READING;
-    
 }
 
 void imap::reset_response_parser()
@@ -568,7 +621,7 @@ void imap::reset_response_parser()
     _optional_part.clear();
     _mandatory_part.clear();
     _optional_part_state = false;
-    _atom_state = false;
+    _atom_state = atom_state_t::NONE;
     _parenthesis_list_counter = 0;
     _literal_state = string_literal_state_t::NONE;
     _literal_bytes_read = 0;
