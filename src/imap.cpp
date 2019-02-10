@@ -15,30 +15,35 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <memory>
 #include <string>
 #include <tuple>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/compare.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
 #include <mailio/imap.hpp>
 
 
+using std::find_if;
 using std::invalid_argument;
 using std::list;
 using std::make_shared;
 using std::make_tuple;
+using std::map;
 using std::move;
+using std::out_of_range;
 using std::shared_ptr;
 using std::stoul;
 using std::string;
 using std::to_string;
 using std::tuple;
 using std::vector;
-using std::out_of_range;
 using std::chrono::milliseconds;
 using boost::system::system_error;
 using boost::iequals;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
+using boost::split;
 using boost::trim;
 using boost::algorithm::trim_copy_if;
 using boost::algorithm::is_any_of;
@@ -251,6 +256,53 @@ void imap::create_folder(const vector<string>& folder_tree)
         throw imap_error("Parsing failure.");
     if (!iequals(std::get<1>(tag_result_response), "OK"))
         throw imap_error("Creating folder failure.");
+}
+
+
+auto imap::list_folders(const vector<string>& folder) -> mailbox_folder
+{
+    string delim = folder_delimiter();
+    string folder_name = folder_tree_to_string(folder, delim);
+    _dlg->send(format("LIST \"\" \"" + folder_name + "*\""));
+    mailbox_folder mailboxes;
+
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = _dlg->receive();
+        tuple<string, string, string> tag_result_response = parse_tag_result(line);
+        if (std::get<0>(tag_result_response) == "*")
+        {
+            parse_response(std::get<2>(tag_result_response));
+            if (_mandatory_part.size() < 3)
+                throw imap_error("Parsing failure.");
+            auto found_folder = _mandatory_part.begin();
+            found_folder++; found_folder++;
+            if (found_folder != _mandatory_part.end() && (*found_folder)->token_type == response_token_t::token_type_t::ATOM)
+            {
+                vector<string> folders_hierarchy;
+                // TODO: May `delim` contain more than one character?
+                split(folders_hierarchy, (*found_folder)->atom, is_any_of(delim));
+                map<string, mailbox_folder>* mbox = &mailboxes.folders;
+                for (auto f : folders_hierarchy)
+                {
+                    auto fit = find_if(mbox->begin(), mbox->end(), [&f](const std::pair<string, mailbox_folder>& mf){ return mf.first == f; });
+                    if (fit == mbox->end())
+                        mbox->insert(std::make_pair(f, mailbox_folder{}));
+                    mbox = &(mbox->at(f).folders);
+                }
+            }
+            else
+                throw imap_error("Parsing failure.");
+            reset_response_parser();
+        }
+        else if(std::get<0>(tag_result_response) == to_string(_tag))
+        {
+            has_more = false;
+        }
+    }
+
+    return mailboxes;
 }
 
 

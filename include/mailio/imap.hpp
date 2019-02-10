@@ -57,6 +57,14 @@ public:
     };
 
     /**
+    Mailbox folder tree.
+    **/
+    struct mailbox_folder
+    {
+        std::map<std::string, mailbox_folder> folders;
+    };
+
+    /**
     Available authentication methods.
     **/
     enum class auth_method_t {LOGIN};
@@ -148,6 +156,14 @@ public:
     **/
     void create_folder(const std::vector<std::string>& folder_tree);
 
+    /**
+    Listing folders.
+
+    @param folder Folder to list.
+    @return       Subfolder tree of the folder.
+    **/
+    mailbox_folder list_folders(const std::vector<std::string>& folder);
+
 protected:
 
     /**
@@ -232,6 +248,13 @@ protected:
     **/
     void trim_eol(std::string& line);
 
+    /**
+    Formatting folder tree to string.
+
+    @param folder_tree Folders to format into string.
+    @param delimiter   Delimiter of the folders.
+    @return            Formatted string.
+    **/
     std::string folder_tree_to_string(const std::vector<std::string>& folder_tree, std::string delimiter) const;
 
     /**
