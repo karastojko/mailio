@@ -163,6 +163,17 @@ public:
     **/
     mailbox_folder list_folders(const std::list<std::string>& folder);
 
+    /**
+    Deleting a folder.
+
+    @param folder      Folder to delete.
+    @return            True if deleted, false if not.
+    @throw imap_error  Parsing failure.
+    @throw imap_error  Deleting folder failure.
+    @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    bool delete_folder(const std::list<std::string>& folder);
+
 protected:
 
     /**
