@@ -245,7 +245,7 @@ void imap::remove(const string& mailbox, unsigned long message_no)
 }
 
 
-void imap::create_folder(const vector<string>& folder_tree)
+void imap::create_folder(const list<string>& folder_tree)
 {
     string delim = folder_delimiter();
     string folder_str = folder_tree_to_string(folder_tree, delim);
@@ -260,7 +260,7 @@ void imap::create_folder(const vector<string>& folder_tree)
 }
 
 
-auto imap::list_folders(const vector<string>& folder) -> mailbox_folder
+auto imap::list_folders(const list<string>& folder) -> mailbox_folder
 {
     string delim = folder_delimiter();
     string folder_name = folder_tree_to_string(folder, delim);
@@ -647,14 +647,15 @@ void imap::trim_eol(string& line)
 }
 
 
-string imap::folder_tree_to_string(const vector<string>& folder_tree, string delimiter) const
+string imap::folder_tree_to_string(const list<string>& folder_tree, string delimiter) const
 {
     string folders;
-    for (auto st = folder_tree.begin(); st != folder_tree.end(); st++)
-        if (st != folder_tree.end() - 1)
-            folders += *st + delimiter;
+    int elem = 0;
+    for (const auto& f : folder_tree)
+        if (elem++ < folder_tree.size())
+            folders += f + delimiter;
         else
-            folders += *st;
+            folders += f;
     return folders;
 }
 

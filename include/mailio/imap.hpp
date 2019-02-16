@@ -18,7 +18,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <stdexcept>
 #include <string>
 #include <tuple>
-#include <vector>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -154,7 +153,7 @@ public:
     @throw imap_error  Creating folder failure.
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
-    void create_folder(const std::vector<std::string>& folder_tree);
+    void create_folder(const std::list<std::string>& folder_tree);
 
     /**
     Listing folders.
@@ -162,7 +161,7 @@ public:
     @param folder Folder to list.
     @return       Subfolder tree of the folder.
     **/
-    mailbox_folder list_folders(const std::vector<std::string>& folder);
+    mailbox_folder list_folders(const std::list<std::string>& folder);
 
 protected:
 
@@ -255,7 +254,7 @@ protected:
     @param delimiter   Delimiter of the folders.
     @return            Formatted string.
     **/
-    std::string folder_tree_to_string(const std::vector<std::string>& folder_tree, std::string delimiter) const;
+    std::string folder_tree_to_string(const std::list<std::string>& folder_tree, std::string delimiter) const;
 
     /**
     Dialog to use for send/receive operations.
