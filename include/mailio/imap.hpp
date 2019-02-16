@@ -159,21 +159,33 @@ public:
     /**
     Listing folders.
 
-    @param folder Folder to list.
-    @return       Subfolder tree of the folder.
+    @param folder_name Folder to list.
+    @return            Subfolder tree of the folder.
     **/
-    mailbox_folder list_folders(const std::list<std::string>& folder);
+    mailbox_folder list_folders(const std::list<std::string>& folder_name);
 
     /**
     Deleting a folder.
 
-    @param folder      Folder to delete.
+    @param folder_name Folder to delete.
     @return            True if deleted, false if not.
     @throw imap_error  Parsing failure.
     @throw imap_error  Deleting folder failure.
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
-    bool delete_folder(const std::list<std::string>& folder);
+    bool delete_folder(const std::list<std::string>& folder_name);
+
+    /**
+    Renaming a folder.
+
+    @param old_name    Old name of the folder.
+    @param new_name    New name of the folder.
+    @return            True if renaming is successful, false if not.
+    @throw imap_error  Parsing failure.
+    @throw imap_error  Renaming folder failure.
+    @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    bool rename_folder(const std::list<std::string>& old_name, const std::list<std::string>& new_name);
 
 protected:
 

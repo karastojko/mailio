@@ -263,11 +263,11 @@ bool imap::create_folder(const list<string>& folder_tree)
 }
 
 
-auto imap::list_folders(const list<string>& folder) -> mailbox_folder
+auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
 {
     string delim = folder_delimiter();
-    string folder_name = folder_tree_to_string(folder, delim);
-    _dlg->send(format("LIST \"\" \"" + folder_name + "*\""));
+    string folder_name_s = folder_tree_to_string(folder_name, delim);
+    _dlg->send(format("LIST \"\" \"" + folder_name_s + "*\""));
     mailbox_folder mailboxes;
 
     bool has_more = true;
@@ -310,11 +310,11 @@ auto imap::list_folders(const list<string>& folder) -> mailbox_folder
 }
 
 
-bool imap::delete_folder(const list<string>& folder)
+bool imap::delete_folder(const list<string>& folder_name)
 {
     string delim = folder_delimiter();
-    string folder_name = folder_tree_to_string(folder, delim);
-    _dlg->send(format("DELETE \"" + folder_name + "\""));
+    string folder_name_s = folder_tree_to_string(folder_name, delim);
+    _dlg->send(format("DELETE \"" + folder_name_s + "\""));
 
     string line = _dlg->receive();
     tuple<string, string, string> tag_result_response = parse_tag_result(line);
@@ -324,6 +324,25 @@ bool imap::delete_folder(const list<string>& folder)
         return false;
     if (!iequals(std::get<1>(tag_result_response), "OK"))
         throw imap_error("Deleting folder failure.");
+    return true;
+}
+
+
+bool imap::rename_folder(const list<string>& old_name, const list<string>& new_name)
+{
+    string delim = folder_delimiter();
+    string old_name_s = folder_tree_to_string(old_name, delim);
+    string new_name_s = folder_tree_to_string(new_name, delim);
+    _dlg->send(format("RENAME \"" + old_name_s + "\" \"" + new_name_s + "\""));
+
+    string line = _dlg->receive();
+    tuple<string, string, string> tag_result_response = parse_tag_result(line);
+    if (std::get<0>(tag_result_response) != to_string(_tag))
+        throw imap_error("Parsing failure.");
+    if (iequals(std::get<1>(tag_result_response), "NO"))
+        return false;
+    if (!iequals(std::get<1>(tag_result_response), "OK"))
+        throw imap_error("Renaming folder failure.");
     return true;
 }
 
