@@ -245,7 +245,7 @@ void imap::remove(const string& mailbox, unsigned long message_no)
 }
 
 
-void imap::create_folder(const list<string>& folder_tree)
+bool imap::create_folder(const list<string>& folder_tree)
 {
     string delim = folder_delimiter();
     string folder_str = folder_tree_to_string(folder_tree, delim);
@@ -255,8 +255,11 @@ void imap::create_folder(const list<string>& folder_tree)
     tuple<string, string, string> tag_result_response = parse_tag_result(line);
     if (std::get<0>(tag_result_response) != to_string(_tag))
         throw imap_error("Parsing failure.");
+    if (iequals(std::get<1>(tag_result_response), "NO"))
+        return false;
     if (!iequals(std::get<1>(tag_result_response), "OK"))
         throw imap_error("Creating folder failure.");
+    return true;
 }
 
 
@@ -321,6 +324,7 @@ bool imap::delete_folder(const list<string>& folder)
         return false;
     if (!iequals(std::get<1>(tag_result_response), "OK"))
         throw imap_error("Deleting folder failure.");
+    return true;
 }
 
 

@@ -149,11 +149,12 @@ public:
     Creating folder.
 
     @param folder_tree Folder to be created.
+    @return            True if created, false if not.
     @throw imap_error  Parsing failure.
     @throw imap_error  Creating folder failure.
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
-    void create_folder(const std::list<std::string>& folder_tree);
+    bool create_folder(const std::list<std::string>& folder_tree);
 
     /**
     Listing folders.
