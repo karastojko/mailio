@@ -28,7 +28,10 @@ namespace mailio
 const string base64::CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
-base64::base64(codec::line_len_policy_t line_policy) : codec(line_policy)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+// base64::base64(codec::line_len_policy_t line_policy) : codec(line_policy)
+base64::base64(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
+  : codec(encoder_line_policy, decoder_line_policy)
 {
 }
 
@@ -119,7 +122,9 @@ string base64::decode(const vector<string>& text) const
 
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(_line_policy) - 2)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         if (line.length() > string::size_type(_line_policy) - 2)
+        if (line.length() > string::size_type(_decoder_line_policy) - 2)
             throw codec_error("Bad line policy.");
 
         for (string::size_type ch = 0; ch < line.length() && line[ch] != EQUAL_CHAR; ch++)

@@ -21,6 +21,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
+#include <cstdint>
 #include "dialog.hpp"
 #include "message.hpp"
 #include "export.hpp"
@@ -42,15 +43,79 @@ public:
     **/
     struct mailbox_stat_t
     {
+        // REMOVE Tim. Added.
+//         /**
+//           Some of these values were added in later versions. See RFC 3502 6.3.10
+//           The following flags indicate whether the values were detected.
+//         **/
+// 
+//         /**
+//         Whether the messages_unseen value is valid.
+//         **/
+//         bool unseen_valid;
+// 
+//         /**
+//         Whether the uidnext value is valid.
+//         **/
+//         bool uidnext_valid;
+// 
+//         /**
+//         Whether the uidvalidity value is valid.
+//         **/
+//         bool uidvalidity_valid;
+
+
+
         /**
         Number of messages in the mailbox.
         **/
         unsigned long messages_no;
 
+
+
+
+        // REMOVE Tim. Added.
+        /**
+        Number of recent messages in the mailbox.
+        **/
+        unsigned long messages_recent;
+
+        /**
+        The non-zero number of unseen messages in the mailbox
+        Zero indicates the server did not report this and no assumptions can be made about the number of unseen messages.
+        **/
+        unsigned long messages_unseen;
+
+        /**
+        The non-zero message sequence number of the first unseen message in the mailbox
+        Zero indicates the server did not report this and no assumptions can be made about the first unseen message.
+        **/
+        unsigned long messages_first_unseen;
+
+        /**
+        The non-zero next unique identifier value of the mailbox.
+        Zero indicates the server did not report this and no assumptions can be made about the next unique identifier.
+        **/
+        unsigned long uidnext;
+
+        /**
+        The non-zero unique identifier validity value of the mailbox.
+        Zero indicates the server did not report this and does not support uids.
+        **/
+        unsigned long uidvalidity;
+
+
+
+
         /**
         Setting the number of messages to zero.
         **/
-        mailbox_stat_t() : messages_no(0)
+        // REMOVE Tim. Changed.
+//          mailbox_stat_t() : messages_no(0)
+        mailbox_stat_t()
+        : //unseen_valid(false), uidnext_valid(false), uidvalidity_valid(false),
+          messages_no(0), messages_recent(0), messages_unseen(0), messages_first_unseen(0),
+          uidnext(0), uidvalidity(0)
         {
         }
     };
@@ -67,6 +132,16 @@ public:
     Available authentication methods.
     **/
     enum class auth_method_t {LOGIN};
+
+//     // REMOVE Tim. Added.
+//     /**
+//     Various options for commands. Can be ORd together.
+//     
+//     HeadersOnly: Fetch headers only, not full message text.
+//     WantUid:     Use message uids instead of message sequence numbers.
+//     **/
+//     enum command_option_t { NoOptions = 0x0, HeadersOnly = 0x1, WantUid = 0x2 };
+//     typedef unsigned int command_options_t;
 
     /**
     Creating a connection to a server.
@@ -103,6 +178,32 @@ public:
     **/
     void authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
+    // REMOVE Tim. Added.
+    /**
+    Selecting a mailbox.
+    
+    @param folder_name Folder to list.
+    @return            Mailbox statistics.
+    @throw imap_error  Selecting mailbox failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Add server error messages to exceptions.
+    **/
+    mailbox_stat_t select_mailbox(const std::list<std::string>& folder_name);
+
+    // REMOVE Tim. Added.
+    /**
+    Examining a mailbox.
+
+    @param folder_name Folder to list.
+    @return            Mailbox statistics.
+    @throw imap_error  Selecting mailbox failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Add server error messages to exceptions.
+    **/
+    mailbox_stat_t examine_mailbox(const std::list<std::string>& folder_name);
+
     /**
     Fetching a message from the mailbox.
     
@@ -120,6 +221,27 @@ public:
     @todo              Add server error messages to exceptions.
     **/
     void fetch(const std::string& mailbox, unsigned long message_no, message& msg, bool header_only = false);
+
+    // REMOVE Tim. Added.
+    /**
+    Fetching a message from an already selected mailbox.
+
+    NOTE: fetch() selects the mailbox with every call, fetch_message() does not.
+    A mailbox must already be selected before calling fetch_message().
+    Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
+    fetching non-existing message to be an error, and an exception is thrown.
+
+    @param message_no  Number of the message to fetch.
+    @param msg         Message to store the result.
+    @param header_only Flag if only the message header should be fetched.
+    @param is_uid      Using a message uid number instead of a message sequence number.
+    @throw imap_error  Fetching message failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `parse_response(const string&)`,
+                       `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
+    @todo              Add server error messages to exceptions.
+    **/
+    void fetch_message(unsigned long message_no, message& msg, bool header_only = false, bool is_uid = false);
 
     /**
     Getting the mailbox statistics.
@@ -144,6 +266,34 @@ public:
     @todo             Add server error messages to exceptions.
     **/
     void remove(const std::string& mailbox, unsigned long message_no);
+
+    // REMOVE Tim. Added.
+    /**
+    Removing a message from an already selected mailbox.
+    NOTE: remove() selects the mailbox with every call, remove_message() does not.
+    
+    @param message_no Number of the message to remove.
+    @param is_uid     Using a message uid number instead of a message sequence number.
+    @throw imap_error Deleting message failure.
+    @throw imap_error Parsing failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    **/
+    void remove_message(unsigned long message_no, bool is_uid = false);
+
+    // REMOVE Tim. Added.
+    /**
+    Searching a mailbox.
+    
+    @param keys        String of search keys.
+    @param result_list Store resulting list of indexes here.
+    @param want_uids   Return a list of message uids instead of message sequence numbers.
+    @throw imap_error  Search mailbox failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Add server error messages to exceptions.
+    **/
+    void search_messages(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
 
     /**
     Creating folder.
@@ -211,16 +361,56 @@ protected:
     **/
     void auth_login(const std::string& username, const std::string& password);
 
+    // REMOVE Tim. Changed.
+//     /**
+//     Selecting a mailbox.
+//     
+//     @param mailbox    Mailbox to select.
+//     @throw imap_error Selecting mailbox failure.
+//     @throw imap_error Parsing failure.
+//     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+//     @todo             Add server error messages to exceptions.
+//     **/
+//     void select(const std::string& mailbox);
     /**
     Selecting a mailbox.
-    
+
     @param mailbox    Mailbox to select.
+    @return           Mailbox statistics.
     @throw imap_error Selecting mailbox failure.
     @throw imap_error Parsing failure.
     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
     **/
-    void select(const std::string& mailbox);
+    mailbox_stat_t select(const std::string& mailbox);
+
+    // REMOVE Tim. Added.
+    /**
+    Examining a mailbox.
+
+    @param mailbox    Mailbox to select.
+    @return           Mailbox statistics.
+    @throw imap_error Selecting mailbox failure.
+    @throw imap_error Parsing failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    **/
+    mailbox_stat_t examine(const std::string& mailbox);
+
+    // REMOVE Tim. Added.
+    /**
+    Searching a mailbox.
+    
+    @param keys        String of search keys.
+    @param result_list Store resulting list of indexes here.
+    @param want_uids   Return a list of message uids instead of message sequence numbers.
+    @throw imap_error  Search mailbox failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Add server error messages to exceptions.
+    **/
+    void search(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
+
 
     /**
     Determining folder delimiter of a mailbox.
@@ -230,6 +420,19 @@ protected:
     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
     std::string folder_delimiter();
+
+    // REMOVE Tim. Added.
+    /**
+    Parse results of selecting or examining a mailbox.
+    The format is identical in both cases.
+
+    @return           Mailbox statistics.
+    @throw imap_error Selecting mailbox failure.
+    @throw imap_error Parsing failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    **/
+    mailbox_stat_t parse_select_or_examine();
 
     /**
     Parsing a line into tag, result and response which is the rest of the line.

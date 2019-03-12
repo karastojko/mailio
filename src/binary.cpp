@@ -24,7 +24,10 @@ namespace mailio
 {
 
 
-binary::binary(codec::line_len_policy_t line_policy) : codec(line_policy)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+// binary::binary(codec::line_len_policy_t line_policy) : codec(line_policy)
+binary::binary(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
+  : codec(encoder_line_policy, decoder_line_policy)
 {
 }
 

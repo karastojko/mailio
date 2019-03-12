@@ -26,7 +26,10 @@ namespace mailio
 {
 
 
-bit8::bit8(codec::line_len_policy_t line_policy) : codec(line_policy)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+// bit8::bit8(codec::line_len_policy_t line_policy) : codec(line_policy)
+bit8::bit8(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
+  : codec(encoder_line_policy, decoder_line_policy)
 {
 }
 
@@ -75,7 +78,9 @@ string bit8::decode(const vector<string>& text) const
     string dec_text;
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(_line_policy))
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         if (line.length() > string::size_type(_line_policy))
+        if (line.length() > string::size_type(_decoder_line_policy))
             throw codec_error("Line policy overflow.");
         
         for (auto ch : line)

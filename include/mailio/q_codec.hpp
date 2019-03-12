@@ -37,13 +37,22 @@ public:
     **/
     enum class codec_method_t {BASE64, QUOTED_PRINTABLE};
 
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     /**
+//     Setting the line policy to recommended one.
+// 
+//     @param line_policy  Line policy to apply.
+//     @param codec_method Method for encoding/decoding.
+//     **/
+//     q_codec(codec::line_len_policy_t line_policy, codec_method_t codec_method);
     /**
-    Setting the line policy to recommended one.
+    Setting the encoder and decoder line policy to recommended one.
 
-    @param line_policy  Line policy to apply.
+    @param encoder_line_policy  Line policy to apply.
+    @param decoder_line_policy  Line policy to apply.
     @param codec_method Method for encoding/decoding.
     **/
-    q_codec(codec::line_len_policy_t line_policy, codec_method_t codec_method);
+    q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy, codec_method_t codec_method);
 
     q_codec(const q_codec&) = delete;
 

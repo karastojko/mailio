@@ -31,8 +31,11 @@ const string q_codec::BASE64_CODEC_STR = "B";
 const string q_codec::QP_CODEC_STR = "Q";
 
 
-q_codec::q_codec(codec::line_len_policy_t line_policy, codec_method_t codec_method) :
-    codec(line_policy), _codec_method(codec_method)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+// q_codec::q_codec(codec::line_len_policy_t line_policy, codec_method_t codec_method) :
+//     codec(line_policy), _codec_method(codec_method)
+q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy, codec_method_t codec_method) :
+    codec(encoder_line_policy, decoder_line_policy), _codec_method(codec_method)
 {
 }
 
@@ -45,13 +48,17 @@ vector<string> q_codec::encode(const string& text) const
     if (_codec_method == codec_method_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
-        base64 b64(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         base64 b64(_line_policy);
+        base64 b64(_line_policy, _decoder_line_policy);
         text_c = b64.encode(text, Q_FLAGS_LEN);
     }
     else
     {
         codec_flag = QP_CODEC_STR;
-        quoted_printable qp(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         quoted_printable qp(_line_policy);
+        quoted_printable qp(_line_policy, _decoder_line_policy);
         qp.q_codec_mode(true);
         text_c = qp.encode(text, Q_FLAGS_LEN);
     }
@@ -84,7 +91,9 @@ string q_codec::decode(const string& text) const
     string dec_text;
     if (iequals(method, BASE64_CODEC_STR))
     {
-        base64 b64(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         base64 b64(_line_policy);
+        base64 b64(_line_policy, _decoder_line_policy);
         dec_text = b64.decode(text_c);
     }
     else if (iequals(method, QP_CODEC_STR))
@@ -135,7 +144,9 @@ string q_codec::check_decode(const string& text) const
 
 string q_codec::decode_qp(const string& text) const
 {
-    quoted_printable qp(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     quoted_printable qp(_line_policy);
+    quoted_printable qp(_line_policy, _decoder_line_policy);
     qp.q_codec_mode(true);
     vector<string> lines;
     lines.push_back(text);

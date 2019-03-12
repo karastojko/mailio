@@ -204,14 +204,24 @@ public:
 
     @todo No need for `SUBJECT` line policy.
     **/
-    enum class line_len_policy_t : std::string::size_type {NONE = 2048, RECOMMENDED = 78, MANDATORY = 998};
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     enum class line_len_policy_t : std::string::size_type {NONE = 2048, RECOMMENDED = 78, MANDATORY = 998};
+    enum class line_len_policy_t : std::string::size_type {NONE = 2048, RECOMMENDED = 78, MANDATORY = 998, VERYLARGE = 16384};
 
+    // REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     /**
+//     Setting the line policy of the codec.
+// 
+//     @param line_policy Line policy to set.
+//     **/
+//     codec(line_len_policy_t line_policy);
     /**
-    Setting the line policy of the codec.
+    Setting the encoder and decoder line policy of the codec.
 
-    @param line_policy Line policy to set.
+    @param encoder_line_policy Encoder line policy to set.
+    @param decoder_line_policy Decoder line policy to set.
     **/
-    codec(line_len_policy_t line_policy);
+    codec(line_len_policy_t encoder_line_policy, line_len_policy_t decoder_line_policy);
 
     codec(const codec&) = delete;
 
@@ -242,11 +252,22 @@ public:
 
 protected:
 
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     /**
+//     Line length policy.
+//     **/
+//     line_len_policy_t _line_policy;
     /**
-    Line length policy.
+    Encoder line length policy.
     **/
     line_len_policy_t _line_policy;
 
+    // REMOVE Tim. Added. We need a much larger value available for decoding since some emails tested were beyond 2048.
+    /**
+    Decoder line length policy.
+    **/
+    line_len_policy_t _decoder_line_policy;
+    
     /**
     Strict mode for encoding/decoding.
     **/

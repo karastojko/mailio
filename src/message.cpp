@@ -102,7 +102,9 @@ void message::format(string& message_str, bool dot_escape) const
             ct.charset = _content_type.charset;
             content_part.content_type(ct);
             content_part.content_transfer_encoding(_encoding);
-            content_part.line_policy(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             content_part.line_policy(_line_policy);
+            content_part.line_policy(_line_policy, _decoder_line_policy);
             content_part.strict_mode(_strict_mode);
             content_part.strict_codec_mode(_strict_codec_mode);
             content_part.header_codec(_header_codec);
@@ -413,7 +415,9 @@ void message::parse_header_line(const string& header_line)
 {
     mime::parse_header_line(header_line);
 
-    if (header_line.length() > string::size_type(_line_policy))
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     if (header_line.length() > string::size_type(_line_policy))
+    if (header_line.length() > string::size_type(_decoder_line_policy))
         throw message_error("Line policy overflow in a header.");
 
     // TODO: header name and header value already parsed in `mime::parse_header_line`, so this is not the optimal way to do it
@@ -514,7 +518,9 @@ string message::format_address(const string& name, const string& address) const
 
     if (codec::is_utf8_string(name))
     {
-        q_codec qc(_line_policy, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         q_codec qc(_line_policy, _header_codec);
+        q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
         vector<string> n = qc.encode(name);
         // mail has to be formatted into a single line, otherwise it's an error
         if (n.size() > 1)
@@ -1122,7 +1128,9 @@ string message::format_subject() const
 
     if (codec::is_utf8_string(_subject))
     {
-        q_codec qc(_line_policy, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         q_codec qc(_line_policy, _header_codec);
+        q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
         vector<string> hdr = qc.encode(_subject);
         subject += hdr.at(0) + codec::CRLF;
         if (hdr.size() > 1)
@@ -1138,14 +1146,18 @@ string message::format_subject() const
 
 string message::parse_subject(const string& subject) const
 {
-    q_codec qc(_line_policy, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     q_codec qc(_line_policy, _header_codec);
+    q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
     return qc.check_decode(subject);
 }
 
 
 string message::parse_address_name(const string& address_name) const
 {
-    q_codec qc(_line_policy, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//     q_codec qc(_line_policy, _header_codec);
+    q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
     if (address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR && address_name.at(1) == codec::QUESTION_MARK_CHAR &&

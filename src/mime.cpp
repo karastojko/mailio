@@ -93,7 +93,10 @@ const string mime::CONTENT_ATTR_ALPHABET{"!#$%&*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
-mime::mime() : _version("1.0"), _line_policy(codec::line_len_policy_t::RECOMMENDED), _strict_mode(false), _strict_codec_mode(false),
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//mime::mime() : _version("1.0"), _line_policy(codec::line_len_policy_t::RECOMMENDED), _strict_mode(false), _strict_codec_mode(false),
+mime::mime() : _version("1.0"), _line_policy(codec::line_len_policy_t::RECOMMENDED),
+  _decoder_line_policy(codec::line_len_policy_t::RECOMMENDED), _strict_mode(false), _strict_codec_mode(false),
     _header_codec(header_codec_t::QUOTED_PRINTABLE), _content_type(media_type_t::NONE, ""), _encoding(content_transfer_encoding_t::NONE),
     _disposition(content_disposition_t::NONE), _parsing_header(true), _mime_status(mime_parsing_status_t::NONE)
 {
@@ -180,7 +183,9 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
                     if (!_parts.empty())
                         _parts.back().parse_by_line("\r\n");
                     mime m;
-                    m.line_policy(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//                     m.line_policy(_line_policy);
+                    m.line_policy(_line_policy, _decoder_line_policy);
                     m.strict_codec_mode(_strict_codec_mode);
                     _parts.push_back(m);
                 }
@@ -312,15 +317,28 @@ vector<mime> mime::parts() const
 }
 
 
-void mime::line_policy(codec::line_len_policy_t line_policy)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+// void mime::line_policy(codec::line_len_policy_t line_policy)
+// {
+//     _line_policy = line_policy;
+// }
+void mime::line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
 {
-    _line_policy = line_policy;
+    _line_policy = encoder_line_policy;
+    _decoder_line_policy = decoder_line_policy;
 }
 
 
 codec::line_len_policy_t mime::line_policy() const
 {
     return _line_policy;
+}
+
+
+// REMOVE Tim. Added. We need a much larger value available for decoding since some emails tested were beyond 2048.
+codec::line_len_policy_t mime::decoder_line_policy() const
+{
+    return _decoder_line_policy;
 }
 
 
@@ -376,7 +394,9 @@ string mime::format_header() const
         if (!_name.empty())
         {
             string mn = format_mime_name(_name);
-            if (header.size() + SEMICOLON.size() + sizeof("name=\"") + mn.size() + sizeof("\"") < string::size_type(codec::line_len_policy_t::RECOMMENDED) - 2)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             if (header.size() + SEMICOLON.size() + sizeof("name=\"") + mn.size() + sizeof("\"") < string::size_type(codec::line_len_policy_t::RECOMMENDED) - 2)
+            if (header.size() + SEMICOLON.size() + sizeof("name=\"") + mn.size() + sizeof("\"") < string::size_type(_line_policy) - 2)
                 header += SEMICOLON + "name=\"" + mn + "\"";
             else
                 header += SEMICOLON + "\r\n  name=\"" + mn + "\"";
@@ -419,7 +439,9 @@ string mime::format_header() const
             string name = format_mime_name(_name);
             header += CONTENT_DISPOSITION_HEADER + COLON + CONTENT_DISPOSITION_ATTACHMENT + "; ";
             if (CONTENT_DISPOSITION_HEADER.size() + COLON.size() + CONTENT_DISPOSITION_ATTACHMENT.size() + sizeof("filename=\"") + name.size() +
-                sizeof("\"\r\n") < string::size_type(codec::line_len_policy_t::RECOMMENDED) - 2)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//                 sizeof("\"\r\n") < string::size_type(codec::line_len_policy_t::RECOMMENDED) - 2)
+                sizeof("\"\r\n") < string::size_type(_line_policy) - 2)
             {
                 header += "filename=\"" + name + "\"\r\n";
             }
@@ -433,7 +455,9 @@ string mime::format_header() const
             string name = format_mime_name(_name);
             header += CONTENT_DISPOSITION_HEADER + COLON + CONTENT_DISPOSITION_INLINE + "; ";
             if (CONTENT_DISPOSITION_HEADER.size() + COLON.size() + CONTENT_DISPOSITION_INLINE.size() + sizeof("filename=\"") + name.size() +
-                sizeof("\"\r\n") < string::size_type(codec::line_len_policy_t::RECOMMENDED) - 2)
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//                 sizeof("\"\r\n") < string::size_type(codec::line_len_policy_t::RECOMMENDED) - 2)
+                sizeof("\"\r\n") < string::size_type(_line_policy) - 2)
             {
                 header += "filename=\"" + name + "\"\r\n";
             }
@@ -457,7 +481,9 @@ string mime::format_content(bool dot_escape) const
     {
         case content_transfer_encoding_t::BASE_64:
         {
-            base64 b(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             base64 b(_line_policy);
+            base64 b(_line_policy, _decoder_line_policy);
             b.strict_mode(_strict_codec_mode);
             content_lines = b.encode(_content);
             break;
@@ -465,7 +491,9 @@ string mime::format_content(bool dot_escape) const
 
         case content_transfer_encoding_t::QUOTED_PRINTABLE:
         {
-            quoted_printable qp(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             quoted_printable qp(_line_policy);
+            quoted_printable qp(_line_policy, _decoder_line_policy);
             qp.strict_mode(_strict_codec_mode);
             content_lines = qp.encode(_content);
             break;
@@ -474,7 +502,9 @@ string mime::format_content(bool dot_escape) const
         // TODO: check how to handle 8bit chars, see [rfc 2045, section 2.8]
         case content_transfer_encoding_t::BIT_8:
         {
-            bit8 b8(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             bit8 b8(_line_policy);
+            bit8 b8(_line_policy, _decoder_line_policy);
             b8.strict_mode(_strict_codec_mode);
             content_lines = b8.encode(_content);
             break;
@@ -484,7 +514,9 @@ string mime::format_content(bool dot_escape) const
         case content_transfer_encoding_t::BIT_7:
         case content_transfer_encoding_t::NONE:
         {
-            bit7 b7(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             bit7 b7(_line_policy);
+            bit7 b7(_line_policy, _decoder_line_policy);
             b7.strict_mode(_strict_codec_mode);
             content_lines = b7.encode(_content);
             break;
@@ -493,7 +525,9 @@ string mime::format_content(bool dot_escape) const
         case content_transfer_encoding_t::BINARY:
         {
             // TODO: probably bug when `\0` is part of the content
-            binary b(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             binary b(_line_policy);
+            binary b(_line_policy, _decoder_line_policy);
             b.strict_mode(_strict_codec_mode);
             content_lines = b.encode(_content);
             break;
@@ -518,7 +552,9 @@ string mime::format_mime_name(const string& name) const
     if (codec::is_utf8_string(name))
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
-        q_codec qc(codec::line_len_policy_t::MANDATORY, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         q_codec qc(codec::line_len_policy_t::MANDATORY, _header_codec);
+        q_codec qc(codec::line_len_policy_t::MANDATORY, _decoder_line_policy, _header_codec);
         vector<string> hdr = qc.encode(name);
         return hdr.at(0);
     }
@@ -557,7 +593,9 @@ void mime::parse_content()
     {
         case content_transfer_encoding_t::BASE_64:
         {
-            base64 b64(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             base64 b64(_line_policy);
+            base64 b64(_line_policy, _decoder_line_policy);
             b64.strict_mode(_strict_codec_mode);
             _content = b64.decode(_parsed_body);
             break;
@@ -565,7 +603,9 @@ void mime::parse_content()
 
         case content_transfer_encoding_t::QUOTED_PRINTABLE:
         {
-            quoted_printable qp(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             quoted_printable qp(_line_policy);
+            quoted_printable qp(_line_policy, _decoder_line_policy);
             qp.strict_mode(_strict_codec_mode);
             _content = qp.decode(_parsed_body);
             break;
@@ -573,7 +613,9 @@ void mime::parse_content()
 
         case content_transfer_encoding_t::BIT_8:
         {
-            bit8 b8(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             bit8 b8(_line_policy);
+            bit8 b8(_line_policy, _decoder_line_policy);
             b8.strict_mode(_strict_codec_mode);
             _content = b8.decode(_parsed_body);
             break;
@@ -582,7 +624,9 @@ void mime::parse_content()
         case content_transfer_encoding_t::BIT_7:
         case content_transfer_encoding_t::NONE:
         {
-            bit7 b7(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             bit7 b7(_line_policy);
+            bit7 b7(_line_policy, _decoder_line_policy);
             b7.strict_mode(_strict_codec_mode);
             _content = b7.decode(_parsed_body);
             break;
@@ -590,7 +634,9 @@ void mime::parse_content()
 
         case content_transfer_encoding_t::BINARY:
         {
-            binary b(_line_policy);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             binary b(_line_policy);
+            binary b(_line_policy, _decoder_line_policy);
             b.strict_mode(_strict_codec_mode);
             _content = b.decode(_parsed_body);
             break;
@@ -635,7 +681,9 @@ void mime::parse_header_line(const string& header_line)
         // name is set if not already set by content disposition
         if (name_it != attributes.end() && _name.empty())
         {
-            q_codec qc(codec::line_len_policy_t::RECOMMENDED, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             q_codec qc(codec::line_len_policy_t::RECOMMENDED, _header_codec);
+            q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
             _name = qc.check_decode(name_it->second);
         }
     }
@@ -652,7 +700,9 @@ void mime::parse_header_line(const string& header_line)
         attributes_t::iterator filename_it = attributes.find("filename");
         if (filename_it != attributes.end())
         {
-            q_codec qc(codec::line_len_policy_t::RECOMMENDED, _header_codec);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//             q_codec qc(codec::line_len_policy_t::RECOMMENDED, _header_codec);
+            q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
             _name = qc.check_decode(filename_it->second);
         }
     }
@@ -952,7 +1002,7 @@ string mime::mime_type_as_str(media_type_t media_type_val) const
 
 mime::media_type_t mime::mime_type_as_enum(const string& media_type_val) const
 {
-    media_type_t media_type;
+    media_type_t media_type = media_type_t::NONE;
     if (iequals(media_type_val, "text"))
         media_type = media_type_t::TEXT;
     else if (iequals(media_type_val, "image"))

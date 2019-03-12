@@ -41,7 +41,9 @@ int main()
         // mail message to store the fetched one
         message msg;
         // set the line policy to mandatory, so longer lines could be parsed
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
+//         msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::MANDATORY);
 
         // use a server with SSL connectivity
         pop3s conn("pop3.mailserver.com", 995);
