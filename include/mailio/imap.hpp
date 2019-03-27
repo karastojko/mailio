@@ -225,15 +225,20 @@ public:
 
     /**
     Getting the mailbox statistics.
+    NOTE: The server might not support unseen, uidnext, or uidvalidity, which will cause an exception,
+           so those parameters are optional. 
     
-    @param mailbox    Mailbox name.
-    @return           Mailbox statistics.
-    @throw imap_error Parsing failure.
-    @throw imap_error Getting statistics failure.
-    @throw *          `parse_tag_result(const string&)`, `parse_response(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-    @todo             Add server error messages to exceptions.
+    @param mailbox     Mailbox name.
+    @param unseen      Ask for the number of unseen messages.
+    @param uidnext     Ask for the next uid number.
+    @param uidvalidity Ask for the uidvalidity number.
+    @return            Mailbox statistics.
+    @throw imap_error  Parsing failure.
+    @throw imap_error  Getting statistics failure.
+    @throw *           `parse_tag_result(const string&)`, `parse_response(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Add server error messages to exceptions.
     **/
-    mailbox_stat_t statistics(const std::string& mailbox);
+    mailbox_stat_t statistics(const std::string& mailbox, bool unseen = false, bool uidnext = false, bool uidvalidity = false);
 
     /**
     Removing a message from the given mailbox.

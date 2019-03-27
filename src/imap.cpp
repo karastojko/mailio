@@ -339,12 +339,21 @@ void imap::fetch_messages(const std::string& message_nos,
     reset_response_parser();
 }
 
-auto imap::statistics(const string& mailbox) -> mailbox_stat_t
+auto imap::statistics(const string& mailbox, bool unseen, bool uidnext, bool uidvalidity) -> mailbox_stat_t
 {
-    // TODO: It doesn't like search terms it doesn't recognize. "2 BAD ...".
-    //       Some older protocol versions or some servers may not support them.
-    //       Pass a flag indicating whether we want to try "unseen uidnext uidvalidity".
-    _dlg->send(format("STATUS \"" + mailbox + "\" (messages recent unseen uidnext uidvalidity)"));
+    // It doesn't like search terms it doesn't recognize.
+    // Some older protocol versions or some servers may not support them.
+    // So unseen uidnext and uidvalidity are optional.
+    string cmd = "STATUS \"" + mailbox + "\" (messages recent";
+    if(unseen)
+      cmd += " unseen";
+    if(uidnext)
+      cmd += " uidnext";
+    if(uidvalidity)
+      cmd += " uidvalidity";
+    cmd += ")";
+    
+    _dlg->send(format(cmd));
     mailbox_stat_t stat;
     
     bool has_more = true;

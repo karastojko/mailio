@@ -1,6 +1,9 @@
+27.03.2019 
+ - imap::statistics() method: Add optional unseen, uidnext, uidvalidity flags. (terminator356)
+
 26.03.2019 
  - Add imap fetch_messages method. (terminator356)
- 
+
 12.03.2019 
  * From github user terminator356:
  - Fix exception on lower case letters: "Bad hexadecimal digit" in quoted_printable::decode().
