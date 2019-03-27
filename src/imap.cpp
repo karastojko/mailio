@@ -122,21 +122,21 @@ void imap::fetch_message(unsigned long message_no, message& msg, bool header_onl
         
         if (std::get<0>(tag_result_response) == "*")
         {
-// Comment by terminator356. Hm, this response has four parts and the third is FETCH,
-//              but tag_result_response is a tuple and there are only three items,
-//              and all of the libray code wants to parse starting at the third item.
-//             So in this case only, we are including the word FETCH in the parse,
-//              which the code below deems harmless because the FETCH is just a string atom
-//              and the code below just looks for the LIST token.
-//             Nonetheless, the word FETCH will be the first atom returned in the mandatory list.
-//             We could look for the word there. But then for consistency we should change
-//              all the other code to do the same (that is, include the response word).
-
             if (stoul(std::get<1>(tag_result_response)) != message_no)
                 throw imap_error("Fetching message failure.");
 
-            if (!iequals(std::get<2>(tag_result_response), "FETCH"))
-                throw imap_error("Fetching message failure.");
+            // Comment by terminator356. Hm, this response has four parts and the third is FETCH,
+            //              but tag_result_response is a tuple and there are only three items,
+            //              and all of the libray code wants to parse starting at the third item.
+            //             So in this case only, we are including the word FETCH in the parse,
+            //              which the code below deems harmless because the FETCH is just a string atom
+            //              and the code below just looks for the LIST token.
+            //             Nonetheless, the word FETCH will be the first atom returned in the mandatory list.
+            //             We could look for the word there. But then for consistency we should change
+            //              all the other code to do the same (that is, include the response word).
+            //
+            //if (!iequals(std::get<2>(tag_result_response), "FETCH"))
+            //    throw imap_error("Fetching message failure.");
 
             parse_response(std::get<2>(tag_result_response));
             shared_ptr<response_token_t> literal_token = nullptr;
@@ -227,8 +227,8 @@ void imap::fetch_messages(const std::string& message_nos,
         
         if (std::get<0>(tag_result_response) == "*")
         {
-            if (!iequals(std::get<2>(tag_result_response), "FETCH"))
-                throw imap_error("Fetching message failure.");
+            //if (!iequals(std::get<2>(tag_result_response), "FETCH"))
+            //    throw imap_error("Fetching message failure.");
 
             // Grab the message number, if we asked for them instead of uids.
             unsigned long msg_no = 0;
