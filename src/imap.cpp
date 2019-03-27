@@ -292,6 +292,194 @@ void imap::fetch_message(unsigned long message_no, message& msg, bool header_onl
     reset_response_parser();
 }
 
+void imap::fetch_messages(const std::string& message_nos,
+                          std::map<unsigned long /*message_number_or_uid*/, message>& msgs,
+                          codec::line_len_policy_t line_policy,
+                          bool header_only, bool is_uids)
+{
+    const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
+    //_dlg->send(format("FETCH " + to_string(message_no) + " " + RFC822_TOKEN));
+
+    string cmd;
+    if(is_uids)
+      cmd.append("UID ");
+    cmd.append("FETCH " + message_nos + " " + RFC822_TOKEN);
+    _dlg->send(format(cmd));
+    
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = _dlg->receive();
+        tuple<string, string, string> tag_result_response = parse_tag_result(line);
+        
+        if (std::get<0>(tag_result_response) == "*")
+        {
+// REMOVE Tim. Added. Hm, this response has four parts and the third is FETCH,
+//              but tag_result_response is a tuple and there are only three items,
+//              and all of the libray code wants to parse starting at the third item.
+//             So in this case only, we are including the word FETCH in the parse,
+//              which the code below deems harmless because the FETCH is just a string atom
+//              and the code below just looks for the LIST token.
+//             Nonetheless, the word FETCH will be the first atom returned in the mandatory list.
+//             We could look for the word there. But then for consistency we should change
+//              all the other code to do the same (that is, include the response word).
+//
+//             if (stoul(std::get<1>(tag_result_response)) != message_no)
+//                 throw imap_error("Fetching message failure.");
+// 
+//             if (!iequals(std::get<2>(tag_result_response), "FETCH"))
+//                 throw imap_error("Fetching message failure.");
+
+            // Grab the message number, if we asked for them instead of uids.
+            unsigned long msg_no = 0;
+            if(!is_uids)
+            {
+              stoul(std::get<1>(tag_result_response));
+              if(msg_no == 0)
+                throw imap_error("Fetching message failure.");
+            }
+
+            unsigned long uid = 0;
+            parse_response(std::get<2>(tag_result_response));
+            shared_ptr<response_token_t> literal_token = nullptr;
+            if (!_mandatory_part.empty())
+                for (auto part : _mandatory_part)
+                {
+                    if (part->token_type == response_token_t::token_type_t::LIST)
+                    {
+// REMOVE Tim. Removed.
+//                         bool rfc_found = false;
+// REMOVE Tim. Added.
+                        //bool uid_found = false;
+                        bool key_found = false;
+                        string key;
+
+                        for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
+                        {
+// REMOVE Tim. Changed.
+//                             if ((*token)->token_type == response_token_t::token_type_t::ATOM && iequals((*token)->atom, RFC822_TOKEN))
+//                             {
+//                                 rfc_found = true;
+//                                 continue;
+//                             }
+                            if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+                            {
+//                               if(iequals((*token)->atom, RFC822_TOKEN))
+//                               {
+//                                   rfc_found = true;
+//                                   continue;
+//                               }
+//                               else
+//                               if (iequals((*token)->atom, "UID"))
+//                               {
+//                                   uid_found = true;
+//                                   continue;
+//                               }
+//                               else if(uid_found)
+//                               {
+//                                   uid = stoul((*token)->atom);
+//                                   // Reset to avoid interference with/from other possible atoms.
+//                                   uid_found = false;
+//                               }
+                              
+                              const string& atm = (*token)->atom;
+                              if(key_found)
+                              {
+                                if(iequals(key, "UID"))
+                                {
+                                  uid = stoul(atm);
+                                }
+                                // Reset.
+                                key_found = false;
+                              }
+                              else
+                              {
+                                key = atm;
+                                key_found = true;
+                              }
+                            }
+                            else 
+
+// REMOVE Tim. Changed.
+//                             if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
+//                             {
+//                                 if (rfc_found)
+//                                 {
+//                                     literal_token = *token;
+//                                     break;
+//                                 }
+//                                 else
+//                                     throw imap_error("Parsing failure.");
+//                             }
+                            if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
+                            {
+                                if(key_found)
+                                {
+                                  if(iequals(key, RFC822_TOKEN))
+                                  {
+                                      literal_token = *token;
+                                      // Break because reading the string literal text should follow.
+                                      break;
+                                  }
+                                  key_found = false;
+                                }
+                                // Anything else is an error.
+                                throw imap_error("Parsing failure.");
+                            }
+                        }
+                    }
+                }
+
+            if (literal_token != nullptr)
+            {
+                // loop to read string literal
+                while (_literal_state == string_literal_state_t::READING)
+                {
+                    string line = _dlg->receive(true);
+                    if (!line.empty())
+                        trim_eol(line);
+                    parse_response(line);
+                }
+                // closing parenthesis not yet read
+                if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
+                {
+                    string line = _dlg->receive(true);
+                    if (!line.empty())
+                        trim_eol(line);
+                    parse_response(line);
+                }
+
+                // If no UID was found, but we asked for them, it's an error.
+                if(is_uids && uid == 0)
+                {
+                  throw imap_error("Parsing failure.");
+                }
+
+                message msg;
+                // Set the decoder line policy.
+                msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
+                msg.parse(literal_token->literal);
+                // Success. Put the message into the result map, indexed either by message number or uid if we asked for uids.
+                msgs.insert(std::pair<unsigned long /*message_number_or_uid*/, message>(is_uids ? uid : msg_no, msg));
+            }
+            else
+                throw imap_error("Parsing failure.");
+            reset_response_parser();
+        }
+        else if (std::get<0>(tag_result_response) == to_string(_tag))
+        {
+            if (iequals(std::get<1>(tag_result_response), "OK"))
+                has_more = false;
+            else
+                throw imap_error("Fetching message failure.");
+        }
+        else
+            throw imap_error("Parsing failure.");
+    }
+        
+    reset_response_parser();
+}
+
 // REMOVE Tim. Changed.
 // auto imap::statistics(const string& mailbox) -> mailbox_stat_t
 // {
@@ -368,7 +556,7 @@ auto imap::statistics(const string& mailbox) -> mailbox_stat_t
                     auto mp = *it;
                     for(auto il = mp->parenthesized_list.begin(); il != mp->parenthesized_list.end(); ++il)
                     {
-                      string atm = (*il)->atom;
+                      const string& atm = (*il)->atom;
                       if(key_found)
                       {
                         if(iequals(key, "MESSAGES"))

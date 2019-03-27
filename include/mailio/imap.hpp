@@ -15,6 +15,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <chrono>
 #include <list>
+// REMOVE Tim. Added.
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -243,6 +245,32 @@ public:
     **/
     void fetch_message(unsigned long message_no, message& msg, bool header_only = false, bool is_uid = false);
 
+    // REMOVE Tim. Added.
+    /**
+    Fetching messages from an already selected mailbox.
+
+    NOTE: fetch() selects the mailbox with every call, fetch_messages() does not.
+    A mailbox must already be selected before calling fetch_message().
+    Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
+    fetching non-existing message to be an error, and an exception is thrown.
+
+    @param message_nos String of message numbers or uids to fetch (ex. "1:4,5,6,7:10").
+    @param msgs        Map of messages to store the results, indexed by message number or uid.
+                       It does not clear the map first, so that results can be accumulated.
+    @param line_policy Decoder line policy to use while parsing each message.
+    @param header_only Flag if only the message headers should be fetched.
+    @param is_uids     Using message uid numbers instead of a message sequence numbers.
+    @throw imap_error  Fetching message failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `parse_tag_result(const string&)`, `parse_response(const string&)`,
+                       `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
+    @todo              Add server error messages to exceptions.
+    **/
+    void fetch_messages(const std::string& message_nos,
+                        std::map<unsigned long /*message_number_or_uid*/, message>& msgs,
+                        codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED,
+                        bool header_only = false, bool is_uids = false);
+
     /**
     Getting the mailbox statistics.
     
@@ -286,7 +314,8 @@ public:
     Searching a mailbox.
     
     @param keys        String of search keys.
-    @param result_list Store resulting list of indexes here.
+    @param result_list Store resulting list of message numbers or uids here.
+                       Does not clear the list first, so that results can be accumulated.
     @param want_uids   Return a list of message uids instead of message sequence numbers.
     @throw imap_error  Search mailbox failure.
     @throw imap_error  Parsing failure.
