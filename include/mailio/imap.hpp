@@ -15,7 +15,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <chrono>
 #include <list>
-// REMOVE Tim. Added.
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -45,38 +44,11 @@ public:
     **/
     struct mailbox_stat_t
     {
-        // REMOVE Tim. Added.
-//         /**
-//           Some of these values were added in later versions. See RFC 3502 6.3.10
-//           The following flags indicate whether the values were detected.
-//         **/
-// 
-//         /**
-//         Whether the messages_unseen value is valid.
-//         **/
-//         bool unseen_valid;
-// 
-//         /**
-//         Whether the uidnext value is valid.
-//         **/
-//         bool uidnext_valid;
-// 
-//         /**
-//         Whether the uidvalidity value is valid.
-//         **/
-//         bool uidvalidity_valid;
-
-
-
         /**
         Number of messages in the mailbox.
         **/
         unsigned long messages_no;
 
-
-
-
-        // REMOVE Tim. Added.
         /**
         Number of recent messages in the mailbox.
         **/
@@ -106,17 +78,11 @@ public:
         **/
         unsigned long uidvalidity;
 
-
-
-
         /**
         Setting the number of messages to zero.
         **/
-        // REMOVE Tim. Changed.
-//          mailbox_stat_t() : messages_no(0)
         mailbox_stat_t()
-        : //unseen_valid(false), uidnext_valid(false), uidvalidity_valid(false),
-          messages_no(0), messages_recent(0), messages_unseen(0), messages_first_unseen(0),
+        : messages_no(0), messages_recent(0), messages_unseen(0), messages_first_unseen(0),
           uidnext(0), uidvalidity(0)
         {
         }
@@ -134,16 +100,6 @@ public:
     Available authentication methods.
     **/
     enum class auth_method_t {LOGIN};
-
-//     // REMOVE Tim. Added.
-//     /**
-//     Various options for commands. Can be ORd together.
-//     
-//     HeadersOnly: Fetch headers only, not full message text.
-//     WantUid:     Use message uids instead of message sequence numbers.
-//     **/
-//     enum command_option_t { NoOptions = 0x0, HeadersOnly = 0x1, WantUid = 0x2 };
-//     typedef unsigned int command_options_t;
 
     /**
     Creating a connection to a server.
@@ -180,7 +136,6 @@ public:
     **/
     void authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
-    // REMOVE Tim. Added.
     /**
     Selecting a mailbox.
     
@@ -193,7 +148,6 @@ public:
     **/
     mailbox_stat_t select_mailbox(const std::list<std::string>& folder_name);
 
-    // REMOVE Tim. Added.
     /**
     Examining a mailbox.
 
@@ -224,7 +178,6 @@ public:
     **/
     void fetch(const std::string& mailbox, unsigned long message_no, message& msg, bool header_only = false);
 
-    // REMOVE Tim. Added.
     /**
     Fetching a message from an already selected mailbox.
 
@@ -245,7 +198,6 @@ public:
     **/
     void fetch_message(unsigned long message_no, message& msg, bool header_only = false, bool is_uid = false);
 
-    // REMOVE Tim. Added.
     /**
     Fetching messages from an already selected mailbox.
 
@@ -295,7 +247,6 @@ public:
     **/
     void remove(const std::string& mailbox, unsigned long message_no);
 
-    // REMOVE Tim. Added.
     /**
     Removing a message from an already selected mailbox.
     NOTE: remove() selects the mailbox with every call, remove_message() does not.
@@ -309,7 +260,6 @@ public:
     **/
     void remove_message(unsigned long message_no, bool is_uid = false);
 
-    // REMOVE Tim. Added.
     /**
     Searching a mailbox.
     
@@ -390,17 +340,6 @@ protected:
     **/
     void auth_login(const std::string& username, const std::string& password);
 
-    // REMOVE Tim. Changed.
-//     /**
-//     Selecting a mailbox.
-//     
-//     @param mailbox    Mailbox to select.
-//     @throw imap_error Selecting mailbox failure.
-//     @throw imap_error Parsing failure.
-//     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-//     @todo             Add server error messages to exceptions.
-//     **/
-//     void select(const std::string& mailbox);
     /**
     Selecting a mailbox.
 
@@ -413,7 +352,6 @@ protected:
     **/
     mailbox_stat_t select(const std::string& mailbox);
 
-    // REMOVE Tim. Added.
     /**
     Examining a mailbox.
 
@@ -426,7 +364,6 @@ protected:
     **/
     mailbox_stat_t examine(const std::string& mailbox);
 
-    // REMOVE Tim. Added.
     /**
     Searching a mailbox.
     
@@ -450,7 +387,6 @@ protected:
     **/
     std::string folder_delimiter();
 
-    // REMOVE Tim. Added.
     /**
     Parse results of selecting or examining a mailbox.
     The format is identical in both cases.

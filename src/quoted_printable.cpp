@@ -28,8 +28,6 @@ namespace mailio
 {
 
 
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-// quoted_printable::quoted_printable(codec::line_len_policy_t line_policy) : codec(line_policy), _q_codec_mode(false)
 quoted_printable::quoted_printable(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
   : codec(encoder_line_policy, decoder_line_policy), _q_codec_mode(false)
 {
@@ -206,8 +204,6 @@ string quoted_printable::decode(const vector<string>& text) const
     string dec_text;
     for (const auto& line : text)
     {
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-//         if (line.length() > string::size_type(_line_policy) - 2)
         if (line.length() > string::size_type(_decoder_line_policy) - 2)
             throw codec_error("Bad line policy.");
 
@@ -224,10 +220,8 @@ string quoted_printable::decode(const vector<string>& text) const
                     soft_break = true;
                     continue;
                 }
-                
-// REMOVE Tim. Changed. Exception on lower case letters.
-//                 char next_char = *(ch + 1);
-//                 char next_next_char = *(ch + 2);
+
+                // Avoid exception: Convert to uppercase.
                 char next_char = toupper(*(ch + 1));
                 char next_next_char = toupper(*(ch + 2));
                 if (!is_allowed(next_char) || !is_allowed(next_next_char))

@@ -30,13 +30,6 @@ class MAILIO_EXPORT quoted_printable : public codec
 {
 public:
 
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-//     /**
-//     Setting the line policy.
-// 
-//     @param line_policy Line length policy to set.
-//     **/
-//     quoted_printable(codec::line_len_policy_t line_policy = codec::line_len_policy_t::NONE);
     /**
     Setting the encoder and decoder line policy.
 

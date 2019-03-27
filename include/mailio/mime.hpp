@@ -317,13 +317,6 @@ public:
     **/
     std::vector<mime> parts() const;
 
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-//     /**
-//     Setting the message line policy.
-// 
-//     @param line_policy Line policy to set.
-//     **/
-//     void line_policy(codec::line_len_policy_t line_policy);
     /**
     Setting the message decoding and encoding line policy.
 
@@ -332,13 +325,6 @@ public:
     **/
     void line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy);
 
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-//     /**
-//     Getting the message line policy.
-// 
-//     @return Line policy.
-//     **/
-//     codec::line_len_policy_t line_policy() const;
     /**
     Getting the encoder message line policy.
 
@@ -346,7 +332,6 @@ public:
     **/
     codec::line_len_policy_t line_policy() const;
 
-    // REMOVE Tim. Added. We need a much larger value available for decoding since some emails tested were beyond 2048.
     /**
     Getting the message decoder line policy.
 
@@ -648,17 +633,11 @@ protected:
     **/
     std::string _version;
 
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-//     /**
-//     Line policy to be applied for the mime part.
-//     **/
-//     codec::line_len_policy_t _line_policy;
     /**
     Encoder line policy to be applied for the mime part.
     **/
     codec::line_len_policy_t _line_policy;
 
-// REMOVE Tim. Added. We need a much larger value available for decoding since some emails tested were beyond 2048.
     /**
     Decoder line policy to be applied for the mime part.
     **/

@@ -41,8 +41,6 @@ bool codec::is_utf8_string(const string& txt)
 }
 
 
-// REMOVE Tim. Changed. We need a much larger value available for decoding since some emails tested were beyond 2048.
-// codec::codec(codec::line_len_policy_t line_policy) : _line_policy(line_policy), _strict_mode(false)
 codec::codec(line_len_policy_t encoder_line_policy, line_len_policy_t decoder_line_policy)
   : _line_policy(encoder_line_policy), _decoder_line_policy(decoder_line_policy), _strict_mode(false)
 {
