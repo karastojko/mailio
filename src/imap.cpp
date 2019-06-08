@@ -88,6 +88,7 @@ auto imap::select_mailbox(const std::list<std::string>& folder_name) -> mailbox_
     return select(folder_name_s);
 }
 
+
 auto imap::examine_mailbox(const std::list<std::string>& folder_name) -> mailbox_stat_t
 {
     string delim = folder_delimiter();
@@ -102,6 +103,7 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, 
     select(mailbox);
     fetch_message(message_no, msg, header_only);
 }
+
 
 // fetching literal is the only place where line is ended with LF only, instead of CRLF; thus, `receive(true)` and counting EOLs is performed
 void imap::fetch_message(unsigned long message_no, message& msg, bool header_only, bool is_uid)
@@ -205,6 +207,7 @@ void imap::fetch_message(unsigned long message_no, message& msg, bool header_onl
         
     reset_response_parser();
 }
+
 
 void imap::fetch_messages(const std::string& message_nos,
                           std::map<unsigned long /*message_number_or_uid*/, message>& msgs,
@@ -339,18 +342,19 @@ void imap::fetch_messages(const std::string& message_nos,
     reset_response_parser();
 }
 
-auto imap::statistics(const string& mailbox, bool unseen, bool uidnext, bool uidvalidity) -> mailbox_stat_t
+
+auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_t
 {
     // It doesn't like search terms it doesn't recognize.
     // Some older protocol versions or some servers may not support them.
     // So unseen uidnext and uidvalidity are optional.
     string cmd = "STATUS \"" + mailbox + "\" (messages recent";
-    if(unseen)
-      cmd += " unseen";
-    if(uidnext)
-      cmd += " uidnext";
-    if(uidvalidity)
-      cmd += " uidvalidity";
+    if (info & mailbox_stat_t::UNSEEN)
+        cmd += " unseen";
+    if (info & mailbox_stat_t::UID_NEXT)
+        cmd += " uidnext";
+    if (info & mailbox_stat_t::UID_VALIDITY)
+        cmd += " uidvalidity";
     cmd += ")";
     
     _dlg->send(format(cmd));
@@ -378,38 +382,38 @@ auto imap::statistics(const string& mailbox, bool unseen, bool uidnext, bool uid
                     auto mp = *it;
                     for(auto il = mp->parenthesized_list.begin(); il != mp->parenthesized_list.end(); ++il)
                     {
-                      const string& atm = (*il)->atom;
-                      if(key_found)
-                      {
-                        if(iequals(key, "MESSAGES"))
+                        const string& atm = (*il)->atom;
+                        if (key_found)
                         {
-                          stat.messages_no = stoul(atm);
-                          mess_found = true;
+                            if (iequals(key, "MESSAGES"))
+                            {
+                                stat.messages_no = stoul(atm);
+                                mess_found = true;
+                            }
+                            else if (iequals(key, "RECENT"))
+                            {
+                                stat.messages_recent = stoul(atm);
+                                recent_found = true;
+                            }
+                            else if (iequals(key, "UNSEEN"))
+                            {
+                                stat.messages_unseen = stoul(atm);
+                            }
+                            else if (iequals(key, "UIDNEXT"))
+                            {
+                                stat.uid_next = stoul(atm);
+                            }
+                            else if (iequals(key, "UIDVALIDITY"))
+                            {
+                                stat.uid_validity = stoul(atm);
+                            }
+                            key_found = false;
                         }
-                        else if(iequals(key, "RECENT"))
+                        else
                         {
-                          stat.messages_recent = stoul(atm);
-                          recent_found = true;
+                            key = atm;
+                            key_found = true;
                         }
-                        else if(iequals(key, "UNSEEN"))
-                        {
-                          stat.messages_unseen = stoul(atm);
-                        }
-                        else if(iequals(key, "UIDNEXT"))
-                        {
-                          stat.uidnext = stoul(atm);
-                        }
-                        else if(iequals(key, "UIDVALIDITY"))
-                        {
-                          stat.uidvalidity = stoul(atm);
-                        }
-                        key_found = false;
-                      }
-                      else
-                      {
-                        key = atm;
-                        key_found = true;
-                      }
                     }
                 }
             // The MESSAGES and RECENT are required.
@@ -431,12 +435,15 @@ auto imap::statistics(const string& mailbox, bool unseen, bool uidnext, bool uid
     return stat;
 }
 
+
 void imap::remove(const string& mailbox, unsigned long message_no)
 {
     select(mailbox);
     remove_message(message_no);
 }
 
+
+// TODO: Checking for the fetch literal in the untagged response is not correct, because the response is `* 2 FETCH (FLAGS (\Deleted))`
 void imap::remove_message(unsigned long message_no, bool is_uid)
 {
     string cmd;
@@ -626,17 +633,22 @@ auto imap::select(const string& mailbox) -> mailbox_stat_t
     return parse_select_or_examine();
 }
 
+
 auto imap::examine(const string& mailbox) -> mailbox_stat_t
 {
     _dlg->send(format("EXAMINE \"" + mailbox + "\""));
     return parse_select_or_examine();
 }
 
+
 void imap::search_messages(const string& keys, std::list<unsigned long>& result_list, bool want_uids)
 {
-  search(keys, result_list, want_uids);
+    search(keys, result_list, want_uids);
 }
 
+
+// TODO: Indentation of two whitespaces.
+// TODO: Space between the `if` keyword and parenthesis.
 void imap::search(const string& keys, std::list<unsigned long>& result_list, bool want_uids)
 {
     string cmd;
@@ -681,6 +693,8 @@ void imap::search(const string& keys, std::list<unsigned long>& result_list, boo
     }
 }
 
+
+// TODO: Wrong exception text at the line 698.
 string imap::folder_delimiter()
 {
     string delimiter;
@@ -716,6 +730,12 @@ string imap::folder_delimiter()
 }
 
 
+// TODO: Catch exceptions of `stoul` function.
+// TODO: Indentation of new code should be four spaces.
+// TODO: Handle message flags.
+// TODO: Rename `code2` to something more meaningful.
+// TODO: Space between the `if` keyword and parenthesis.
+// TODO: Rename `atm` to something more meaningful.
 auto imap::parse_select_or_examine() -> mailbox_stat_t
 {
     mailbox_stat_t stat;
@@ -747,11 +767,11 @@ auto imap::parse_select_or_examine() -> mailbox_stat_t
                           }
                           else if(iequals(key, "UIDNEXT"))
                           {
-                            stat.uidnext = stoul(atm);
+                            stat.uid_next = stoul(atm);
                           }
                           else if(iequals(key, "UIDVALIDITY"))
                           {
-                            stat.uidvalidity = stoul(atm);
+                            stat.uid_validity = stoul(atm);
                           }
                           key_found = false;
                         }
@@ -796,7 +816,7 @@ auto imap::parse_select_or_examine() -> mailbox_stat_t
     }
 
     // The EXISTS and RECENT are required, the others may be missing in earlier protocol versions.
-    if(!exists_found || !recent_found)
+    if (!exists_found || !recent_found)
         throw imap_error("Parsing failure.");
 
     return stat;

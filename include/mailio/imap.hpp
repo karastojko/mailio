@@ -45,6 +45,11 @@ public:
     struct mailbox_stat_t
     {
         /**
+        Statistics information to be retrieved.
+        **/
+        enum stat_info_t {DEFAULT = 0, UNSEEN = 1, UID_NEXT = 2, UID_VALIDITY = 4};
+
+        /**
         Number of messages in the mailbox.
         **/
         unsigned long messages_no;
@@ -55,35 +60,37 @@ public:
         unsigned long messages_recent;
 
         /**
-        The non-zero number of unseen messages in the mailbox
+        The non-zero number of unseen messages in the mailbox.
+
         Zero indicates the server did not report this and no assumptions can be made about the number of unseen messages.
         **/
         unsigned long messages_unseen;
 
         /**
-        The non-zero message sequence number of the first unseen message in the mailbox
+        The non-zero message sequence number of the first unseen message in the mailbox.
+
         Zero indicates the server did not report this and no assumptions can be made about the first unseen message.
         **/
         unsigned long messages_first_unseen;
 
         /**
         The non-zero next unique identifier value of the mailbox.
+
         Zero indicates the server did not report this and no assumptions can be made about the next unique identifier.
         **/
-        unsigned long uidnext;
+        unsigned long uid_next;
 
         /**
         The non-zero unique identifier validity value of the mailbox.
-        Zero indicates the server did not report this and does not support uids.
+
+        Zero indicates the server did not report this and does not support UIDs.
         **/
-        unsigned long uidvalidity;
+        unsigned long uid_validity;
 
         /**
         Setting the number of messages to zero.
         **/
-        mailbox_stat_t()
-        : messages_no(0), messages_recent(0), messages_unseen(0), messages_first_unseen(0),
-          uidnext(0), uidvalidity(0)
+        mailbox_stat_t() : messages_no(0), messages_recent(0), messages_unseen(0), messages_first_unseen(0), uid_next(0), uid_validity(0)
         {
         }
     };
@@ -225,20 +232,19 @@ public:
 
     /**
     Getting the mailbox statistics.
-    NOTE: The server might not support unseen, uidnext, or uidvalidity, which will cause an exception,
-           so those parameters are optional. 
+
+    The server might not support unseen, uidnext, or uidvalidity, which will cause an exception, so those parameters are optional.
     
-    @param mailbox     Mailbox name.
-    @param unseen      Ask for the number of unseen messages.
-    @param uidnext     Ask for the next uid number.
-    @param uidvalidity Ask for the uidvalidity number.
-    @return            Mailbox statistics.
-    @throw imap_error  Parsing failure.
-    @throw imap_error  Getting statistics failure.
-    @throw *           `parse_tag_result(const string&)`, `parse_response(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-    @todo              Add server error messages to exceptions.
+    @param mailbox    Mailbox name.
+    @param info       Statistics information to be retrieved.
+    @return           Mailbox statistics.
+    @throw imap_error Parsing failure.
+    @throw imap_error Getting statistics failure.
+    @throw *          `parse_tag_result(const string&)`, `parse_response(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    @todo             Exceptions by `stoul()` should be rethrown as parsing failure.
     **/
-    mailbox_stat_t statistics(const std::string& mailbox, bool unseen = false, bool uidnext = false, bool uidvalidity = false);
+    mailbox_stat_t statistics(const std::string& mailbox, unsigned int info = mailbox_stat_t::DEFAULT);
 
     /**
     Removing a message from the given mailbox.
