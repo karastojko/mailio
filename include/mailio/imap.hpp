@@ -152,20 +152,9 @@ public:
     @throw imap_error  Parsing failure.
     @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo              Add server error messages to exceptions.
+    @todo              Catch exceptions of `stoul` function.
     **/
-    mailbox_stat_t select_mailbox(const std::list<std::string>& folder_name);
-
-    /**
-    Examining a mailbox.
-
-    @param folder_name Folder to list.
-    @return            Mailbox statistics.
-    @throw imap_error  Selecting mailbox failure.
-    @throw imap_error  Parsing failure.
-    @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-    @todo              Add server error messages to exceptions.
-    **/
-    mailbox_stat_t examine_mailbox(const std::list<std::string>& folder_name);
+    mailbox_stat_t select(const std::list<std::string>& folder_name, bool read_only = false);
 
     /**
     Fetching a message from the mailbox.
@@ -253,14 +242,13 @@ public:
     @param message_no Number of the message to remove.
     @throw imap_error Deleting message failure.
     @throw imap_error Parsing failure.
-    @throw *          `select(const string&)`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @throw *          `select(const string&)`, `parse_tag_result(const string&)`, `remove(unsigned long, bool)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
     **/
     void remove(const std::string& mailbox, unsigned long message_no);
 
     /**
     Removing a message from an already selected mailbox.
-    NOTE: remove() selects the mailbox with every call, remove_message() does not.
     
     @param message_no Number of the message to remove.
     @param is_uid     Using a message uid number instead of a message sequence number.
@@ -268,8 +256,9 @@ public:
     @throw imap_error Parsing failure.
     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
+    @todo             Catch exceptions of `stoul` function.
     **/
-    void remove_message(unsigned long message_no, bool is_uid = false);
+    void remove(unsigned long message_no, bool is_uid = false);
 
     /**
     Searching a mailbox.
@@ -355,25 +344,14 @@ protected:
     Selecting a mailbox.
 
     @param mailbox    Mailbox to select.
+    @param read_only  Flag if the selected mailbox is only readable of also writable.
     @return           Mailbox statistics.
     @throw imap_error Selecting mailbox failure.
     @throw imap_error Parsing failure.
     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
     **/
-    mailbox_stat_t select(const std::string& mailbox);
-
-    /**
-    Examining a mailbox.
-
-    @param mailbox    Mailbox to select.
-    @return           Mailbox statistics.
-    @throw imap_error Selecting mailbox failure.
-    @throw imap_error Parsing failure.
-    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-    @todo             Add server error messages to exceptions.
-    **/
-    mailbox_stat_t examine(const std::string& mailbox);
+    mailbox_stat_t select(const std::string& mailbox, bool read_only = false);
 
     /**
     Searching a mailbox.
@@ -388,7 +366,6 @@ protected:
     **/
     void search(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
 
-
     /**
     Determining folder delimiter of a mailbox.
 
@@ -397,18 +374,6 @@ protected:
     @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
     std::string folder_delimiter();
-
-    /**
-    Parse results of selecting or examining a mailbox.
-    The format is identical in both cases.
-
-    @return           Mailbox statistics.
-    @throw imap_error Selecting mailbox failure.
-    @throw imap_error Parsing failure.
-    @throw *          `parse_tag_result(const string&)`, `dialog::receive()`.
-    @todo             Add server error messages to exceptions.
-    **/
-    mailbox_stat_t parse_select_or_examine();
 
     /**
     Parsing a line into tag, result and response which is the rest of the line.

@@ -81,19 +81,11 @@ void imap::authenticate(const string& username, const string& password, auth_met
 }
 
 
-auto imap::select_mailbox(const std::list<std::string>& folder_name) -> mailbox_stat_t
+auto imap::select(const list<string>& folder_name, bool read_only) -> mailbox_stat_t
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);
     return select(folder_name_s);
-}
-
-
-auto imap::examine_mailbox(const std::list<std::string>& folder_name) -> mailbox_stat_t
-{
-    string delim = folder_delimiter();
-    string folder_name_s = folder_tree_to_string(folder_name, delim);
-    return examine(folder_name_s);
 }
 
 
@@ -382,36 +374,36 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
                     auto mp = *it;
                     for(auto il = mp->parenthesized_list.begin(); il != mp->parenthesized_list.end(); ++il)
                     {
-                        const string& atm = (*il)->atom;
+                        const string& value = (*il)->atom;
                         if (key_found)
                         {
                             if (iequals(key, "MESSAGES"))
                             {
-                                stat.messages_no = stoul(atm);
+                                stat.messages_no = stoul(value);
                                 mess_found = true;
                             }
                             else if (iequals(key, "RECENT"))
                             {
-                                stat.messages_recent = stoul(atm);
+                                stat.messages_recent = stoul(value);
                                 recent_found = true;
                             }
                             else if (iequals(key, "UNSEEN"))
                             {
-                                stat.messages_unseen = stoul(atm);
+                                stat.messages_unseen = stoul(value);
                             }
                             else if (iequals(key, "UIDNEXT"))
                             {
-                                stat.uid_next = stoul(atm);
+                                stat.uid_next = stoul(value);
                             }
                             else if (iequals(key, "UIDVALIDITY"))
                             {
-                                stat.uid_validity = stoul(atm);
+                                stat.uid_validity = stoul(value);
                             }
                             key_found = false;
                         }
                         else
                         {
-                            key = atm;
+                            key = value;
                             key_found = true;
                         }
                     }
@@ -439,16 +431,15 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
 void imap::remove(const string& mailbox, unsigned long message_no)
 {
     select(mailbox);
-    remove_message(message_no);
+    remove(message_no);
 }
 
 
-// TODO: Checking for the fetch literal in the untagged response is not correct, because the response is `* 2 FETCH (FLAGS (\Deleted))`
-void imap::remove_message(unsigned long message_no, bool is_uid)
+void imap::remove(unsigned long message_no, bool is_uid)
 {
     string cmd;
-    if(is_uid)
-      cmd.append("UID ");
+    if (is_uid)
+        cmd.append("UID ");
     cmd.append("STORE " + to_string(message_no) + " +FLAGS (\\Deleted)");
     _dlg->send(format(cmd));
 
@@ -460,9 +451,9 @@ void imap::remove_message(unsigned long message_no, bool is_uid)
         
         if (std::get<0>(tag_result_response) == "*")
         {
-            // Yes, that's FETCH.
-            if (!iequals(std::get<1>(tag_result_response), "FETCH"))
+            if (stoul(std::get<1>(tag_result_response)) != message_no)
                 throw imap_error("Deleting message failure.");
+            // TODO: Untagged FETCH response also to be checked?
             continue;
         }
         else if(std::get<0>(tag_result_response) == to_string(_tag))
@@ -627,17 +618,97 @@ void imap::auth_login(const string& username, const string& password)
 }
 
 
-auto imap::select(const string& mailbox) -> mailbox_stat_t
+auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 {
-    _dlg->send(format("SELECT \"" + mailbox + "\""));
-    return parse_select_or_examine();
-}
+    string cmd;
+    if (read_only)
+        cmd = format("EXAMINE \"" + mailbox + "\"");
+    else
+        cmd = format("SELECT \"" + mailbox + "\"");
+    _dlg->send(cmd);
 
+    mailbox_stat_t stat;
+    bool exists_found = false;
+    bool recent_found = false;
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = _dlg->receive();
+        tuple<string, string, string> tag_result_response = parse_tag_result(line);
+        if (std::get<0>(tag_result_response) == "*")
+        {
+            const string result = std::get<1>(tag_result_response);
+            if (iequals(result, "OK"))
+            {
+                parse_response(std::get<2>(tag_result_response));
 
-auto imap::examine(const string& mailbox) -> mailbox_stat_t
-{
-    _dlg->send(format("EXAMINE \"" + mailbox + "\""));
-    return parse_select_or_examine();
+                bool key_found = false;
+                string key;
+                for (auto it = _optional_part.begin(); it != _optional_part.end(); it++)
+                    if ((*it)->token_type == response_token_t::token_type_t::ATOM)
+                    {
+                        string value = (*it)->atom;
+                        if (key_found)
+                        {
+                            if (iequals(key, "UNSEEN"))
+                            {
+                                stat.messages_first_unseen = stoul(value);
+                            }
+                            else if (iequals(key, "UIDNEXT"))
+                            {
+                                stat.uid_next = stoul(value);
+                            }
+                            else if (iequals(key, "UIDVALIDITY"))
+                            {
+                                stat.uid_validity = stoul(value);
+                            }
+                            key_found = false;
+                        }
+                        else
+                        {
+                            key = value;
+                            key_found = true;
+                        }
+                    }
+                reset_response_parser();
+            }
+            else if (iequals(result, "FLAGS"))
+            {
+                // Not implemented yet.
+            }
+            else
+            {
+                const string tail = std::get<2>(tag_result_response);
+                if (iequals(tail, "EXISTS"))
+                {
+                    stat.messages_no = stoul(result);
+                    exists_found = true;
+                }
+                else if (iequals(tail, "RECENT"))
+                {
+                    stat.messages_recent = stoul(result);
+                    recent_found = true;
+                }
+            }
+
+            continue;
+        }
+        else if (std::get<0>(tag_result_response) == to_string(_tag))
+        {
+            if (!iequals(std::get<1>(tag_result_response), "OK"))
+                throw imap_error("Select or examine mailbox failure.");
+
+            has_more = false;
+        }
+        else
+            throw imap_error("Parsing failure.");
+    }
+
+    // The EXISTS and RECENT are required, the others may be missing in earlier protocol versions.
+    if (!exists_found || !recent_found)
+        throw imap_error("Parsing failure.");
+
+    return stat;
 }
 
 
@@ -694,7 +765,6 @@ void imap::search(const string& keys, std::list<unsigned long>& result_list, boo
 }
 
 
-// TODO: Wrong exception text at the line 698.
 string imap::folder_delimiter()
 {
     string delimiter;
@@ -727,99 +797,6 @@ string imap::folder_delimiter()
         }
     }
     return delimiter;
-}
-
-
-// TODO: Catch exceptions of `stoul` function.
-// TODO: Indentation of new code should be four spaces.
-// TODO: Handle message flags.
-// TODO: Rename `code2` to something more meaningful.
-// TODO: Space between the `if` keyword and parenthesis.
-// TODO: Rename `atm` to something more meaningful.
-auto imap::parse_select_or_examine() -> mailbox_stat_t
-{
-    mailbox_stat_t stat;
-    bool exists_found = false;
-    bool recent_found = false;
-    bool has_more = true;
-    while (has_more)
-    {
-        string line = _dlg->receive();
-        tuple<string, string, string> tag_result_response = parse_tag_result(line);
-        if (std::get<0>(tag_result_response) == "*")
-        {
-            const string code = std::get<1>(tag_result_response);
-            if (iequals(code, "OK"))
-            {
-                parse_response(std::get<2>(tag_result_response));
-
-                bool key_found = false;
-                string key;
-                for (auto it = _optional_part.begin(); it != _optional_part.end(); it++)
-                    if ((*it)->token_type == response_token_t::token_type_t::ATOM)
-                    {
-                        string atm = (*it)->atom;
-                        if(key_found)
-                        {
-                          if(iequals(key, "UNSEEN"))
-                          {
-                            stat.messages_first_unseen = stoul(atm);
-                          }
-                          else if(iequals(key, "UIDNEXT"))
-                          {
-                            stat.uid_next = stoul(atm);
-                          }
-                          else if(iequals(key, "UIDVALIDITY"))
-                          {
-                            stat.uid_validity = stoul(atm);
-                          }
-                          key_found = false;
-                        }
-                        else
-                        {
-                          key = atm;
-                          key_found = true;
-                        }
-                    }
-                reset_response_parser();
-            }
-            else if (iequals(code, "FLAGS"))
-            {
-
-            }
-            else
-            {
-              const string code2 = std::get<2>(tag_result_response);
-              if (iequals(code2, "EXISTS"))
-              {
-                stat.messages_no = stoul(code);
-                exists_found = true;
-              }
-              else if (iequals(code2, "RECENT"))
-              {
-                stat.messages_recent = stoul(code);
-                recent_found = true;
-              }
-            }
-
-            continue;
-        }
-        else if (std::get<0>(tag_result_response) == to_string(_tag))
-        {
-            if (!iequals(std::get<1>(tag_result_response), "OK"))
-                throw imap_error("Select or examine mailbox failure.");
-
-            has_more = false;
-        }
-        else
-            throw imap_error("Parsing failure.");
-    }
-
-    // The EXISTS and RECENT are required, the others may be missing in earlier protocol versions.
-    if (!exists_found || !recent_found)
-        throw imap_error("Parsing failure.");
-
-    return stat;
 }
 
 
