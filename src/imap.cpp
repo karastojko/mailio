@@ -54,6 +54,23 @@ namespace mailio
 {
 
 
+string imap::search_condition_t::to_imap_string() const
+{
+    string result;
+
+    switch (key)
+    {
+        case ALL:
+            result = "ALL";
+            break;
+
+        default:
+            break;
+    }
+    return result;
+}
+
+
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
     _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(atom_state_t::NONE),
     _parenthesis_list_counter(0), _literal_state(string_literal_state_t::NONE), _literal_bytes_read(0), _eols_no(2)
@@ -103,8 +120,8 @@ void imap::fetch_message(unsigned long message_no, message& msg, bool header_onl
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
 
     string cmd;
-    if(is_uid)
-      cmd.append("UID ");
+    if (is_uid)
+        cmd.append("UID ");
     cmd.append("FETCH " + to_string(message_no) + " " + RFC822_TOKEN);
     _dlg->send(format(cmd));
     
@@ -209,8 +226,8 @@ void imap::fetch_messages(const std::string& message_nos,
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
 
     string cmd;
-    if(is_uids)
-      cmd.append("UID ");
+    if (is_uids)
+        cmd.append("UID ");
     cmd.append("FETCH " + message_nos + " " + RFC822_TOKEN);
     _dlg->send(format(cmd));
     
@@ -227,11 +244,11 @@ void imap::fetch_messages(const std::string& message_nos,
 
             // Grab the message number, if we asked for them instead of uids.
             unsigned long msg_no = 0;
-            if(!is_uids)
+            if (!is_uids)
             {
-              stoul(std::get<1>(tag_result_response));
-              if(msg_no == 0)
-                throw imap_error("Fetching message failure.");
+                stoul(std::get<1>(tag_result_response));
+                if (msg_no == 0)
+                    throw imap_error("Fetching message failure.");
             }
 
             unsigned long uid = 0;
@@ -249,33 +266,33 @@ void imap::fetch_messages(const std::string& message_nos,
                         {
                             if ((*token)->token_type == response_token_t::token_type_t::ATOM)
                             {
-                              const string& atm = (*token)->atom;
-                              if(key_found)
-                              {
-                                if(iequals(key, "UID"))
+                                const string& atm = (*token)->atom;
+                                if (key_found)
                                 {
-                                  uid = stoul(atm);
+                                    if(iequals(key, "UID"))
+                                    {
+                                        uid = stoul(atm);
+                                    }
+                                    // Reset.
+                                    key_found = false;
                                 }
-                                // Reset.
-                                key_found = false;
-                              }
-                              else
-                              {
-                                key = atm;
-                                key_found = true;
-                              }
+                                else
+                                {
+                                    key = atm;
+                                    key_found = true;
+                                }
                             }
                             else if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
                             {
-                                if(key_found)
+                                if (key_found)
                                 {
-                                  if(iequals(key, RFC822_TOKEN))
-                                  {
-                                      literal_token = *token;
-                                      // Break because reading the string literal text should follow.
-                                      break;
-                                  }
-                                  key_found = false;
+                                    if (iequals(key, RFC822_TOKEN))
+                                    {
+                                        literal_token = *token;
+                                        // Break because reading the string literal text should follow.
+                                        break;
+                                    }
+                                    key_found = false;
                                 }
                                 // Anything else is an error.
                                 throw imap_error("Parsing failure.");
@@ -304,9 +321,9 @@ void imap::fetch_messages(const std::string& message_nos,
                 }
 
                 // If no UID was found, but we asked for them, it's an error.
-                if(is_uids && uid == 0)
+                if (is_uids && uid == 0)
                 {
-                  throw imap_error("Parsing failure.");
+                    throw imap_error("Parsing failure.");
                 }
 
                 message msg;
@@ -478,6 +495,22 @@ void imap::remove(unsigned long message_no, bool is_uid)
     }
 }
 
+
+void imap::search_messages(const string& keys, list<unsigned long>& result_list, bool want_uids)
+{
+    search(keys, result_list, want_uids);
+}
+
+
+void imap::search(const vector<imap::search_condition_t>& conditions, list<unsigned long>& result_list, bool want_uids)
+{
+    string cond_str;
+    for (const auto& c : conditions)
+        cond_str += c.to_imap_string();
+    search(cond_str, result_list, want_uids);
+}
+
+
 bool imap::create_folder(const list<string>& folder_tree)
 {
     string delim = folder_delimiter();
@@ -511,7 +544,7 @@ auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
         if (std::get<0>(tag_result_response) == "*")
         {
             if (!iequals(std::get<1>(tag_result_response), "LIST"))
-                throw imap_error("Listing folders failure.");
+                 throw imap_error("Listing folders failure.");
 
             parse_response(std::get<2>(tag_result_response));
             if (_mandatory_part.size() < 3)
@@ -712,19 +745,11 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 }
 
 
-void imap::search_messages(const string& keys, std::list<unsigned long>& result_list, bool want_uids)
-{
-    search(keys, result_list, want_uids);
-}
-
-
-// TODO: Indentation of two whitespaces.
-// TODO: Space between the `if` keyword and parenthesis.
-void imap::search(const string& keys, std::list<unsigned long>& result_list, bool want_uids)
+void imap::search(const string& keys, list<unsigned long>& result_list, bool want_uids)
 {
     string cmd;
-    if(want_uids)
-      cmd.append("UID ");
+    if (want_uids)
+        cmd.append("UID ");
     cmd.append("SEARCH " + keys);
     _dlg->send(format(cmd));
 
@@ -737,16 +762,16 @@ void imap::search(const string& keys, std::list<unsigned long>& result_list, boo
         {
             if (!iequals(std::get<1>(tag_result_response), "SEARCH"))
                 throw imap_error("Search mailbox failure.");
-            
+
             parse_response(std::get<2>(tag_result_response));
             
             for (auto it = _mandatory_part.begin(); it != _mandatory_part.end(); it++)
                 if ((*it)->token_type == response_token_t::token_type_t::ATOM)
                 {
                     const unsigned long idx = stoul((*it)->atom);
-                    if(idx == 0)
+                    if (idx == 0)
                     {
-                      throw imap_error("Parsing failure.");
+                        throw imap_error("Parsing failure.");
                     }
                     result_list.push_back(idx);
                 }
@@ -760,7 +785,9 @@ void imap::search(const string& keys, std::list<unsigned long>& result_list, boo
             has_more = false;
         }
         else
+        {
             throw imap_error("Parsing failure.");
+        }
     }
 }
 
@@ -1054,7 +1081,7 @@ string imap::folder_tree_to_string(const list<string>& folder_tree, string delim
     string folders;
     int elem = 0;
     for (const auto& f : folder_tree)
-        if (elem++ < folder_tree.size())
+        if (elem++ < folder_tree.size() - 1)
             folders += f + delimiter;
         else
             folders += f;

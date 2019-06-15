@@ -108,6 +108,17 @@ public:
     **/
     enum class auth_method_t {LOGIN};
 
+    struct search_condition_t
+    {
+        enum condition_key_t {ALL} key;
+
+        search_condition_t(condition_key_t condition_key) : key(condition_key)
+        {
+        }
+
+        std::string to_imap_string() const;
+    };
+
     /**
     Creating a connection to a server.
 
@@ -177,8 +188,8 @@ public:
     /**
     Fetching a message from an already selected mailbox.
 
-    NOTE: fetch() selects the mailbox with every call, fetch_message() does not.
     A mailbox must already be selected before calling fetch_message().
+
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
 
@@ -197,8 +208,8 @@ public:
     /**
     Fetching messages from an already selected mailbox.
 
-    NOTE: fetch() selects the mailbox with every call, fetch_messages() does not.
     A mailbox must already be selected before calling fetch_message().
+
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
 
@@ -273,6 +284,7 @@ public:
     @todo              Add server error messages to exceptions.
     **/
     void search_messages(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
+    void search(const std::vector<search_condition_t>& conditions, std::list<unsigned long>& result_list, bool want_uids = false);
 
     /**
     Creating folder.
