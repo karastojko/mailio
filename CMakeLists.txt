@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.9.6)
 
 project(mailio VERSION 0.17.0)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT DEFINED LIB_SUFFIX)
@@ -61,7 +61,7 @@ find_package(Boost REQUIRED COMPONENTS system date_time regex)
 find_package(OpenSSL)
 set(CMAKE_THREAD_PREFER_PTHREAD)
 # "Use of both the imported target as well as this switch is highly recommended for new code."
-set(THREADS_PREFER_PTHREAD_FLAG) 
+set(THREADS_PREFER_PTHREAD_FLAG)
 find_package(Threads)
 
 set(project_sources 

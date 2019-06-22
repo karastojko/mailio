@@ -16,9 +16,11 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <chrono>
 #include <list>
 #include <map>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <variant>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -111,6 +113,18 @@ public:
     struct search_condition_t
     {
         enum condition_key_t {ALL} key;
+        /*
+        std::optional
+        <
+            std::variant
+            <
+                std::string,
+                unsigned long,
+                std::vector<unsigned long>,
+                std::pair<unsigned long, unsigned long>
+            >
+        > value;
+        */
 
         search_condition_t(condition_key_t condition_key) : key(condition_key)
         {
@@ -284,6 +298,7 @@ public:
     @todo              Add server error messages to exceptions.
     **/
     void search_messages(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
+
     void search(const std::vector<search_condition_t>& conditions, std::list<unsigned long>& result_list, bool want_uids = false);
 
     /**
@@ -387,6 +402,36 @@ protected:
     **/
     std::string folder_delimiter();
 
+    struct tag_result_response_t
+    {
+        enum result_t {OK, NO, BAD};
+
+        std::string tag;
+
+        std::optional<result_t> result;
+
+        std::string response;
+
+        tag_result_response_t() = default;
+
+        tag_result_response_t(const std::string& parsed_tag, const std::optional<result_t>& parsed_result, const std::string& parsed_response) :
+            tag(parsed_tag), result(parsed_result), response(parsed_response)
+        {
+        }
+
+        tag_result_response_t(const tag_result_response_t&) = delete;
+
+        tag_result_response_t(tag_result_response_t&&) = delete;
+
+        ~tag_result_response_t() = default;
+
+        tag_result_response_t& operator=(const tag_result_response_t&) = delete;
+
+        tag_result_response_t& operator=(tag_result_response_t&&) = delete;
+
+        std::string to_string() const;
+    };
+
     /**
     Parsing a line into tag, result and response which is the rest of the line.
     
@@ -394,7 +439,7 @@ protected:
     @return           Tuple with the tag, result and response.
     @throw imap_error Parsing failure.
     */
-    std::tuple<std::string, std::string, std::string> parse_tag_result(const std::string& line) const;
+    tag_result_response_t parse_tag_result(const std::string& line) const;
     
     /**
     Parsing a response (without tag and result) into optional and mandatory part.
