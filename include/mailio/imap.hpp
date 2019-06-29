@@ -110,27 +110,64 @@ public:
     **/
     enum class auth_method_t {LOGIN};
 
+    /**
+    Condition used by IMAP searching.
+
+    It consists of key and value. Each key except the ALL has a value of various types: string, list of IDs, date.
+
+    @todo Since both key and value types are known at compile time, they should be checked then, instead at runtime.
+    **/
     struct search_condition_t
     {
-        enum condition_key_t {ALL} key;
-        /*
-        std::optional
+        /**
+        Condition key to be used as message search criteria. More than one key can be used at the same time.
+        **/
+        enum key_type {ALL, ID_LIST, SUBJECT, FROM, TO} key;
+
+        /**
+        Single message ID or range of message IDs to be searched for,
+        **/
+        typedef std::pair<unsigned long, std::optional<unsigned long>> id_range_t;
+
+        /**
+        Condition value type to be used as message search criteria.
+
+        Key ALL uses null because it does not need the value. Single ID can be given or range of IDs, or more than one range.
+        **/
+        typedef std::variant
         <
-            std::variant
-            <
-                std::string,
-                unsigned long,
-                std::vector<unsigned long>,
-                std::pair<unsigned long, unsigned long>
-            >
-        > value;
-        */
+            std::nullptr_t,
+            std::string,
+            std::list<id_range_t>
+        >
+        value_type;
 
-        search_condition_t(condition_key_t condition_key) : key(condition_key)
-        {
-        }
+        /**
+        Condition value itself.
+        **/
+        value_type value;
 
-        std::string to_imap_string() const;
+        /**
+        String used to send over IMAP.
+        **/
+        std::string imap_string;
+
+        /**
+        Formatting range of IDs to a string.
+
+        @param id_pair Range of IDs to format into IMAP string.
+        @return        Range od IDs in IMAP grammar.
+        **/
+        static std::string id_range_to_string(id_range_t id_pair);
+
+        /**
+        Creating the IMAP string of the given condition.
+
+        @param condition_key   Key to search for.
+        @param condition_value Value to search for.
+        @throw imap_error      Invaid search condition.
+        **/
+        search_condition_t(key_type condition_key, value_type condition_value);
     };
 
     /**
@@ -202,7 +239,7 @@ public:
     /**
     Fetching a message from an already selected mailbox.
 
-    A mailbox must already be selected before calling fetch_message().
+    A mailbox must already be selected before calling this method.
 
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
@@ -217,12 +254,12 @@ public:
                        `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo              Add server error messages to exceptions.
     **/
-    void fetch_message(unsigned long message_no, message& msg, bool header_only = false, bool is_uid = false);
+    void fetch(unsigned long message_no, message& msg, bool header_only = false, bool is_uid = false);
 
     /**
     Fetching messages from an already selected mailbox.
 
-    A mailbox must already be selected before calling fetch_message().
+    A mailbox must already be selected before calling this method.
 
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
@@ -239,10 +276,8 @@ public:
                        `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo              Add server error messages to exceptions.
     **/
-    void fetch_messages(const std::string& message_nos,
-                        std::map<unsigned long /*message_number_or_uid*/, message>& msgs,
-                        codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED,
-                        bool header_only = false, bool is_uids = false);
+    void fetch(const std::string& message_nos, std::map<unsigned long, message>& msgs, codec::line_len_policy_t line_policy =
+        codec::line_len_policy_t::RECOMMENDED, bool header_only = false, bool is_uids = false);
 
     /**
     Getting the mailbox statistics.
@@ -288,8 +323,8 @@ public:
     /**
     Searching a mailbox.
     
-    @param keys        String of search keys.
-    @param result_list Store resulting list of message numbers or uids here.
+    @param conditions  List of conditions taken in conjuction way.
+    @param results     Store resulting list of message numbers or uids here.
                        Does not clear the list first, so that results can be accumulated.
     @param want_uids   Return a list of message uids instead of message sequence numbers.
     @throw imap_error  Search mailbox failure.
@@ -297,9 +332,7 @@ public:
     @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo              Add server error messages to exceptions.
     **/
-    void search_messages(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
-
-    void search(const std::vector<search_condition_t>& conditions, std::list<unsigned long>& result_list, bool want_uids = false);
+    void search(const std::list<search_condition_t>& conditions, std::list<unsigned long>& results, bool want_uids = false);
 
     /**
     Creating folder.
@@ -383,15 +416,15 @@ protected:
     /**
     Searching a mailbox.
     
-    @param keys        String of search keys.
-    @param result_list Store resulting list of indexes here.
+    @param conditions  String of search keys.
+    @param results     Store resulting list of indexes here.
     @param want_uids   Return a list of message uids instead of message sequence numbers.
     @throw imap_error  Search mailbox failure.
     @throw imap_error  Parsing failure.
     @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo              Add server error messages to exceptions.
     **/
-    void search(const std::string& keys, std::list<unsigned long>& result_list, bool want_uids = false);
+    void search(const std::string& conditions, std::list<unsigned long>& results, bool want_uids = false);
 
     /**
     Determining folder delimiter of a mailbox.
@@ -402,18 +435,36 @@ protected:
     **/
     std::string folder_delimiter();
 
+    /**
+    Parsed elements of IMAP response line.
+    **/
     struct tag_result_response_t
     {
+        /**
+        Possible response results.
+        **/
         enum result_t {OK, NO, BAD};
 
+        /**
+        Tag of the response.
+        **/
         std::string tag;
 
+        /**
+        Result of the response, if exists.
+        **/
         std::optional<result_t> result;
 
+        /**
+        Rest of the response line.
+        **/
         std::string response;
 
         tag_result_response_t() = default;
 
+        /**
+        Initializing the tag, result and rest of the line with the given values.
+        **/
         tag_result_response_t(const std::string& parsed_tag, const std::optional<result_t>& parsed_result, const std::string& parsed_response) :
             tag(parsed_tag), result(parsed_result), response(parsed_response)
         {
@@ -429,6 +480,11 @@ protected:
 
         tag_result_response_t& operator=(tag_result_response_t&&) = delete;
 
+        /**
+        Formatting the response line to a user friendly format.
+
+        @return Response line as string.
+        **/
         std::string to_string() const;
     };
 

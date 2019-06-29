@@ -17,8 +17,10 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <tuple>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/compare.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 #include <boost/regex.hpp>
 #include <mailio/imap.hpp>
 
@@ -32,6 +34,7 @@ using std::make_tuple;
 using std::map;
 using std::move;
 using std::out_of_range;
+using std::pair;
 using std::shared_ptr;
 using std::stoul;
 using std::string;
@@ -55,20 +58,49 @@ namespace mailio
 {
 
 
-string imap::search_condition_t::to_imap_string() const
+string imap::search_condition_t::id_range_to_string(imap::search_condition_t::id_range_t id_pair)
 {
-    string result;
+    return to_string(id_pair.first) + (id_pair.second.has_value() ? ":" + to_string(id_pair.second.value()) : "");
+}
 
-    switch (key)
+
+imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type condition_key, imap::search_condition_t::value_type condition_value) :
+    key(condition_key), value(condition_value)
+{
+    try
     {
-        case ALL:
-            result = "ALL";
-            break;
+        switch (key)
+        {
+            case ALL:
+                imap_string = "ALL";
+                break;
 
-        default:
-            break;
+            case ID_LIST:
+            {
+                imap_string = boost::join(std::get<list<id_range_t>>(value) | boost::adaptors::transformed(static_cast<string(*)(id_range_t)>(id_range_to_string)), ",");
+                break;
+            }
+
+            case SUBJECT:
+                imap_string = "SUBJECT \"" + std::get<string>(value) + "\"";
+                break;
+
+            case FROM:
+                imap_string = "FROM \"" + std::get<string>(value) + "\"";
+                break;
+
+            case TO:
+                imap_string = "TO \"" + std::get<string>(value) + "\"";
+                break;
+
+            default:
+                break;
+        }
     }
-    return result;
+    catch (std::bad_variant_access&)
+    {
+        throw imap_error("Invaid search condition.");
+    }
 }
 
 
@@ -139,12 +171,12 @@ auto imap::select(const list<string>& folder_name, bool read_only) -> mailbox_st
 void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, bool header_only)
 {
     select(mailbox);
-    fetch_message(message_no, msg, header_only);
+    fetch(message_no, msg, header_only);
 }
 
 
 // Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
-void imap::fetch_message(unsigned long message_no, message& msg, bool header_only, bool is_uid)
+void imap::fetch(unsigned long message_no, message& msg, bool header_only, bool is_uid)
 {
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
 
@@ -244,10 +276,7 @@ void imap::fetch_message(unsigned long message_no, message& msg, bool header_onl
 }
 
 
-void imap::fetch_messages(const std::string& message_nos,
-                          std::map<unsigned long /*message_number_or_uid*/, message>& msgs,
-                          codec::line_len_policy_t line_policy,
-                          bool header_only, bool is_uids)
+void imap::fetch(const string& message_nos, map<unsigned long, message>& msgs, codec::line_len_policy_t line_policy, bool header_only, bool is_uids)
 {
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
 
@@ -533,18 +562,16 @@ void imap::remove(unsigned long message_no, bool is_uid)
 }
 
 
-void imap::search_messages(const string& keys, list<unsigned long>& result_list, bool want_uids)
-{
-    search(keys, result_list, want_uids);
-}
-
-
-void imap::search(const vector<imap::search_condition_t>& conditions, list<unsigned long>& result_list, bool want_uids)
+void imap::search(const list<imap::search_condition_t>& conditions, list<unsigned long>& results, bool want_uids)
 {
     string cond_str;
+    int elem = 0;
     for (const auto& c : conditions)
-        cond_str += c.to_imap_string();
-    search(cond_str, result_list, want_uids);
+        if (elem++ < conditions.size() - 1)
+            cond_str += c.imap_string + " ";
+        else
+            cond_str += c.imap_string;
+    search(cond_str, results, want_uids);
 }
 
 
@@ -670,7 +697,8 @@ void imap::connect()
 
 void imap::auth_login(const string& username, const string& password)
 {
-    _dlg->send(format("LOGIN " + username + " " + password));
+    auto cmd = format("LOGIN " + username + " " + password);
+    _dlg->send(cmd);
     
     bool has_more = true;
     while (has_more)
@@ -796,51 +824,62 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 }
 
 
-void imap::search(const string& keys, list<unsigned long>& result_list, bool want_uids)
+void imap::search(const string& conditions, list<unsigned long>& results, bool want_uids)
 {
     string cmd;
     if (want_uids)
         cmd.append("UID ");
-    cmd.append("SEARCH " + keys);
+    cmd.append("SEARCH " + conditions);
     _dlg->send(format(cmd));
 
     bool has_more = true;
-    while (has_more)
+    try
     {
-        string line = _dlg->receive();
-        tag_result_response_t parsed_line = parse_tag_result(line);
-        if (parsed_line.tag == "*")
+        while (has_more)
         {
-            parse_response(parsed_line.response);
-
-            if (!iequals(_mandatory_part.front()->atom, "SEARCH"))
-                throw imap_error("Search mailbox failure.");
-            _mandatory_part.pop_front();
-
-            for (auto it = _mandatory_part.begin(); it != _mandatory_part.end(); it++)
-                if ((*it)->token_type == response_token_t::token_type_t::ATOM)
-                {
-                    const unsigned long idx = stoul((*it)->atom);
-                    if (idx == 0)
-                    {
-                        throw imap_error("Parsing failure.");
-                    }
-                    result_list.push_back(idx);
-                }
             reset_response_parser();
-        }
-        else if (parsed_line.tag == to_string(_tag))
-        {
-            if (parsed_line.result.value() != tag_result_response_t::OK)
-                throw imap_error("Search mailbox failure.");
+            string line = _dlg->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
+            if (parsed_line.tag == "*")
+            {
+                parse_response(parsed_line.response);
+
+                auto search_token = _mandatory_part.front();
+                if (search_token->token_type == response_token_t::token_type_t::ATOM && !iequals(search_token->atom, "SEARCH"))
+                    throw imap_error("Search mailbox failure.");
+                _mandatory_part.pop_front();
+
+                for (auto it = _mandatory_part.begin(); it != _mandatory_part.end(); it++)
+                    if ((*it)->token_type == response_token_t::token_type_t::ATOM)
+                    {
+                        const unsigned long idx = stoul((*it)->atom);
+                        if (idx == 0)
+                            throw imap_error("Parsing failure.");
+                        results.push_back(idx);
+                    }
+            }
+            else if (parsed_line.tag == to_string(_tag))
+            {
+                if (parsed_line.result.value() != tag_result_response_t::OK)
+                    throw imap_error("Search mailbox failure.");
  
-            has_more = false;
-        }
-        else
-        {
-            throw imap_error("Parsing failure.");
+                has_more = false;
+            }
+            else
+            {
+                throw imap_error("Parsing failure.");
+            }
         }
     }
+    catch (const invalid_argument& exc)
+    {
+        throw imap_error("Parsing failure.");
+    }
+    catch (const out_of_range& exc)
+    {
+        throw imap_error("Parsing failure.");
+    }
+    reset_response_parser();
 }
 
 
