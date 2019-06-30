@@ -79,7 +79,7 @@ const string message::BCC_HEADER{"Bcc"};
 const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
-
+const local_time_facet* message::TIME_FACET = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
 
 message::message() : mime()
 {
@@ -378,9 +378,8 @@ string message::format_header() const
     if (!_date_time->is_not_a_date_time())
     {
         stringstream ss;
-        local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
         ss.exceptions(std::ios_base::failbit);
-        ss.imbue(locale(ss.getloc(), facet));
+        ss.imbue(locale(ss.getloc(), TIME_FACET));
         ss << *_date_time;
         header += DATE_HEADER + COLON + ss.str() + codec::CRLF;
     }

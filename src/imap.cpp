@@ -61,9 +61,15 @@ namespace mailio
 {
 
 
-string imap::search_condition_t::id_range_to_string(imap::search_condition_t::id_range_t id_pair)
+string imap::messages_range_to_string(imap::messages_range_t id_pair)
 {
     return to_string(id_pair.first) + (id_pair.second.has_value() ? ":" + to_string(id_pair.second.value()) : "");
+}
+
+
+string imap::messages_range_list_to_string(list<messages_range_t> ranges)
+{
+    return boost::join(ranges | boost::adaptors::transformed(static_cast<string(*)(messages_range_t)>(messages_range_to_string)), ",");
 }
 
 
@@ -80,7 +86,7 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
 
             case ID_LIST:
             {
-                imap_string = boost::join(std::get<list<id_range_t>>(value) | boost::adaptors::transformed(static_cast<string(*)(id_range_t)>(id_range_to_string)), ",");
+                imap_string = messages_range_list_to_string(std::get<list<messages_range_t>>(value));
                 break;
             }
 
@@ -146,6 +152,9 @@ string imap::tag_result_response_t::to_string() const
         result_s = "<null>";
     return tag + " " + result_s + " " + response;
 }
+
+
+const boost::gregorian::date_facet* imap::DATE_FACET = new boost::gregorian::date_facet("%d-%b-%Y");
 
 
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
@@ -291,14 +300,16 @@ void imap::fetch(unsigned long message_no, message& msg, bool header_only, bool 
 }
 
 
-void imap::fetch(const string& message_nos, map<unsigned long, message>& msgs, codec::line_len_policy_t line_policy, bool header_only, bool is_uids)
+void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long, message>& found_messages, codec::line_len_policy_t line_policy,
+    bool header_only, bool is_uids)
 {
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
+    const string message_ids = messages_range_list_to_string(messages_range);
 
     string cmd;
     if (is_uids)
         cmd.append("UID ");
-    cmd.append("FETCH " + message_nos + " " + RFC822_TOKEN);
+    cmd.append("FETCH " + message_ids + " " + RFC822_TOKEN);
     _dlg->send(format(cmd));
     
     bool has_more = true;
@@ -310,21 +321,14 @@ void imap::fetch(const string& message_nos, map<unsigned long, message>& msgs, c
         
         if (parsed_line.tag == "*")
         {
-            //if (!iequals(std::get<2>(tag_result_response), "FETCH"))
-            //    throw imap_error("Fetching message failure.");
-
             parse_response(parsed_line.response);
-            // Grab the message number, if we asked for them instead of uids.
             unsigned long msg_no = 0;
-            if (!is_uids)
-            {
-                // TODO: Is the failure condition correct?
-                // TODO: Check if it's atom at all.
-                msg_no = stoul(_mandatory_part.front()->atom);
-                _mandatory_part.pop_front();
-                if (msg_no == 0)
-                    throw imap_error("Fetching message failure.");
-            }
+            if (_mandatory_part.front()->token_type != response_token_t::token_type_t::ATOM)
+                throw imap_error("Fetching message failure.");
+            msg_no = stoul(_mandatory_part.front()->atom);
+            _mandatory_part.pop_front();
+            if (msg_no == 0)
+                throw imap_error("Fetching message failure.");
 
             if (!iequals(_mandatory_part.front()->atom, "FETCH"))
                 throw imap_error("Fetching message failure.");
@@ -404,11 +408,10 @@ void imap::fetch(const string& message_nos, map<unsigned long, message>& msgs, c
                 }
 
                 message msg;
-                // Set the decoder line policy.
                 msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
                 msg.parse(literal_token->literal);
-                // Success. Put the message into the result map, indexed either by message number or uid if we asked for uids.
-                msgs.insert(std::pair<unsigned long /*message_number_or_uid*/, message>(is_uids ? uid : msg_no, msg));
+                // Success. Put the message into the result map, indexed either by message number or UID if we asked for UIDs.
+                found_messages.insert(std::pair<unsigned long, message>(is_uids ? uid : msg_no, msg));
             }
             else
                 throw imap_error("Parsing failure.");
@@ -1212,9 +1215,8 @@ string imap::folder_tree_to_string(const list<string>& folder_tree, string delim
 string imap::imap_date_to_string(const boost::gregorian::date& gregorian_date)
 {
     stringstream ss;
-    boost::gregorian::date_facet* facet = new boost::gregorian::date_facet("%d-%b-%Y");
     ss.exceptions(std::ios_base::failbit);
-    ss.imbue(std::locale(ss.getloc(), facet));
+    ss.imbue(std::locale(ss.getloc(), DATE_FACET));
     ss << gregorian_date;
     return ss.str();
 }

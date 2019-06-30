@@ -112,11 +112,16 @@ public:
     enum class auth_method_t {LOGIN};
 
     /**
+    Single message ID or range of message IDs to be searched for,
+    **/
+    typedef std::pair<unsigned long, std::optional<unsigned long>> messages_range_t;
+
+    /**
     Condition used by IMAP searching.
 
     It consists of key and value. Each key except the ALL has a value of the appropriate type: string, list of IDs, date.
 
-    @todo Since both key and value types are known at compile time, they should be checked then, instead at runtime.
+    @todo Since both key and value types are known at compile time, perhaps they should be checked then instead at runtime.
     **/
     struct search_condition_t
     {
@@ -125,10 +130,6 @@ public:
         **/
         enum key_type {ALL, ID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE} key;
 
-        /**
-        Single message ID or range of message IDs to be searched for,
-        **/
-        typedef std::pair<unsigned long, std::optional<unsigned long>> id_range_t;
 
         /**
         Condition value type to be used as message search criteria.
@@ -139,7 +140,7 @@ public:
         <
             std::nullptr_t,
             std::string,
-            std::list<id_range_t>,
+            std::list<messages_range_t>,
             boost::gregorian::date
         >
         value_type;
@@ -153,14 +154,6 @@ public:
         String used to send over IMAP.
         **/
         std::string imap_string;
-
-        /**
-        Formatting range of IDs to a string.
-
-        @param id_pair Range of IDs to format into IMAP string.
-        @return        Range od IDs in IMAP grammar.
-        **/
-        static std::string id_range_to_string(id_range_t id_pair);
 
         /**
         Creating the IMAP string of the given condition.
@@ -266,20 +259,20 @@ public:
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
 
-    @param message_nos String of message numbers or uids to fetch (ex. "1:4,5,6,7:10").
-    @param msgs        Map of messages to store the results, indexed by message number or uid.
-                       It does not clear the map first, so that results can be accumulated.
-    @param line_policy Decoder line policy to use while parsing each message.
-    @param header_only Flag if only the message headers should be fetched.
-    @param is_uids     Using message uid numbers instead of a message sequence numbers.
-    @throw imap_error  Fetching message failure.
-    @throw imap_error  Parsing failure.
-    @throw *           `parse_tag_result(const string&)`, `parse_response(const string&)`,
-                       `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
-    @todo              Add server error messages to exceptions.
+    @param messages_range Range of message numbers or UIDs to fetch.
+    @param found_messages Map of messages to store the results, indexed by message number or uid.
+                          It does not clear the map first, so that results can be accumulated.
+    @param line_policy    Decoder line policy to use while parsing each message.
+    @param header_only    Flag if only the message headers should be fetched.
+    @param is_uids        Using message UID numbers instead of a message sequence numbers.
+    @throw imap_error     Fetching message failure.
+    @throw imap_error     Parsing failure.
+    @throw *              `parse_tag_result(const string&)`, `parse_response(const string&)`,
+                          `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
+    @todo                 Add server error messages to exceptions.
     **/
-    void fetch(const std::string& message_nos, std::map<unsigned long, message>& msgs, codec::line_len_policy_t line_policy =
-        codec::line_len_policy_t::RECOMMENDED, bool header_only = false, bool is_uids = false);
+    void fetch(const std::list<messages_range_t> messages_range, std::map<unsigned long, message>& found_messages,
+        codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED, bool header_only = false, bool is_uids = false);
 
     /**
     Getting the mailbox statistics.
@@ -379,6 +372,23 @@ public:
     bool rename_folder(const std::list<std::string>& old_name, const std::list<std::string>& new_name);
 
 protected:
+
+    /**
+    Formatting range of IDs to a string.
+
+    @param id_pair Range of IDs to format.
+    @return        Range od IDs as IMAP grammar string.
+    **/
+    static std::string messages_range_to_string(messages_range_t id_pair);
+
+    /**
+    Formatting list of ranges of IDs to a string.
+
+    @param ranges List of ID ranges to format.
+    @return       List of ranges of IDs as IMAP grammar string.
+    **/
+    static std::string messages_range_list_to_string(std::list<messages_range_t> ranges);
+
 
     /**
     Initiating a session to the server.
@@ -544,6 +554,7 @@ protected:
 
     @param gregorian_date Gregorian date to convert.
     @return               Date as string required by IMAP search condition.
+    @todo                 Static method of `search_condition_t` structure?
     **/
     static std::string imap_date_to_string(const boost::gregorian::date& gregorian_date);
 
@@ -657,6 +668,13 @@ protected:
     @todo Check if this is breaking protocol, so it has to be added to a strict mode.
     **/
     std::string::size_type _eols_no;
+
+    /**
+    Facet for the purpose of formatting date of the searching criteria.
+
+    @todo Static member of `search_condition_t` structure?
+    **/
+    static const boost::gregorian::date_facet* DATE_FACET;
 };
 
 
