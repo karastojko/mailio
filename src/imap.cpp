@@ -12,7 +12,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
  
 
 #include <algorithm>
+#include <locale>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <boost/algorithm/string.hpp>
@@ -38,6 +40,7 @@ using std::pair;
 using std::shared_ptr;
 using std::stoul;
 using std::string;
+using std::stringstream;
 using std::to_string;
 using std::tuple;
 using std::vector;
@@ -91,6 +94,18 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
 
             case TO:
                 imap_string = "TO \"" + std::get<string>(value) + "\"";
+                break;
+
+            case BEFORE_DATE:
+                imap_string = "BEFORE " + imap_date_to_string(std::get<boost::gregorian::date>(value));
+                break;
+
+            case ON_DATE:
+                imap_string = "ON " + imap_date_to_string(std::get<boost::gregorian::date>(value));
+                break;
+
+            case SINCE_DATE:
+                imap_string = "SINCE " + imap_date_to_string(std::get<boost::gregorian::date>(value));
                 break;
 
             default:
@@ -928,8 +943,6 @@ auto imap::parse_tag_result(const string& line) const -> tag_result_response_t
 
     string::size_type result_pos = string::npos;
     result_pos = line.find(' ', tag_pos + 1);
-    if (result_pos == string::npos)
-        throw imap_error("Parsing failure.");
     string result_s = line.substr(tag_pos + 1, result_pos - tag_pos - 1);
     std::optional<tag_result_response_t::result_t> result = std::nullopt;
     if (iequals(result_s, "OK"))
@@ -1194,6 +1207,18 @@ string imap::folder_tree_to_string(const list<string>& folder_tree, string delim
             folders += f;
     return folders;
 }
+
+
+string imap::imap_date_to_string(const boost::gregorian::date& gregorian_date)
+{
+    stringstream ss;
+    boost::gregorian::date_facet* facet = new boost::gregorian::date_facet("%d-%b-%Y");
+    ss.exceptions(std::ios_base::failbit);
+    ss.imbue(std::locale(ss.getloc(), facet));
+    ss << gregorian_date;
+    return ss.str();
+}
+
 
 
 list<shared_ptr<imap::response_token_t>>* imap::find_last_token_list(list<shared_ptr<response_token_t>>& token_list)

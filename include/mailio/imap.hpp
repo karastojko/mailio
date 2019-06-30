@@ -24,6 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 #include <cstdint>
 #include "dialog.hpp"
 #include "message.hpp"
@@ -113,16 +114,16 @@ public:
     /**
     Condition used by IMAP searching.
 
-    It consists of key and value. Each key except the ALL has a value of various types: string, list of IDs, date.
+    It consists of key and value. Each key except the ALL has a value of the appropriate type: string, list of IDs, date.
 
     @todo Since both key and value types are known at compile time, they should be checked then, instead at runtime.
     **/
     struct search_condition_t
     {
         /**
-        Condition key to be used as message search criteria. More than one key can be used at the same time.
+        Condition key to be used as message search criteria.
         **/
-        enum key_type {ALL, ID_LIST, SUBJECT, FROM, TO} key;
+        enum key_type {ALL, ID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE} key;
 
         /**
         Single message ID or range of message IDs to be searched for,
@@ -138,7 +139,8 @@ public:
         <
             std::nullptr_t,
             std::string,
-            std::list<id_range_t>
+            std::list<id_range_t>,
+            boost::gregorian::date
         >
         value_type;
 
@@ -536,6 +538,14 @@ protected:
     @return            Formatted string.
     **/
     std::string folder_tree_to_string(const std::list<std::string>& folder_tree, std::string delimiter) const;
+
+    /**
+    Converting gregorian date to string required by IMAP searching condition.
+
+    @param gregorian_date Gregorian date to convert.
+    @return               Date as string required by IMAP search condition.
+    **/
+    static std::string imap_date_to_string(const boost::gregorian::date& gregorian_date);
 
     /**
     Dialog to use for send/receive operations.
