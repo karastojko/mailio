@@ -200,7 +200,7 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, 
 
 
 // Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
-void imap::fetch(unsigned long message_no, message& msg, bool header_only, bool is_uid)
+void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool header_only)
 {
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
 
@@ -222,7 +222,8 @@ void imap::fetch(unsigned long message_no, message& msg, bool header_only, bool 
             parse_response(parsed_line.response);
 
             auto msg_no_token = _mandatory_part.front();
-            if (msg_no_token->token_type != response_token_t::token_type_t::ATOM || stoul(msg_no_token->atom) != message_no)
+            // TODO: If UID is not wanted, then `message_no` is equal to this atom.
+            if (msg_no_token->token_type != response_token_t::token_type_t::ATOM)
                 throw imap_error("Fetching message failure.");
             _mandatory_part.pop_front();
 
@@ -300,8 +301,8 @@ void imap::fetch(unsigned long message_no, message& msg, bool header_only, bool 
 }
 
 
-void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long, message>& found_messages, codec::line_len_policy_t line_policy,
-    bool header_only, bool is_uids)
+void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
+    codec::line_len_policy_t line_policy)
 {
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
     const string message_ids = messages_range_list_to_string(messages_range);

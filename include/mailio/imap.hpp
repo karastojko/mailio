@@ -241,15 +241,15 @@ public:
 
     @param message_no  Number of the message to fetch.
     @param msg         Message to store the result.
-    @param header_only Flag if only the message header should be fetched.
     @param is_uid      Using a message uid number instead of a message sequence number.
+    @param header_only Flag if only the message header should be fetched.
     @throw imap_error  Fetching message failure.
     @throw imap_error  Parsing failure.
     @throw *           `parse_tag_result(const string&)`, `parse_response(const string&)`,
                        `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo              Add server error messages to exceptions.
     **/
-    void fetch(unsigned long message_no, message& msg, bool header_only = false, bool is_uid = false);
+    void fetch(unsigned long message_no, message& msg, bool is_uid = false, bool header_only = false);
 
     /**
     Fetching messages from an already selected mailbox.
@@ -262,17 +262,17 @@ public:
     @param messages_range Range of message numbers or UIDs to fetch.
     @param found_messages Map of messages to store the results, indexed by message number or uid.
                           It does not clear the map first, so that results can be accumulated.
-    @param line_policy    Decoder line policy to use while parsing each message.
-    @param header_only    Flag if only the message headers should be fetched.
     @param is_uids        Using message UID numbers instead of a message sequence numbers.
+    @param header_only    Flag if only the message headers should be fetched.
+    @param line_policy    Decoder line policy to use while parsing each message.
     @throw imap_error     Fetching message failure.
     @throw imap_error     Parsing failure.
     @throw *              `parse_tag_result(const string&)`, `parse_response(const string&)`,
                           `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo                 Add server error messages to exceptions.
     **/
-    void fetch(const std::list<messages_range_t> messages_range, std::map<unsigned long, message>& found_messages,
-        codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED, bool header_only = false, bool is_uids = false);
+    void fetch(const std::list<messages_range_t> messages_range, std::map<unsigned long, message>& found_messages, bool is_uids = false,
+               bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
 
     /**
     Getting the mailbox statistics.
