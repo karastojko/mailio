@@ -195,7 +195,7 @@ auto imap::select(const list<string>& folder_name, bool read_only) -> mailbox_st
 void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, bool header_only)
 {
     select(mailbox);
-    fetch(message_no, msg, header_only);
+    fetch(message_no, msg, false, header_only);
 }
 
 

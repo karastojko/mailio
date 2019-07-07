@@ -138,7 +138,7 @@ public:
         **/
         typedef std::variant
         <
-            std::nullptr_t,
+            std::monostate,
             std::string,
             std::list<messages_range_t>,
             boost::gregorian::date
@@ -159,10 +159,10 @@ public:
         Creating the IMAP string of the given condition.
 
         @param condition_key   Key to search for.
-        @param condition_value Value to search for.
+        @param condition_value Value to search for, default (empty) value is meant for the ALL key.
         @throw imap_error      Invaid search condition.
         **/
-        search_condition_t(key_type condition_key, value_type condition_value);
+        search_condition_t(key_type condition_key, value_type condition_value = value_type());
     };
 
     /**
@@ -319,9 +319,9 @@ public:
     Searching a mailbox.
     
     @param conditions  List of conditions taken in conjuction way.
-    @param results     Store resulting list of message numbers or uids here.
+    @param results     Store resulting list of message sequence numbers or UIDs here.
                        Does not clear the list first, so that results can be accumulated.
-    @param want_uids   Return a list of message uids instead of message sequence numbers.
+    @param want_uids   Return a list of message UIDs instead of message sequence numbers.
     @throw imap_error  Search mailbox failure.
     @throw imap_error  Parsing failure.
     @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
