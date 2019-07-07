@@ -1,7 +1,7 @@
 
 # mailio #
 
-mailio is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on standard C++ 11 and Boost library.
+mailio is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on standard C++ 17 and Boost library.
 
 
 # Examples #
@@ -57,7 +57,7 @@ Mailio library is supposed to work on all platforms supporting C++ 11 compiler, 
 
 For Linux the following configuration is tested:
 
-* gcc 7.3.0.
+* gcc 8.3.0.
 * Boost 1.66 with Regex, Date Time available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
 * CMake 3.11
@@ -124,7 +124,8 @@ A solution file will be built, open it from Visual Studio and build the project.
 * MIME message has configurable line length policy and strict mode for parsing.
 * SMTP implementation with message sending. Both plain and SSL (including START TLS) versions are available.
 * POP3 implementation with message receiving and removal, getting mailbox statistics. Both plain and SSL (including START TLS) versions are available.
-* IMAP implementation with message receiving and removal, getting mailbox statistics. Both plain and SSL (including START TLS) versions are available.
+* IMAP implementation with message receiving, removal and search, getting mailbox statistics, managing folders. Both plain and SSL (including START TLS)
+  versions are available.
 
 
 # Issues #
@@ -151,7 +152,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * version 0.16.0 (Q2/2018): Cmake scripts tested on Linux, MacOS and Windows. Sender header added.
 * version 0.17.0 (Q3/2018): Timeouts for I/O operations. Fetching only message header with IMAP.
 * version 0.18.0 (Q1/2019): Fixes of IMAP parser. Managing folders in IMAP.
-
+* version 0.19.0 (Q3/2019): IMAP searching, fetching messages by UIDs.
 
 # Contributors #
 
@@ -160,6 +161,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [sledgehammer_999](mailto:hammered999[at]gmail.com): Replacement of Boost random function with the standard one.
 * [Paul Tsouchlos](mailto:developer.paul.123[at]gmail.com): Modernizing build scripts.
 * [Anton Zhvakin](mailto:a.zhvakin[at]galament.com): Replacement of deprecated Boost Asio entities.
+* [terminator356](mailto:termtech[at]rogers.com): IMAP searching, fetching messages by UIDs.
 
 
 # Contact #
