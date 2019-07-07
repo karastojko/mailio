@@ -53,7 +53,7 @@ generated password for all three protocols.
 
 # Requirements #
 
-Mailio library is supposed to work on all platforms supporting C++ 11 compiler, recent Boost libraries and CMake build tool.
+Mailio library is supposed to work on all platforms supporting C++ 17 compiler, recent Boost libraries and CMake build tool.
 
 For Linux the following configuration is tested:
 
