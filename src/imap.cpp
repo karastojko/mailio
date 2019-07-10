@@ -154,9 +154,6 @@ string imap::tag_result_response_t::to_string() const
 }
 
 
-const boost::gregorian::date_facet* imap::DATE_FACET = new boost::gregorian::date_facet("%d-%b-%Y");
-
-
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
     _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(atom_state_t::NONE),
     _parenthesis_list_counter(0), _literal_state(string_literal_state_t::NONE), _literal_bytes_read(0), _eols_no(2)
@@ -1217,7 +1214,8 @@ string imap::imap_date_to_string(const boost::gregorian::date& gregorian_date)
 {
     stringstream ss;
     ss.exceptions(std::ios_base::failbit);
-    ss.imbue(std::locale(ss.getloc(), DATE_FACET));
+    boost::gregorian::date_facet* facet = new boost::gregorian::date_facet("%d-%b-%Y");
+    ss.imbue(std::locale(ss.getloc(), facet));
     ss << gregorian_date;
     return ss.str();
 }

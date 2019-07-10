@@ -379,11 +379,6 @@ protected:
     static const std::string MIME_VERSION_HEADER;
 
     /**
-    Facet to be used when formatting date in the header.
-    **/
-    static const boost::local_time::local_time_facet* TIME_FACET;
-
-    /**
     Formatting the header to a string.
 
     @return              Header as string.

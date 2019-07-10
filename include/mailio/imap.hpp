@@ -668,13 +668,6 @@ protected:
     @todo Check if this is breaking protocol, so it has to be added to a strict mode.
     **/
     std::string::size_type _eols_no;
-
-    /**
-    Facet for the purpose of formatting date of the searching criteria.
-
-    @todo Static member of `search_condition_t` structure?
-    **/
-    static const boost::gregorian::date_facet* DATE_FACET;
 };
 
 
