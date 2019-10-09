@@ -39,10 +39,13 @@ int main()
         msg.from(mail_address("mailio library", "mailio@gmail.com"));// set the correct sender name and address
         msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));// set the correct recipent name and address
         msg.subject("smtps message with attachment");
-        ifstream ifs1("aleph0.png");
-        msg.attach(ifs1, "aleph0.png", message::media_type_t::IMAGE, "png");
-        ifstream ifs2("infinity.png");
-        msg.attach(ifs2, "infinity.png", message::media_type_t::IMAGE, "png");
+        ifstream ifs1("aleph0.png", std::ios::binary);
+        std::string f1(std::istreambuf_iterator<char>(ifs1), {});
+        msg.attach(f1, "aleph0.png", message::media_type_t::IMAGE, "png");
+
+        ifstream ifs2("infinity.png", std::ios::binary);
+        std::string f2(std::istreambuf_iterator<char>(ifs2), {});
+        msg.attach(f2, "infinity.png", message::media_type_t::IMAGE, "png");
         msg.content("Here are Aleph0 and Infinity pictures.");
 
         // use a server with plain (non-SSL) connectivity

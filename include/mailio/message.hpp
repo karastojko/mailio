@@ -305,6 +305,18 @@ public:
     void attach(const std::istream& att_strm, const std::string& att_name, media_type_t type, const std::string& subtype);
 
     /**
+    Attaching a file with the given media type.
+
+    @param content  Attachment content.
+    @param att_name Attachment name to set.
+    @param type     Attachment media type to set.
+    @param subtype  Attachment media subtype to set.
+    @throw *        `mime::content_type(const content_type_t&)`, `mime::content_transfer_encoding(content_transfer_encoding_t)`,
+                    `mime::content_disposition(content_disposition_t)`.
+    **/
+    void attach(const std::string& content, const std::string& att_name, media_type_t type, const std::string& subtype);
+
+    /**
     Getting the number of attachments.
     
     @return Number of attachments.

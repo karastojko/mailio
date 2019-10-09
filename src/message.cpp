@@ -300,15 +300,19 @@ void message::date_time(const boost::local_time::local_date_time& mail_dt)
 
 void message::attach(const istream& att_strm, const string& att_name, media_type_t type, const string& subtype)
 {
+    stringstream ss;
+    ss << att_strm.rdbuf();
+    attach(ss.str(), att_name, type, subtype);
+}
+
+
+void message::attach(const string& content, const string& att_name, media_type_t type, const string& subtype)
+{
     if (_boundary.empty())
         _boundary = make_boundary();
     _content_type.type = media_type_t::MULTIPART;
     _content_type.subtype = "mixed";
 
-    stringstream ss;
-    ss << att_strm.rdbuf();
-    string content = ss.str();
-    
     mime m;
     m.header_codec(this->header_codec());
     m.content_type(content_type_t(type, subtype));
