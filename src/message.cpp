@@ -98,9 +98,14 @@ void message::format(string& message_str, bool dot_escape) const
         {
             mime content_part;
             content_part.content(_content);
-            content_type_t ct(media_type_t::TEXT, "plain");
-            ct.charset = _content_type.charset;
-            content_part.content_type(ct);
+			// Keep user settings set in msg
+			if( _primary_content_type.type != media_type_t::NONE ){
+				content_part.content_type( _primary_content_type );
+			}else{
+				content_type_t ct(media_type_t::TEXT, "plain");
+				ct.charset = _content_type.charset;
+				content_part.content_type(ct);
+			}
             content_part.content_transfer_encoding(_encoding);
             content_part.line_policy(_line_policy, _decoder_line_policy);
             content_part.strict_mode(_strict_mode);
@@ -302,6 +307,10 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
 {
     if (_boundary.empty())
         _boundary = make_boundary();
+
+	// Save info set by the user, if any
+	_primary_content_type = _content_type;
+
     _content_type.type = media_type_t::MULTIPART;
     _content_type.subtype = "mixed";
 

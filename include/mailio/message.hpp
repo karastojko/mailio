@@ -518,6 +518,11 @@ protected:
     Message date and time with time zone.
     **/
     std::shared_ptr<boost::local_time::local_date_time> _date_time;
+
+    /**
+    Content type as a pair of top level media type and media subtype for the main content.
+    **/
+	content_type_t _primary_content_type;
 };
 
 
