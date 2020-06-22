@@ -8,7 +8,7 @@ Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
 Distributed under the FreeBSD license, see the accompanying file LICENSE or
 copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
-*/ 
+*/
 
 
 #pragma once
@@ -16,6 +16,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <string>
 #include <stdexcept>
 #include <chrono>
+#include <memory>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -47,18 +48,18 @@ public:
     dialog(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout);
 
     /**
-    Moving server parameters and connection.
+    Copy constructor.
 
-    @param other Dialog to move from.
+    @param other Object to copy.
     **/
-    dialog(dialog&& other);
+    dialog(const dialog& other);
 
     /**
     Closing the connection.
     **/
     virtual ~dialog();
 
-    dialog(const dialog& other) = delete;
+    dialog(dialog&&) = delete;
 
     void operator=(const dialog&) = delete;
 
@@ -137,11 +138,16 @@ protected:
 
     /**
     Checking if the timeout is reached.
+    The method is static to ensure that it still exists at the moment of the socket destruction. As method, it could happen that in the destructor it's being
+    used by the IO service, thus producing the crash.
 
-    @param error Error code.
-    @todo        Handle errors.
+    @param error   Error code.
+    @param socket  Socket to check the timeout.
+    @param timer   Timer associated with the socket.
+    @param expired Flag if the timer has expired.
     **/
-    void check_timeout(const boost::system::error_code& error);
+    static void check_timeout(const boost::system::error_code& error, std::shared_ptr<boost::asio::ip::tcp::socket> socket,
+        std::shared_ptr<boost::asio::deadline_timer> timer, bool& expired);
 
     /**
     Server hostname.
@@ -156,17 +162,17 @@ protected:
     /**
     Asio input/output service.
     **/
-    std::unique_ptr<boost::asio::io_context> _ios;
+    static boost::asio::io_context _ios;
 
     /**
     Socket connection.
     **/
-    boost::asio::ip::tcp::socket _socket;
+    std::shared_ptr<boost::asio::ip::tcp::socket> _socket;
 
     /**
     Timer to check the timeout.
     **/
-    boost::asio::deadline_timer _timer;
+    std::shared_ptr<boost::asio::deadline_timer> _timer;
 
     /**
     Timeout on I/O operations in milliseconds.
@@ -181,12 +187,12 @@ protected:
     /**
     Stream buffer associated to the socket.
     **/
-    std::unique_ptr<boost::asio::streambuf> _strmbuf;
+    std::shared_ptr<boost::asio::streambuf> _strmbuf;
 
     /**
     Input stream associated to the buffer.
     **/
-    std::unique_ptr<std::istream> _istrm;
+    std::shared_ptr<std::istream> _istrm;
 };
 
 
@@ -208,18 +214,14 @@ public:
     dialog_ssl(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout);
 
     /**
-    Calling the parent constructor and members copy constructor.
+    Calling the parent constructor, initializing the SSL socket.
     **/
-    dialog_ssl(const dialog_ssl&) = default;
+    dialog_ssl(const dialog& other);
 
     /**
-    Moving the server parameters and connection.
-
-    @param other        Dialog to move from.
-    @throw dialog_error Switching to ssl failed.
-    @throw *            `dialog::dialog(dialog&&)`.
+    Default copy constructor.
     **/
-    dialog_ssl(dialog&& other);
+    dialog_ssl(const dialog_ssl&) = default;
 
     /**
     Default destructor.
@@ -259,12 +261,12 @@ protected:
     /**
     SSL context (when used).
     **/
-    boost::asio::ssl::context _context;
+    std::shared_ptr<boost::asio::ssl::context> _context;
 
     /**
     SSL socket (when used).
     **/
-    boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> _ssl_socket;
+    std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> _ssl_socket;
 };
 
 

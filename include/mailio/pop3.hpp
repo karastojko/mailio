@@ -185,7 +185,7 @@ protected:
     /**
     Dialog to use for send/receive operations.
     **/
-    std::unique_ptr<dialog> _dlg;
+    std::shared_ptr<dialog> _dlg;
 };
 
 

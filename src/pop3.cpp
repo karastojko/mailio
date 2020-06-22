@@ -37,6 +37,7 @@ using std::make_pair;
 using std::tuple;
 using std::make_tuple;
 using std::move;
+using std::make_shared;
 using std::chrono::milliseconds;
 using boost::algorithm::trim;
 using boost::iequals;
@@ -47,7 +48,7 @@ namespace mailio
 
 
 pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) :
-    _dlg(new dialog(hostname, port, timeout))
+    _dlg(make_shared<dialog>(hostname, port, timeout))
 {
 }
 
@@ -312,8 +313,7 @@ void pop3s::start_tls()
 
 void pop3s::switch_to_ssl()
 {
-    dialog* d = _dlg.get();
-    _dlg.reset(new dialog_ssl(move(*d)));
+    _dlg = make_shared<dialog_ssl>(*_dlg);
 }
 
 

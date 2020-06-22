@@ -29,6 +29,7 @@ using std::to_string;
 using std::tuple;
 using std::stoi;
 using std::move;
+using std::make_shared;
 using std::runtime_error;
 using std::out_of_range;
 using std::invalid_argument;
@@ -41,7 +42,8 @@ namespace mailio
 {
 
 
-smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) : _dlg(new dialog(hostname, port, timeout))
+smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) :
+    _dlg(make_shared<dialog>(hostname, port, timeout))
 {
     _src_host = read_hostname();
 }
@@ -327,8 +329,7 @@ void smtps::start_tls()
 
 void smtps::switch_to_ssl()
 {
-    dialog* d = _dlg.get();
-    _dlg.reset(new dialog_ssl(move(*d)));
+    _dlg = make_shared<dialog_ssl>(*_dlg);
 }
 
 

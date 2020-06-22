@@ -155,7 +155,7 @@ string imap::tag_result_response_t::to_string() const
 
 
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
-    _dlg(new dialog(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(atom_state_t::NONE),
+    _dlg(make_shared<dialog>(hostname, port, timeout)), _tag(0), _optional_part_state(false), _atom_state(atom_state_t::NONE),
     _parenthesis_list_counter(0), _literal_state(string_literal_state_t::NONE), _literal_bytes_read(0), _eols_no(2)
 {
 }
@@ -1273,8 +1273,7 @@ void imaps::start_tls()
 
 void imaps::switch_to_ssl()
 {
-    dialog* d = _dlg.get();
-    _dlg.reset(new dialog_ssl(move(*d)));
+    _dlg = std::make_shared<dialog_ssl>(*_dlg);
 }
 
 
