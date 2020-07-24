@@ -123,7 +123,7 @@ public:
 
     @todo Since both key and value types are known at compile time, perhaps they should be checked then instead at runtime.
     **/
-    struct search_condition_t
+    struct MAILIO_EXPORT search_condition_t
     {
         /**
         Condition key to be used as message search criteria.
