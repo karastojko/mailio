@@ -60,22 +60,22 @@ For Linux the following configuration is tested:
 * gcc 8.3.0.
 * Boost 1.66 with Regex, Date Time available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
-* CMake 3.11
+* CMake 3.16.4
 
 For MacOS the following configuration is tested:
 
 * Apple LLVM 9.0.0.
 * Boost 1.66.
 * OpenSSL 1.0.2n available on the system.
-* CMake 3.10.
+* CMake 3.16.4.
 
 For Microsoft Windows the following configuration is tested:
 
 * Windows 10.
-* Visual Studio 2015 Community Edition.
-* Boost 1.66.
+* Visual Studio 2019 Community Edition.
+* Boost 1.71.0.
 * OpenSSL 1.0.2n available on the system.
-* CMake 3.11.
+* CMake 3.17.3.
 
 
 # Setup #
