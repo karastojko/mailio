@@ -85,6 +85,16 @@ public:
     static const char SPACE_CHAR = ' ';
 
     /**
+    Space character as string.
+    **/
+    static const std::string SPACE_STR;
+
+    /**
+    Double space string.
+    **/
+    static const std::string DOUBLE_SPACE_STR;
+
+    /**
     Exclamation mark character.
     **/
     static const char EXCLAMATION_CHAR = '!';
@@ -115,6 +125,11 @@ public:
     static const char SEMICOLON_CHAR = ';';
 
     /**
+    Semicolon character as string.
+    */
+    static const std::string SEMICOLON_STR;
+
+    /**
     Zero number character.
     **/
     static const char ZERO_CHAR = '0';
@@ -138,6 +153,11 @@ public:
     Quote character.
     **/
     static const char QUOTE_CHAR = '"';
+
+    /**
+    Quote character as string.
+    **/
+    static const std::string QUOTE_CHAR_STR;
 
     /**
     Left parenthesis character.
@@ -252,7 +272,7 @@ protected:
     Decoder line length policy.
     **/
     line_len_policy_t _decoder_line_policy;
-    
+
     /**
     Strict mode for encoding/decoding.
     **/

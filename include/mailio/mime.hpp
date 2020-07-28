@@ -46,7 +46,7 @@ dtext = \%d33-\%d90 / \%d94-\%d126 ; printable ascii not including brackets and 
 address = [phrase] angle-addr / addr-spec
 addr-spec = (dot-atom / quoted-string) "@" (dot-atom / dtext)
 ```
-*/ 
+*/
 
 /**
 Mime part implementation.
@@ -57,7 +57,7 @@ public:
 
     /**
     Top level media types.
-    
+
     @todo Mixed subtype is missing.
     **/
     enum class media_type_t {NONE, TEXT, IMAGE, AUDIO, VIDEO, APPLICATION, MULTIPART, MESSAGE};
@@ -116,14 +116,14 @@ public:
 
     /**
     Content transfer encodings.
-    
+
     @todo What is a differrence between ASCII and 7bit?
     **/
     enum class content_transfer_encoding_t {NONE, BIT_7, BIT_8, BASE_64, QUOTED_PRINTABLE, BINARY};
 
     /**
     Content disposition.
-    
+
     @todo Content disposition should be struct to keep this enum and filename?
     **/
     enum class content_disposition_t {NONE, INLINE, ATTACHMENT};
@@ -468,7 +468,7 @@ protected:
     Alphanumerics plus some special character allowed in the quoted text.
     **/
     static const std::string QTEXT;
-    
+
     /**
     Header name allowed characters.
     **/
@@ -478,7 +478,7 @@ protected:
     Content type attribute value allowed characters.
     **/
     static const std::string CONTENT_ATTR_ALPHABET;
-    
+
     /**
     Content header value allowed characters.
     */
@@ -501,6 +501,27 @@ protected:
     std::string format_content(bool dot_escape) const;
 
     /**
+    Formatting content type to a string.
+
+    @return Content type as string.
+    **/
+    std::string format_content_type() const;
+
+    /**
+    Formatting transfer encoding to a string.
+
+    @return Transfer encoding as string.
+    **/
+    std::string format_transfer_encoding() const;
+
+    /**
+    Formatting content disposition to a string.
+
+    @return Content disposition as string.
+    **/
+    std::string format_content_disposition() const;
+
+    /**
     Formats mime name.
 
     The name has to fit to mandatory line policy, otherwise the rest is truncated.
@@ -512,7 +533,7 @@ protected:
 
     /**
     Parsing header by going through header lines and calling `parse_header_line()`.
-    
+
     @throw * `parse_header_line(const string&)`.
     **/
     void parse_header();
@@ -534,10 +555,10 @@ protected:
                        `parse_content_disposition(const string&, content_disposition_t& disposition, map<string, string>&)`.
     **/
     virtual void parse_header_line(const std::string& header_line);
-    
+
     /**
     Parsing a header for the name and value.
-    
+
     @param header_line  Header to parse.
     @param header_name  Header name parsed.
     @param header_value Header value parsed.
@@ -561,7 +582,7 @@ protected:
 
     /**
     Parsing the content transfer encoding value and attributes.
-    
+
     @param transfer_encoding_hdr Content transfer encoding header without name
     @param encoding              Content transfer encoding value parsed.
     @param attributes            Content transfer encoding attributes parsed in the the key/value format.
@@ -569,7 +590,7 @@ protected:
     @throw *                     `parse_header_value_attributes(const string&, string&, map<string, string>&)`.
     **/
     void parse_content_transfer_encoding(const std::string& transfer_encoding_hdr, content_transfer_encoding_t& encoding, attributes_t& attributes) const;
-    
+
     /**
     Parsing the content disposition value and attributes.
 
@@ -580,10 +601,10 @@ protected:
     @throw *                `parse_header_value_attributes(const string&, string&, map<string, string>&)`.
     **/
     void parse_content_disposition(const std::string& content_disp_hdr, content_disposition_t& disposition, attributes_t& attributes) const;
-    
+
     /**
     Parsing value and attributes of the so called content headers.
-    
+
     @param header     Header (without name) to be parsed.
     @param value      Header value parsed.
     @param attributes Header attributes parsed in the the key/value format.
@@ -665,7 +686,7 @@ protected:
 
     /**
     Name of mime.
-    
+
     @todo Should it contain filename of the attachment?
     **/
     std::string _name;

@@ -25,6 +25,14 @@ const string codec::HEX_DIGITS = "0123456789ABCDEF";
 
 const string codec::CRLF = "\r\n";
 
+const string codec::SPACE_STR(1, codec::SPACE_CHAR);
+
+const string codec::DOUBLE_SPACE_STR(2, codec::SPACE_CHAR);
+
+const string codec::QUOTE_CHAR_STR(1, codec::QUOTE_CHAR);
+
+const string codec::SEMICOLON_STR(1, codec::SEMICOLON_CHAR);
+
 
 int codec::hex_digit_to_int(char digit)
 {

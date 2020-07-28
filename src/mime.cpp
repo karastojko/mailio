@@ -368,93 +368,10 @@ mime::header_codec_t mime::header_codec() const
 }
 
 
-// TODO: line policy not used
 // TODO: format attributes for all headers
 string mime::format_header() const
 {
-    string header;
-
-    // format content type
-
-    if (_content_type.type != media_type_t::NONE)
-    {
-        header += CONTENT_TYPE_HEADER + COLON + mime_type_as_str(_content_type.type) + codec::SLASH_CHAR + _content_type.subtype;
-        if (!_content_type.charset.empty())
-            header += SEMICOLON + content_type_t::ATTR_CHARSET + codec::EQUAL_CHAR + _content_type.charset;
-        if (!_name.empty())
-        {
-            string mn = format_mime_name(_name);
-            if (header.size() + SEMICOLON.size() + sizeof("name=\"") + mn.size() + sizeof("\"") < string::size_type(_line_policy) - 2)
-                header += SEMICOLON + "name=\"" + mn + "\"";
-            else
-                header += SEMICOLON + "\r\n  name=\"" + mn + "\"";
-        }
-        if (!_boundary.empty())
-            header += SEMICOLON + content_type_t::ATTR_BOUNDARY + codec::EQUAL_CHAR + "\"" + _boundary + "\"";
-        header += "\r\n";
-    }
-
-    // format transfer encoding
-
-    switch (_encoding)
-    {
-        case content_transfer_encoding_t::BASE_64:
-            header += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_BASE64 + "\r\n";
-            break;
-
-        case content_transfer_encoding_t::QUOTED_PRINTABLE:
-            header += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_QUOTED_PRINTABLE + "\r\n";
-            break;
-
-        case content_transfer_encoding_t::BIT_8:
-            header += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_BIT8 + "\r\n";
-            break;
-
-        case content_transfer_encoding_t::BIT_7:
-            header += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_BIT7 + "\r\n";
-            break;
-
-        // default is no transfer encoding specified
-        case content_transfer_encoding_t::NONE:
-        default:
-            break;
-    }
-
-    switch (_disposition)
-    {
-        case content_disposition_t::ATTACHMENT:
-        {
-            string name = format_mime_name(_name);
-            header += CONTENT_DISPOSITION_HEADER + COLON + CONTENT_DISPOSITION_ATTACHMENT + "; ";
-            if (CONTENT_DISPOSITION_HEADER.size() + COLON.size() + CONTENT_DISPOSITION_ATTACHMENT.size() + sizeof("filename=\"") + name.size() +
-                sizeof("\"\r\n") < string::size_type(_line_policy) - 2)
-            {
-                header += "filename=\"" + name + "\"\r\n";
-            }
-            else
-                header += "\r\n  filename=\"" + name + "\"\r\n";
-            break;
-        }
-
-        case content_disposition_t::INLINE:
-        {
-            string name = format_mime_name(_name);
-            header += CONTENT_DISPOSITION_HEADER + COLON + CONTENT_DISPOSITION_INLINE + "; ";
-            if (CONTENT_DISPOSITION_HEADER.size() + COLON.size() + CONTENT_DISPOSITION_INLINE.size() + sizeof("filename=\"") + name.size() +
-                sizeof("\"\r\n") < string::size_type(_line_policy) - 2)
-            {
-                header += "filename=\"" + name + "\"\r\n";
-            }
-            else
-                header += "\r\n  filename=\"" + name + "\"\r\n";
-            break;
-        }
-
-        default:
-            break;
-    }
-
-    return header;
+    return format_content_type() + format_transfer_encoding() + format_content_disposition();
 }
 
 
@@ -513,11 +430,110 @@ string mime::format_content(bool dot_escape) const
     string content;
     for (const auto& s : content_lines)
         if (dot_escape && s[0] == codec::DOT_CHAR)
-            content += string(1, codec::DOT_CHAR) + s + "\r\n";
+            content += string(1, codec::DOT_CHAR) + s + codec::CRLF;
         else
-            content += s + "\r\n";
+            content += s + codec::CRLF;
 
     return content;
+}
+
+
+string mime::format_content_type() const
+{
+    string line;
+
+    if (_content_type.type != media_type_t::NONE)
+    {
+        line += CONTENT_TYPE_HEADER + COLON + mime_type_as_str(_content_type.type) + codec::SLASH_CHAR + _content_type.subtype;
+        if (!_content_type.charset.empty())
+            line += SEMICOLON + content_type_t::ATTR_CHARSET + codec::EQUAL_CHAR + _content_type.charset;
+        if (!_name.empty())
+        {
+            string mn = format_mime_name(_name);
+            if (line.size() + SEMICOLON.size() + sizeof("name=\"") + mn.size() + sizeof(codec::QUOTE_CHAR) < string::size_type(_line_policy) - 2)
+                line += SEMICOLON + "name=\"" + mn + "\"";
+            else
+                line += SEMICOLON + codec::CRLF + "  name=\"" + mn + codec::QUOTE_CHAR;
+        }
+        if (!_boundary.empty())
+            line += SEMICOLON + content_type_t::ATTR_BOUNDARY + codec::EQUAL_CHAR + codec::QUOTE_CHAR + _boundary + codec::QUOTE_CHAR;
+        line += codec::CRLF;
+    }
+
+    return line;
+}
+
+
+string mime::format_transfer_encoding() const
+{
+    string line;
+
+    switch (_encoding)
+    {
+        case content_transfer_encoding_t::BASE_64:
+            line += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_BASE64 + codec::CRLF;
+            break;
+
+        case content_transfer_encoding_t::QUOTED_PRINTABLE:
+            line += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_QUOTED_PRINTABLE + codec::CRLF;
+            break;
+
+        case content_transfer_encoding_t::BIT_8:
+            line += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_BIT8 + codec::CRLF;
+            break;
+
+        case content_transfer_encoding_t::BIT_7:
+            line += CONTENT_TRANSFER_ENCODING_HEADER + COLON + CONTENT_TRANSFER_ENCODING_BIT7 + codec::CRLF;
+            break;
+
+        // default is no transfer encoding specified
+        case content_transfer_encoding_t::NONE:
+        default:
+            break;
+    }
+
+    return line;
+}
+
+
+string mime::format_content_disposition() const
+{
+    const string FILENAME_ATTR = "filename";
+    string line;
+
+    switch (_disposition)
+    {
+        case content_disposition_t::ATTACHMENT:
+        {
+            string name = format_mime_name(_name);
+            line += CONTENT_DISPOSITION_HEADER + COLON + CONTENT_DISPOSITION_ATTACHMENT + codec::SEMICOLON_STR + codec::SPACE_CHAR;
+            int line_new_size = CONTENT_DISPOSITION_HEADER.size() + COLON.size() + CONTENT_DISPOSITION_ATTACHMENT.size() + FILENAME_ATTR.size() +
+                sizeof(codec::EQUAL_CHAR) + sizeof(codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR) + codec::CRLF.size();
+            if (line_new_size < string::size_type(_line_policy) - 2)
+                line += FILENAME_ATTR + codec::EQUAL_CHAR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR_STR + codec::CRLF;
+            else
+                line += codec::CRLF + codec::DOUBLE_SPACE_STR + FILENAME_ATTR + codec::EQUAL_CHAR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR + codec::CRLF;
+            break;
+        }
+
+        case content_disposition_t::INLINE:
+        {
+            string name = format_mime_name(_name);
+            line += CONTENT_DISPOSITION_HEADER + COLON + CONTENT_DISPOSITION_INLINE + codec::SEMICOLON_STR + codec::SPACE_CHAR;
+            const string::size_type line_new_size = CONTENT_DISPOSITION_HEADER.size() + COLON.size() + CONTENT_DISPOSITION_INLINE.size() +
+                sizeof(FILENAME_ATTR + codec::EQUAL_CHAR + codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR + codec::CRLF);
+            if (line_new_size < string::size_type(_line_policy) - 2)
+                line += FILENAME_ATTR + codec::EQUAL_CHAR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR + codec::CRLF;
+            else
+                line += codec::CRLF + codec::DOUBLE_SPACE_STR + FILENAME_ATTR + codec::EQUAL_CHAR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR + codec::CRLF;
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return line;
 }
 
 
@@ -630,7 +646,7 @@ void mime::parse_header_line(const string& header_line)
         string media_subtype;
         attributes_t attributes;
         parse_content_type(header_value, media_type, media_subtype, attributes);
-        
+
         _content_type.type = media_type;
         _content_type.subtype = to_lower_copy(media_subtype);
         attributes_t::iterator bound_it = attributes.find("boundary");
@@ -683,13 +699,13 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
             is_header_name = false;
             break;
         }
-        
+
         if (is_header_name && !isalpha(header_line[colon_pos]) && !isdigit(header_line[colon_pos]) &&
             HEADER_NAME_ALPHABET.find(header_line[colon_pos]) == string::npos)
         {
             throw mime_error("Parsing failure of header name.");
         }
-        
+
     }
     if (colon_pos >= header_line.length())
         throw mime_error("Parsing failure of header line.");
@@ -732,7 +748,7 @@ void mime::parse_content_transfer_encoding(const string& transfer_encoding_hdr, 
 {
     string header_value;
     parse_header_value_attributes(transfer_encoding_hdr, header_value, attributes);
-    
+
     if (iequals(header_value, CONTENT_TRANSFER_ENCODING_BASE64))
         encoding = content_transfer_encoding_t::BASE_64;
     else if (iequals(header_value, CONTENT_TRANSFER_ENCODING_QUOTED_PRINTABLE))
@@ -796,7 +812,7 @@ digraph header_value_attributes
     attrvalueend -> attrvalueend [label="space"];
 }
 ```
-For details see [rfc 2045, section 5.1]. 
+For details see [rfc 2045, section 5.1].
 */
 void mime::parse_header_value_attributes(const string& header, string& header_value, attributes_t& attributes) const
 {
@@ -819,7 +835,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 else
                     throw mime_error("Parsing header value failure at `" + string(1, *ch) + "`.");
                 break;
-                
+
             case state_t::VALUE:
                 if (isalpha(*ch) || isdigit(*ch) || CONTENT_HEADER_VALUE_ALPHABET.find(*ch) != string::npos)
                     header_value += *ch;
