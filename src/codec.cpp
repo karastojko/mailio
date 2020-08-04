@@ -23,15 +23,29 @@ namespace mailio
 
 const string codec::HEX_DIGITS = "0123456789ABCDEF";
 
+const string codec::ASTERISK_STR(1, codec::ASTERISK_CHAR);
+
 const string codec::CRLF = "\r\n";
+
+const string codec::EQUAL_STR(1, codec::EQUAL_CHAR);
 
 const string codec::SPACE_STR(1, codec::SPACE_CHAR);
 
 const string codec::DOUBLE_SPACE_STR(2, codec::SPACE_CHAR);
 
-const string codec::QUOTE_CHAR_STR(1, codec::QUOTE_CHAR);
+const string codec::DOT_STR(1, codec::DOT_CHAR);
+
+const string codec::COMMA_STR(1, codec::COMMA_CHAR);
+
+const string codec::COLON_STR(1, codec::COLON_CHAR);
 
 const string codec::SEMICOLON_STR(1, codec::SEMICOLON_CHAR);
+
+const string codec::QUOTE_STR(1, codec::QUOTE_CHAR);
+
+const string codec::LESS_THAN_STR(1, codec::LESS_THAN_CHAR);
+
+const string codec::GREATER_THAN_STR(1, codec::GREATER_THAN_CHAR);
 
 
 int codec::hex_digit_to_int(char digit)

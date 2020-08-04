@@ -177,7 +177,7 @@ public:
 
     /**
     Sending the logout command and closing the connection.
-    **/    
+    **/
     virtual ~imap();
 
     imap(const imap&) = delete;
@@ -192,7 +192,7 @@ public:
     Authenticating with the given credentials.
 
     The method should be called only once on an existing object - it is not possible to authenticate again within the same connection.
-    
+
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
@@ -202,7 +202,7 @@ public:
 
     /**
     Selecting a mailbox.
-    
+
     @param folder_name Folder to list.
     @return            Mailbox statistics.
     @throw imap_error  Selecting mailbox failure.
@@ -215,10 +215,10 @@ public:
 
     /**
     Fetching a message from the mailbox.
-    
+
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
     fetching non-existing message to be an error, and an exception is thrown.
-    
+
     @param mailbox     Mailbox to fetch from.
     @param message_no  Number of the message to fetch.
     @param msg         Message to store the result.
@@ -278,7 +278,7 @@ public:
     Getting the mailbox statistics.
 
     The server might not support unseen, uidnext, or uidvalidity, which will cause an exception, so those parameters are optional.
-    
+
     @param mailbox    Mailbox name.
     @param info       Statistics information to be retrieved.
     @return           Mailbox statistics.
@@ -292,7 +292,7 @@ public:
 
     /**
     Removing a message from the given mailbox.
-    
+
     @param mailbox    Mailbox to use.
     @param message_no Number of the message to remove.
     @throw imap_error Deleting message failure.
@@ -304,7 +304,7 @@ public:
 
     /**
     Removing a message from an already selected mailbox.
-    
+
     @param message_no Number of the message to remove.
     @param is_uid     Using a message uid number instead of a message sequence number.
     @throw imap_error Deleting message failure.
@@ -317,7 +317,7 @@ public:
 
     /**
     Searching a mailbox.
-    
+
     @param conditions  List of conditions taken in conjuction way.
     @param results     Store resulting list of message sequence numbers or UIDs here.
                        Does not clear the list first, so that results can be accumulated.
@@ -389,10 +389,14 @@ protected:
     **/
     static std::string messages_range_list_to_string(std::list<messages_range_t> ranges);
 
+    /**
+    Untagged response character as defined by the protocol.
+    **/
+    static const std::string UNTAGGED_RESPONSE;
 
     /**
     Initiating a session to the server.
-    
+
     @throw imap_error Connection to server failure.
     @throw imap_error Parsing failure.
     @throw *          `parse_tag_result(const string&)`, `dialog::receive()`.
@@ -402,7 +406,7 @@ protected:
 
     /**
     Performing an authentication by using the login method.
-    
+
     @param username   Username to authenticate.
     @param password   Password to authenticate.
     @throw imap_error Authentication failure.
@@ -427,7 +431,7 @@ protected:
 
     /**
     Searching a mailbox.
-    
+
     @param conditions  String of search keys.
     @param results     Store resulting list of indexes here.
     @param want_uids   Return a list of message uids instead of message sequence numbers.
@@ -502,16 +506,16 @@ protected:
 
     /**
     Parsing a line into tag, result and response which is the rest of the line.
-    
+
     @param line       Response line to parse.
     @return           Tuple with the tag, result and response.
     @throw imap_error Parsing failure.
     */
     tag_result_response_t parse_tag_result(const std::string& line) const;
-    
+
     /**
     Parsing a response (without tag and result) into optional and mandatory part.
-    
+
     This is the main function that deals with the IMAP grammar.
 
     @param response   Response to parse without tag and result.
@@ -567,10 +571,10 @@ protected:
     Tag used to identify requests and responses.
     **/
     unsigned _tag;
-    
+
     /**
     Token of the response defined by the grammar.
-    
+
     Its type is determined by the content, and can be either atom, string literal or parenthesized list. Thus, it can be considered as union of
     those three types.
     **/
@@ -580,29 +584,29 @@ protected:
         Token type which can be empty in the case that is not determined yet, atom, string literal or parenthesized list.
         **/
         enum class token_type_t {EMPTY, ATOM, LITERAL, LIST} token_type;
-        
+
         /**
         Token content in case it is atom.
         **/
         std::string atom;
-        
+
         /**
         Token content in case it is string literal.
         **/
         std::string literal;
-        
+
         /**
         String literal is first determined by its size, so it's stored here before reading the literal itself.
         **/
         std::string literal_size;
-        
+
         /**
         Token content in case it is parenthesized list.
-        
+
         It can store either of the three types, so the definition is recursive.
         **/
         std::list<std::shared_ptr<response_token_t>> parenthesized_list;
-        
+
         /**
         Default constructor.
         **/
@@ -615,42 +619,42 @@ protected:
     Optional part of the response, determined by the square brackets.
     **/
     std::list<std::shared_ptr<response_token_t>> _optional_part;
-    
+
     /**
     Mandatory part of the response, which is any text outside of the square brackets.
     **/
     std::list<std::shared_ptr<response_token_t>> _mandatory_part;
-    
+
     /**
     Parser state if an optional part is reached.
     **/
     bool _optional_part_state;
-    
+
     /**
     Parser state if an atom is reached.
     **/
     enum class atom_state_t {NONE, PLAIN, QUOTED} _atom_state;
-    
+
     /**
     Counting open parenthesis of a parenthized list, thus it also keeps parser state if a parenthesized list is reached.
     **/
     unsigned int _parenthesis_list_counter;
-    
+
     /**
     Parser state if a string literal is reached.
     **/
     enum class string_literal_state_t {NONE, SIZE, WAITING, READING, DONE} _literal_state;
-    
+
     /**
     Keeping the number of bytes read so far while parsing a string literal.
     **/
     std::string::size_type _literal_bytes_read;
-    
+
     /**
     Finding last token of the list at the given depth in terms of parenthesis count.
-    
+
     When a new token is found, this method enables to find the last current token and append the new one.
-    
+
     @param token_list Token sequence to traverse.
     @return           Last token of the given sequence at the current depth of parenthesis count.
     **/
@@ -685,7 +689,7 @@ public:
 
     /**
     Making a connection to the server.
-    
+
     Calls parent constructor to do all the work.
 
     @param hostname Hostname of the server.
@@ -697,7 +701,7 @@ public:
 
     /**
     Sending the logout command and closing the connection.
-    
+
     Calls parent destructor to do all the work.
     **/
     virtual ~imaps() = default;
@@ -724,7 +728,7 @@ protected:
 
     /**
     Switching to TLS layer.
-    
+
     @throw imap_error Bad server response.
     @throw imap_error Start TLS refused by server.
     @throw *          `parse_tag_result(const std::string&)`, `switch_to_ssl()`, `dialog::send(const std::string&)`, `dialog::receive()`.

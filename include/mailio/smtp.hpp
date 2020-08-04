@@ -193,6 +193,11 @@ protected:
     static bool permanent_negative(int status);
 
     /**
+    Server status when ready.
+    **/
+    static const uint16_t SERVICE_READY_STATUS = 220;
+
+    /**
     Name of the host which client is connecting from.
     **/
     std::string _src_host;

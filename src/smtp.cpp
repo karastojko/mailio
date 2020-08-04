@@ -79,9 +79,9 @@ void smtp::authenticate(const string& username, const string& password, auth_met
 void smtp::submit(const message& msg)
 {
     if (!msg.sender().address.empty())
-        _dlg->send("MAIL FROM: <" + msg.sender().address + ">");
+        _dlg->send("MAIL FROM: " + codec::LESS_THAN_STR + msg.sender().address + codec::GREATER_THAN_STR);
     else
-        _dlg->send("MAIL FROM: <" + msg.from().addresses.at(0).address + ">");
+        _dlg->send("MAIL FROM: " + codec::LESS_THAN_STR + msg.from().addresses.at(0).address + codec::GREATER_THAN_STR);
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))
@@ -89,7 +89,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.recipients().addresses)
     {
-        _dlg->send("RCPT TO: <" + rcpt.address + ">");
+        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.address + codec::GREATER_THAN_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -98,7 +98,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.recipients().groups)
     {
-        _dlg->send("RCPT TO: <" + rcpt.name + ">");
+        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.name + codec::GREATER_THAN_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -107,7 +107,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.cc_recipients().addresses)
     {
-        _dlg->send("RCPT TO: <" + rcpt.address + ">");
+        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.address + codec::GREATER_THAN_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -116,7 +116,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.cc_recipients().groups)
     {
-        _dlg->send("RCPT TO: <" + rcpt.name + ">");
+        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.name + codec::GREATER_THAN_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -125,7 +125,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.bcc_recipients().addresses)
     {
-        _dlg->send("RCPT TO: <" + rcpt.address + ">");
+        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.address + codec::GREATER_THAN_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -134,7 +134,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.bcc_recipients().groups)
     {
-        _dlg->send("RCPT TO: <" + rcpt.name + ">");
+        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.name + codec::GREATER_THAN_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -149,7 +149,7 @@ void smtp::submit(const message& msg)
 
     string msg_str;
     msg.format(msg_str, true);
-    _dlg->send(msg_str + "\r\n.");
+    _dlg->send(msg_str + codec::CRLF + codec::DOT_CHAR);
     line = _dlg->receive();
     tokens = parse_line(line);
     if (!positive_completion(std::get<0>(tokens)))
@@ -173,7 +173,7 @@ void smtp::connect()
 {
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
-    if (std::get<0>(tokens) != 220)
+    if (std::get<0>(tokens) != SERVICE_READY_STATUS)
         throw smtp_error("Connection rejection.");
 }
 
@@ -206,7 +206,7 @@ void smtp::ehlo()
 {
     _dlg->send("EHLO " + _src_host);
     string line = _dlg->receive();
-    tuple<int, bool, string> tokens = parse_line(line);    
+    tuple<int, bool, string> tokens = parse_line(line);
     while (!std::get<1>(tokens))
     {
         line = _dlg->receive();
@@ -216,7 +216,7 @@ void smtp::ehlo()
     if (!positive_completion(std::get<0>(tokens)))
     {
         _dlg->send("HELO " + _src_host);
-        
+
         line = _dlg->receive();
         tokens = parse_line(line);
         while (!std::get<1>(tokens))
@@ -319,7 +319,7 @@ void smtps::start_tls()
     _dlg->send("STARTTLS");
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
-    if (std::get<1>(tokens) && std::get<0>(tokens) != 220)
+    if (std::get<1>(tokens) && std::get<0>(tokens) != SERVICE_READY_STATUS)
         throw smtp_error("Start tls refused by server.");
 
     switch_to_ssl();

@@ -108,7 +108,7 @@ void message::format(string& message_str, bool dot_escape) const
             content_part.header_codec(_header_codec);
             string cps;
             content_part.format(cps, dot_escape);
-            message_str += "--" + _boundary + codec::CRLF + cps + codec::CRLF;
+            message_str += BOUNDARY_DELIMITER + _boundary + END_OF_LINE + cps + END_OF_LINE;
         }
 
         // recursively format mime parts
@@ -116,9 +116,9 @@ void message::format(string& message_str, bool dot_escape) const
         {
             string p_str;
             p.format(p_str, dot_escape);
-            message_str += "--" + _boundary + codec::CRLF + p_str + codec::CRLF;
+            message_str += BOUNDARY_DELIMITER + _boundary + END_OF_LINE + p_str + END_OF_LINE;
         }
-        message_str += "--" + _boundary + "--" + codec::CRLF;
+        message_str += BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER + END_OF_LINE;
     }
     else
         message_str += format_content(dot_escape);
@@ -367,12 +367,12 @@ string message::format_header() const
     if (_from.addresses.size() > 1 && _sender.empty())
         throw message_error("No sender for multiple authors.");
 
-    header += FROM_HEADER + COLON + from_to_string() + codec::CRLF;
-    header += _sender.address.empty() ? "" : SENDER_HEADER + COLON + sender_to_string() + codec::CRLF;
-    header += _reply_address.name.empty() ? "" : REPLY_TO_HEADER + COLON + reply_address_to_string() + codec::CRLF;
-    header += TO_HEADER + COLON + recipients_to_string() + codec::CRLF;
-    header += _cc_recipients.empty() ? "" : CC_HEADER + COLON + cc_recipients_to_string() + codec::CRLF;
-    header += _bcc_recipients.empty() ? "" : BCC_HEADER + COLON + bcc_recipients_to_string() + codec::CRLF;
+    header += FROM_HEADER + HEADER_SEPARATOR_STR + from_to_string() + END_OF_LINE;
+    header += _sender.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + END_OF_LINE;
+    header += _reply_address.name.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + END_OF_LINE;
+    header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + END_OF_LINE;
+    header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + END_OF_LINE;
+    header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
     if (!_date_time->is_not_a_date_time())
@@ -382,14 +382,14 @@ string message::format_header() const
         local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
         ss.imbue(locale(ss.getloc(), facet));
         ss << *_date_time;
-        header += DATE_HEADER + COLON + ss.str() + codec::CRLF;
+        header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + END_OF_LINE;
     }
 
     if (!_parts.empty())
-        header += MIME_VERSION_HEADER + COLON + _version + codec::CRLF;
+        header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + _version + END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + COLON + format_subject() + codec::CRLF;
+    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + END_OF_LINE;
     
     return header;
 }
@@ -465,16 +465,16 @@ string message::format_address_list(const mailboxes& mailbox_list) const
     for (auto ma = mailbox_list.addresses.begin(); ma != mailbox_list.addresses.end(); ma++)
     {
         if (mailbox_list.addresses.size() > 1 && ma != mailbox_list.addresses.begin())
-            mailbox_str += "  " + format_address(ma->name, ma->address);
+            mailbox_str += codec::DOUBLE_SPACE_STR + format_address(ma->name, ma->address);
         else
             mailbox_str += format_address(ma->name, ma->address);
 
         if (ma != mailbox_list.addresses.end() - 1)
-            mailbox_str += "," + codec::CRLF;
+            mailbox_str += codec::COMMA_STR + END_OF_LINE;
     }
 
     if (!mailbox_list.groups.empty() && !mailbox_list.addresses.empty())
-        mailbox_str +=  "," + codec::CRLF + "  ";
+        mailbox_str += codec::COMMA_STR + END_OF_LINE + codec::DOUBLE_SPACE_STR;
 
     for (auto mg = mailbox_list.groups.begin(); mg != mailbox_list.groups.end(); mg++)
     {
@@ -485,14 +485,14 @@ string message::format_address_list(const mailboxes& mailbox_list) const
         for (auto ma = mg->members.begin(); ma != mg->members.end(); ma++)
         {
             if (mg->members.size() > 1 && ma != mg->members.begin())
-                mailbox_str += "  " + format_address(ma->name, ma->address);
+                mailbox_str += codec::DOUBLE_SPACE_STR + format_address(ma->name, ma->address);
             else
                 mailbox_str += format_address(ma->name, ma->address);
 
             if (ma != mg->members.end() - 1)
-                mailbox_str += "," + codec::CRLF;
+                mailbox_str += codec::COMMA_STR + END_OF_LINE;
         }
-        mailbox_str += mg != mailbox_list.groups.end() - 1 ? ";" + codec::CRLF + "  " : ";";
+        mailbox_str += mg != mailbox_list.groups.end() - 1 ? codec::SEMICOLON_STR + END_OF_LINE + codec::DOUBLE_SPACE_STR : codec::SEMICOLON_STR;
     }
 
     return mailbox_str;
@@ -1124,13 +1124,13 @@ string message::format_subject() const
     {
         q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
         vector<string> hdr = qc.encode(_subject);
-        subject += hdr.at(0) + codec::CRLF;
+        subject += hdr.at(0) + END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
-                subject += " " + *h + codec::CRLF;
+                subject += codec::SPACE_STR + *h + END_OF_LINE;
     }
     else
-        subject += _subject + codec::CRLF;
+        subject += _subject + END_OF_LINE;
 
     return subject;
 }
@@ -1148,11 +1148,11 @@ string message::parse_address_name(const string& address_name) const
     q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
-    if (address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR && address_name.at(1) == codec::QUESTION_MARK_CHAR &&
-        address_name.at(addr_len - 1) == codec::EQUAL_CHAR && address_name.at(addr_len - 2) == codec::QUESTION_MARK_CHAR)
-    {
+    bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&
+        address_name.at(1) == codec::QUESTION_MARK_CHAR && address_name.at(addr_len - 1) == codec::EQUAL_CHAR &&
+        address_name.at(addr_len - 2) == codec::QUESTION_MARK_CHAR;
+    if (is_q_encoded)
         return qc.decode(address_name.substr(1, addr_len - 3));
-    }
 
     return address_name;
 }

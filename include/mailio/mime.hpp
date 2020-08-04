@@ -455,14 +455,54 @@ protected:
     static const std::string CONTENT_DISPOSITION_INLINE;
 
     /**
+    End of line as specified by the MIME format.
+    **/
+    static const std::string END_OF_LINE;
+
+    /**
+    Header name and value separator character.
+    **/
+    static const char HEADER_SEPARATOR_CHAR = codec::COLON_CHAR;
+
+    /**
     Colon string used to separate header name from the header value.
     **/
-    static const std::string COLON;
+    static const std::string HEADER_SEPARATOR_STR;
+
+    /**
+    Attribute name and value separator.
+    **/
+    static const char NAME_VALUE_SEPARATOR_CHAR = codec::EQUAL_CHAR;
+
+    /**
+    Attribute name and value separator as string.
+    **/
+    static const std::string NAME_VALUE_SEPARATOR_STR;
+
+    /**
+    Separator of multiple attributes.
+    **/
+    static const char ATTRIBUTES_SEPARATOR_CHAR = codec::SEMICOLON_CHAR;
 
     /**
     Semicolon string used to separate header attributes.
     **/
-    static const std::string SEMICOLON;
+    static const std::string ATTRIBUTES_SEPARATOR_STR;
+
+    /**
+    Attribute name part.
+    **/
+    static const std::string ATTRIBUTE_NAME;
+
+    /**
+    Attribute filename part.
+    **/
+    static const std::string ATTRIBUTE_FILENAME;
+
+    /**
+    Boundary special characters.
+    **/
+    static const std::string BOUNDARY_DELIMITER;
 
     /**
     Alphanumerics plus some special character allowed in the quoted text.

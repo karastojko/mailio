@@ -65,10 +65,25 @@ public:
     static const char PLUS_CHAR = '+';
 
     /**
+    Minus character.
+    **/
+    static const char MINUS_CHAR = '-';
+
+    /**
+    Asterisk character.
+    **/
+    static const char ASTERISK_CHAR = '*';
+
+    /**
+    Asterisk character as string.
+    **/
+    static const std::string ASTERISK_STR;
+
+    /**
     Slash character.
     **/
     static const char SLASH_CHAR = '/';
-    
+
     /**
     Backslash character.
     **/
@@ -78,6 +93,11 @@ public:
     Equal character.
     **/
     static const char EQUAL_CHAR = '=';
+
+    /**
+    Equal character as string.
+    **/
+    static const std::string EQUAL_STR;
 
     /**
     Space character.
@@ -108,25 +128,40 @@ public:
     Dot character.
     **/
     static const char DOT_CHAR = '.';
-    
+
+    /**
+    Dot character string.
+    **/
+    static const std::string DOT_STR;
+
     /**
     Comma character.
     **/
     static const char COMMA_CHAR = ',';
-    
+
+    /**
+    Comma character as string.
+    **/
+    static const std::string COMMA_STR;
+
     /**
     Colon character.
     **/
     static const char COLON_CHAR = ':';
-    
+
+    /**
+    Colon character as string.
+    **/
+    static const std::string COLON_STR;
+
     /**
     Semicolon character.
-    */
+    **/
     static const char SEMICOLON_CHAR = ';';
 
     /**
     Semicolon character as string.
-    */
+    **/
     static const std::string SEMICOLON_STR;
 
     /**
@@ -157,7 +192,7 @@ public:
     /**
     Quote character as string.
     **/
-    static const std::string QUOTE_CHAR_STR;
+    static const std::string QUOTE_STR;
 
     /**
     Left parenthesis character.
@@ -168,7 +203,7 @@ public:
     Right parenthesis character.
     **/
     static const char RIGHT_PARENTHESIS_CHAR = ')';
-    
+
     /**
     Left bracket chartacter.
     **/
@@ -188,22 +223,32 @@ public:
     Right brace character.
     **/
     static const char RIGHT_BRACE_CHAR = '}';
-    
+
     /**
     Monkey character.
     **/
     static const char MONKEY_CHAR = '@';
-    
+
     /**
     Less than character.
     **/
     static const char LESS_THAN_CHAR = '<';
-    
+
+    /**
+    Less than character as string.
+    **/
+    static const std::string LESS_THAN_STR;
+
     /**
     Greater than character.
     **/
     static const char GREATER_THAN_CHAR = '>';
 
+    /**
+    Greater than character as string.
+    **/
+    static const std::string GREATER_THAN_STR;
+    
     /**
     Underscore character.
     **/
