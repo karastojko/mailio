@@ -1,7 +1,7 @@
 
 # mailio #
 
-mailio is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on standard C++ 17 and Boost library.
+mailio is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on the standard C++ 17 and Boost library.
 
 
 # Examples #
@@ -21,7 +21,7 @@ conn.authenticate("mailio@gmail.com", "mailiopass", smtps::auth_method_t::START_
 conn.submit(msg);
 ```
     
-To receive a mail, `message` object is created to store the received message. Mail can be received over POP3 or IMAP, depending of mail server setup.
+To receive a mail, a `message` object is created to store the received message. Mail can be received over POP3 or IMAP, depending of mail server setup.
 If POP3 is used, then instance of `pop3` (or `pop3s`) class is created and message is fetched:
 
 ```cpp
@@ -80,9 +80,12 @@ For Microsoft Windows the following configuration is tested:
 
 # Setup #
 
-Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could set environment variables `OPENSSL_ROOT_DIR` and `BOOST_ROOT` to their
-respective paths. Boost must be built with OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include`
-parameters of `b2` script (after `bootstrap` finishes).
+Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could use CMake options `-DOPENSSL_ROOT_DIR` and `-DBOOST_ROOT` to set
+them. Boost must be built with the OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include` parameters of
+`b2` script (after `bootstrap` finishes). Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default
+installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INSTALL_PREFIX`. Other available options are `MAILIO_BUILD_SHARED_LIBRARY`
+(by default is on, if turned off then the static library is built), `MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on)
+and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 
 ## Linux, MacOS ##
@@ -92,16 +95,9 @@ From the terminal go into the directory where the library is downloaded to, and 
 mkdir build
 cd ./build
 cmake ..
-make
-```
-Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default installation directory say `/opt/mailio`, then
-the last two steps should be:
-```
-cmake -DCMAKE_INSTALL_PREFIX=/opt/mailio ..
 make install
 ```
-Other available options are `MAILIO_BUILD_SHARED_LIBRARY` (by default is on, if turned off then the static library is built), `MAILIO_BUILD_DOCUMENTATION`
-(if Doxygen documentation is generated, by default is on) and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
+
 
 ## Microsoft Windows ##
 
