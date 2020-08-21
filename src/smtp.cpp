@@ -188,13 +188,17 @@ void smtp::auth_login(const string& username, const string& password)
 
     // TODO: use static encode from base64
     base64 b64;
-    _dlg->send(b64.encode(username)[0]);
+    auto user_v = b64.encode(username);
+    string cmd = user_v.empty() ? "" : user_v[0];
+    _dlg->send(cmd);
     line = _dlg->receive();
     tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_intermediate(std::get<0>(tokens)))
         throw smtp_error("Username rejection.");
 
-    _dlg->send(b64.encode(password)[0]);
+    auto pass_v = b64.encode(password);
+    cmd = pass_v.empty() ? "" : pass_v[0];
+    _dlg->send(cmd);
     line = _dlg->receive();
     tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))
