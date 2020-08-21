@@ -173,6 +173,11 @@ void smtp::connect()
 {
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
+    while (!std::get<1>(tokens))
+    {
+        line = _dlg->receive();
+        tokens = parse_line(line);
+    }
     if (std::get<0>(tokens) != SERVICE_READY_STATUS)
         throw smtp_error("Connection rejection.");
 }
