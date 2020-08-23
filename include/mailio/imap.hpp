@@ -395,6 +395,71 @@ protected:
     static const std::string UNTAGGED_RESPONSE;
 
     /**
+    Colon as a separator in the message list range.
+    **/
+    static const std::string RANGE_SEPARATOR;
+
+    /**
+    Comma as a separator of the list members.
+    **/
+    static const std::string LIST_SEPARATOR;
+
+    /**
+    Character used by IMAP to separate tokens.
+    **/
+    static const char TOKEN_SEPARATOR_CHAR{' '};
+
+    /**
+    String representation of the token separator character.
+    **/
+    static const std::string TOKEN_SEPARATOR_STR;
+
+    /**
+    Quoted string delimiter.
+    **/
+    static const char QUOTED_STRING_SEPARATOR_CHAR{'"'};
+
+    /**
+    String representation of the quoted string delimiter character.
+    **/
+    static const std::string QUOTED_STRING_SEPARATOR;
+
+    /**
+    Character which begins the optional section.
+    **/
+    static const char OPTIONAL_BEGIN{'['};
+
+    /**
+    Character which ends the optional section.
+    **/
+    static const char OPTIONAL_END{']'};
+
+    /**
+    Character which begins the list.
+    **/
+    static const char LIST_BEGIN{'('};
+
+    /**
+    Character which ends the list.
+    **/
+    static const char LIST_END{')'};
+
+    /**
+    Character which begins the literal string.
+    **/
+    static const char STRING_LITERAL_BEGIN{'{'};
+
+    /**
+    Character which ends the literal string.
+    **/
+    static const char STRING_LITERAL_END{'}'};
+
+    /**
+    Delimiter of a quoted atom in the protocol.
+    **/
+    static const char QUOTED_ATOM{'"'};
+
+    /**
     Initiating a session to the server.
 
     @throw imap_error Connection to server failure.

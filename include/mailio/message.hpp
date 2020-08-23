@@ -10,7 +10,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */
 
- 
+
 #pragma once
 
 #include <string>
@@ -39,6 +39,41 @@ class MAILIO_EXPORT message : public mime
 public:
 
     /**
+    Enclosing character for the mail address begin.
+    **/
+    static const char ADDRESS_BEGIN_CHAR = '<';
+
+    /**
+    String representation of the mail address start enclosing character.
+    **/
+    static const std::string ADDRESS_BEGIN_STR;
+
+    /**
+    Enclosing character for the mail address end.
+    **/
+    static const char ADDRESS_END_CHAR = '>';
+
+    /**
+    String representation of the mail address end enclosing character.
+    **/
+    static const std::string ADDRESS_END_STR;
+
+    /**
+    Character to separate mail addresses in a list.
+    **/
+    static const char ADDRESS_SEPARATOR = ',';
+
+    /**
+    Mail group name separator from the list of addresses.
+    **/
+    static const char MAILGROUP_NAME_SEPARATOR = ':';
+
+    /**
+    Separator of several mail groups.
+    **/
+    static const char MAILGROUP_SEPARATOR = ';';
+
+    /**
     Calling parent destructor, initializing date and time to local time in utc time zone, other members set to default.
     **/
     message();
@@ -50,7 +85,7 @@ public:
 
     /**
     Default move constructor.
-    
+
     @todo Default implementation is probably a bug, but not manifested yet.
     **/
     message(message&&) = default;
@@ -67,7 +102,7 @@ public:
 
     /**
     Default move assignment operator.
-    
+
     @todo Default implementation is probably a bug, but not manifested yet.
     **/
     message& operator=(message&&) = default;
@@ -306,14 +341,14 @@ public:
 
     /**
     Getting the number of attachments.
-    
+
     @return Number of attachments.
     **/
     std::size_t attachments_size() const;
-    
+
     /**
     Getting the attachment at the given index.
-    
+
     @param index         Index of the attachment.
     @param att_strm      Stream to write the attachment.
     @param att_name      Name of the attachment.
@@ -442,7 +477,7 @@ protected:
 
     /**
     Parsing a string into date and time.
-    
+
     @param date_str      Date string to parse.
     @return              Date and time translated to local time zone.
     @throw message_error Parsing failure of date.

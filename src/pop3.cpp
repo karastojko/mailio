@@ -89,7 +89,7 @@ auto pop3::list(unsigned message_no) -> message_list_t
                 throw pop3_error("Listing message failure.");
 
             // parse data
-            string::size_type pos = std::get<1>(stat_msg).find(codec::SPACE_CHAR);
+            string::size_type pos = std::get<1>(stat_msg).find(TOKEN_SEPARATOR_CHAR);
             if (pos == string::npos)
                 throw pop3_error("Parser failure.");
             unsigned msg_id = stoi(std::get<1>(stat_msg).substr(0, pos));
@@ -109,11 +109,11 @@ auto pop3::list(unsigned message_no) -> message_list_t
             while (!end_of_msg)
             {
                 line = _dlg->receive();
-                if (line == codec::DOT_STR)
+                if (line == codec::END_OF_MESSAGE)
                     end_of_msg = true;
                 else
                 {
-                    string::size_type pos = line.find(codec::SPACE_CHAR);
+                    string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
                     if (pos == string::npos)
                         throw pop3_error("Parser failure.");
                     unsigned msg_id = stoi(line.substr(0, pos));
@@ -145,7 +145,7 @@ auto pop3::statistics() -> mailbox_stat_t
         throw pop3_error("Reading statistics failure.");
 
     // parse data
-    string::size_type pos = std::get<1>(stat_msg).find(codec::SPACE_CHAR);
+    string::size_type pos = std::get<1>(stat_msg).find(TOKEN_SEPARATOR_CHAR);
     if (pos == string::npos)
         throw pop3_error("Parser failure.");
     mailbox_stat_t mailbox_stat;
@@ -194,12 +194,12 @@ void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
     {
         line = _dlg->receive();
         // reading line by line ensures that crlf are the last characters read; so, reaching single dot in the line means that it's end of message
-        if (line == codec::DOT_STR)
+        if (line == codec::END_OF_MESSAGE)
         {
             // if header only, then mark the header end with the empty line
             if (header_only)
                 msg.parse_by_line("");
-            msg.parse_by_line(codec::CRLF);
+            msg.parse_by_line(codec::END_OF_LINE);
             break;
         }
         else if (line.empty())
@@ -263,7 +263,7 @@ void pop3::auth_login(const string& username, const string& password)
 
 tuple<string, string> pop3::parse_status(const string& line)
 {
-    string::size_type pos = line.find(codec::SPACE_CHAR);
+    string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
     string status = line.substr(0, pos);
     if (!iequals(status, "+OK") && !iequals(status, "-ERR"))
         throw pop3_error("Response status unknown.");

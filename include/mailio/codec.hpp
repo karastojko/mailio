@@ -110,11 +110,6 @@ public:
     static const std::string SPACE_STR;
 
     /**
-    Double space string.
-    **/
-    static const std::string DOUBLE_SPACE_STR;
-
-    /**
     Exclamation mark character.
     **/
     static const char EXCLAMATION_CHAR = '!';
@@ -262,7 +257,12 @@ public:
     /**
     Carriage return plus line feed string.
     **/
-    static const std::string CRLF;
+    static const std::string END_OF_LINE;
+
+    /**
+    Dot character is the end of message for SMTP.
+    **/
+    static const std::string END_OF_MESSAGE;
 
     /**
     Line length policy.

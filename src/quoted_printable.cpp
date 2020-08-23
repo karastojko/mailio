@@ -236,14 +236,14 @@ string quoted_printable::decode(const vector<string>& text) const
             }
             else
             {
-                if (_q_codec_mode && *ch == codec::UNDERSCORE_CHAR)
-                    dec_text += codec::SPACE_CHAR;
+                if (_q_codec_mode && *ch == UNDERSCORE_CHAR)
+                    dec_text += SPACE_CHAR;
                 else
                     dec_text += *ch;
             }
         }
         if (!soft_break && !_q_codec_mode)
-            dec_text += CRLF;
+            dec_text += END_OF_LINE;
     }
     trim_right(dec_text);
     

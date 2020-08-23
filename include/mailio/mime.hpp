@@ -455,14 +455,19 @@ protected:
     static const std::string CONTENT_DISPOSITION_INLINE;
 
     /**
-    End of line as specified by the MIME format.
+    Indentation used by headers for the continuation.
     **/
-    static const std::string END_OF_LINE;
+    static const std::string NEW_LINE_INDENT;
+
+    /**
+    Content type and subtype separator.
+    **/
+    static const char CONTENT_SUBTYPE_SEPARATOR{'/'};
 
     /**
     Header name and value separator character.
     **/
-    static const char HEADER_SEPARATOR_CHAR = codec::COLON_CHAR;
+    static const char HEADER_SEPARATOR_CHAR{':'};
 
     /**
     Colon string used to separate header name from the header value.
@@ -472,7 +477,7 @@ protected:
     /**
     Attribute name and value separator.
     **/
-    static const char NAME_VALUE_SEPARATOR_CHAR = codec::EQUAL_CHAR;
+    static const char NAME_VALUE_SEPARATOR_CHAR{'='};
 
     /**
     Attribute name and value separator as string.
@@ -482,7 +487,7 @@ protected:
     /**
     Separator of multiple attributes.
     **/
-    static const char ATTRIBUTES_SEPARATOR_CHAR = codec::SEMICOLON_CHAR;
+    static const char ATTRIBUTES_SEPARATOR_CHAR{';'};
 
     /**
     Semicolon string used to separate header attributes.

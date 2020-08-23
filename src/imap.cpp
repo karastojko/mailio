@@ -60,17 +60,22 @@ using boost::algorithm::is_any_of;
 namespace mailio
 {
 
-const string imap::UNTAGGED_RESPONSE = codec::ASTERISK_STR;
+const string imap::UNTAGGED_RESPONSE{"*"};
+const string imap::RANGE_SEPARATOR{":"};
+const string imap::LIST_SEPARATOR{","};
+const string imap::TOKEN_SEPARATOR_STR{" "};
+const string imap::QUOTED_STRING_SEPARATOR{"\""};
+
 
 string imap::messages_range_to_string(imap::messages_range_t id_pair)
 {
-    return to_string(id_pair.first) + (id_pair.second.has_value() ? codec::COLON_STR + to_string(id_pair.second.value()) : "");
+    return to_string(id_pair.first) + (id_pair.second.has_value() ? RANGE_SEPARATOR + to_string(id_pair.second.value()) : "");
 }
 
 
 string imap::messages_range_list_to_string(list<messages_range_t> ranges)
 {
-    return boost::join(ranges | boost::adaptors::transformed(static_cast<string(*)(messages_range_t)>(messages_range_to_string)), codec::COMMA_STR);
+    return boost::join(ranges | boost::adaptors::transformed(static_cast<string(*)(messages_range_t)>(messages_range_to_string)), LIST_SEPARATOR);
 }
 
 
@@ -92,15 +97,15 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
             }
 
             case SUBJECT:
-                imap_string = "SUBJECT " + codec::QUOTE_STR + std::get<string>(value) + codec::QUOTE_STR;
+                imap_string = "SUBJECT " + QUOTED_STRING_SEPARATOR + std::get<string>(value) + QUOTED_STRING_SEPARATOR;
                 break;
 
             case FROM:
-                imap_string = "FROM " + codec::QUOTE_STR + std::get<string>(value) + codec::QUOTE_STR;
+                imap_string = "FROM " + QUOTED_STRING_SEPARATOR + std::get<string>(value) + QUOTED_STRING_SEPARATOR;
                 break;
 
             case TO:
-                imap_string = "TO " + codec::QUOTE_STR + std::get<string>(value) + codec::QUOTE_STR;
+                imap_string = "TO " + QUOTED_STRING_SEPARATOR + std::get<string>(value) + QUOTED_STRING_SEPARATOR;
                 break;
 
             case BEFORE_DATE:
@@ -205,7 +210,7 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
     string cmd;
     if (is_uid)
         cmd.append("UID ");
-    cmd.append("FETCH " + to_string(message_no) + codec::SPACE_STR + RFC822_TOKEN);
+    cmd.append("FETCH " + to_string(message_no) + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
     _dlg->send(format(cmd));
 
     bool has_more = true;
@@ -308,7 +313,7 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
     string cmd;
     if (is_uids)
         cmd.append("UID ");
-    cmd.append("FETCH " + message_ids + codec::SPACE_STR + RFC822_TOKEN);
+    cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
     _dlg->send(format(cmd));
 
     bool has_more = true;
@@ -435,7 +440,7 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
     // It doesn't like search terms it doesn't recognize.
     // Some older protocol versions or some servers may not support them.
     // So unseen uidnext and uidvalidity are optional.
-    string cmd = "STATUS " + codec::QUOTE_STR + mailbox + codec::QUOTE_STR + " (messages recent";
+    string cmd = "STATUS " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR + " (messages recent";
     if (info & mailbox_stat_t::UNSEEN)
         cmd += " unseen";
     if (info & mailbox_stat_t::UID_NEXT)
@@ -585,7 +590,7 @@ void imap::search(const list<imap::search_condition_t>& conditions, list<unsigne
     int elem = 0;
     for (const auto& c : conditions)
         if (elem++ < conditions.size() - 1)
-            cond_str += c.imap_string + codec::SPACE_STR;
+            cond_str += c.imap_string + TOKEN_SEPARATOR_STR;
         else
             cond_str += c.imap_string;
     search(cond_str, results, want_uids);
@@ -596,7 +601,7 @@ bool imap::create_folder(const list<string>& folder_tree)
 {
     string delim = folder_delimiter();
     string folder_str = folder_tree_to_string(folder_tree, delim);
-    _dlg->send(format("CREATE " + codec::QUOTE_STR + folder_str + codec::QUOTE_STR));
+    _dlg->send(format("CREATE " + QUOTED_STRING_SEPARATOR + folder_str + QUOTED_STRING_SEPARATOR));
 
     string line = _dlg->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -614,8 +619,8 @@ auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);
-    _dlg->send(format("LIST " + codec::QUOTE_STR + codec::QUOTE_STR + codec::SPACE_STR + codec::QUOTE_STR + folder_name_s + codec::ASTERISK_STR +
-        codec::QUOTE_STR));
+    _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + folder_name_s + "*" +
+        QUOTED_STRING_SEPARATOR));
     mailbox_folder mailboxes;
 
     bool has_more = true;
@@ -667,7 +672,7 @@ bool imap::delete_folder(const list<string>& folder_name)
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);
-    _dlg->send(format("DELETE " + codec::QUOTE_STR + folder_name_s + codec::QUOTE_STR));
+    _dlg->send(format("DELETE " + QUOTED_STRING_SEPARATOR + folder_name_s + QUOTED_STRING_SEPARATOR));
 
     string line = _dlg->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -686,7 +691,8 @@ bool imap::rename_folder(const list<string>& old_name, const list<string>& new_n
     string delim = folder_delimiter();
     string old_name_s = folder_tree_to_string(old_name, delim);
     string new_name_s = folder_tree_to_string(new_name, delim);
-    _dlg->send(format("RENAME " + codec::QUOTE_STR + old_name_s + codec::QUOTE_STR + codec::SPACE_STR + codec::QUOTE_STR + new_name_s + codec::QUOTE_STR));
+    _dlg->send(format("RENAME " + QUOTED_STRING_SEPARATOR + old_name_s + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + new_name_s +
+        QUOTED_STRING_SEPARATOR));
 
     string line = _dlg->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -715,7 +721,7 @@ void imap::connect()
 
 void imap::auth_login(const string& username, const string& password)
 {
-    auto cmd = format("LOGIN " + username + codec::SPACE_STR + password);
+    auto cmd = format("LOGIN " + username + TOKEN_SEPARATOR_STR + password);
     _dlg->send(cmd);
 
     bool has_more = true;
@@ -740,9 +746,9 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 {
     string cmd;
     if (read_only)
-        cmd = format("EXAMINE " + codec::QUOTE_STR + mailbox + codec::QUOTE_STR);
+        cmd = format("EXAMINE " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR);
     else
-        cmd = format("SELECT " + codec::QUOTE_STR + mailbox + codec::QUOTE_STR);
+        cmd = format("SELECT " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR);
     _dlg->send(cmd);
 
     mailbox_stat_t stat;
@@ -904,7 +910,7 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
 string imap::folder_delimiter()
 {
     string delimiter;
-    _dlg->send(format("LIST " + codec::QUOTE_STR + codec::QUOTE_STR + codec::SPACE_STR + codec::QUOTE_STR + codec::QUOTE_STR));
+    _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR));
     bool has_more = true;
     while (has_more)
     {
@@ -922,7 +928,7 @@ string imap::folder_delimiter()
             auto it = _mandatory_part.begin();
             if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
                 throw imap_error("Determining folder delimiter failure.");
-            delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == codec::QUOTE_CHAR; });
+            delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
             reset_response_parser();
         }
         else if (parsed_line.tag == to_string(_tag))
@@ -939,13 +945,13 @@ string imap::folder_delimiter()
 
 auto imap::parse_tag_result(const string& line) const -> tag_result_response_t
 {
-    string::size_type tag_pos = line.find(codec::SPACE_CHAR);
+    string::size_type tag_pos = line.find(TOKEN_SEPARATOR_STR);
     if (tag_pos == string::npos)
         throw imap_error("Parsing failure.");
     string tag = line.substr(0, tag_pos);
 
     string::size_type result_pos = string::npos;
-    result_pos = line.find(codec::SPACE_CHAR, tag_pos + 1);
+    result_pos = line.find(TOKEN_SEPARATOR_STR, tag_pos + 1);
     string result_s = line.substr(tag_pos + 1, result_pos - tag_pos - 1);
     std::optional<tag_result_response_t::result_t> result = std::nullopt;
     if (iequals(result_s, "OK"))
@@ -990,7 +996,7 @@ void imap::parse_response(const string& response)
         unsigned long literal_size = stoul(token_list->back()->literal_size);
         if (_literal_bytes_read + response.size() < literal_size)
         {
-            token_list->back()->literal += response + codec::CRLF;
+            token_list->back()->literal += response + codec::END_OF_LINE;
             _literal_bytes_read += response.size() + _eols_no;
             if (_literal_bytes_read == literal_size)
                 _literal_state = string_literal_state_t::DONE;
@@ -1012,7 +1018,7 @@ void imap::parse_response(const string& response)
     {
         switch (ch)
         {
-            case codec::LEFT_BRACKET_CHAR:
+            case OPTIONAL_BEGIN:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1026,7 +1032,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::RIGHT_BRACKET_CHAR:
+            case OPTIONAL_END:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1041,7 +1047,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::LEFT_PARENTHESIS_CHAR:
+            case LIST_BEGIN:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1057,7 +1063,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::RIGHT_PARENTHESIS_CHAR:
+            case LIST_END:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1072,7 +1078,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::LEFT_BRACE_CHAR:
+            case STRING_LITERAL_BEGIN:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1091,7 +1097,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::RIGHT_BRACE_CHAR:
+            case STRING_LITERAL_END:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1105,7 +1111,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::SPACE_CHAR:
+            case TOKEN_SEPARATOR_CHAR:
             {
                 if (_atom_state == atom_state_t::QUOTED)
                     cur_token->atom +=ch;
@@ -1120,7 +1126,7 @@ void imap::parse_response(const string& response)
             }
             break;
 
-            case codec::QUOTE_CHAR:
+            case QUOTED_ATOM:
             {
                 if (_atom_state == atom_state_t::NONE)
                 {
@@ -1183,13 +1189,13 @@ void imap::reset_response_parser()
 
 string imap::format(const string& command)
 {
-    return to_string(++_tag) + codec::SPACE_STR + command;
+    return to_string(++_tag) + TOKEN_SEPARATOR_STR + command;
 }
 
 
 void imap::trim_eol(string& line)
 {
-    if (line.length() >= 1 && line[line.length() - 1] == codec::CR_CHAR)
+    if (line.length() >= 1 && line[line.length() - 1] == codec::END_OF_LINE[0])
     {
         _eols_no = 2;
         line.pop_back();

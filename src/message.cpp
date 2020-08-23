@@ -67,7 +67,8 @@ using boost::local_time::local_time_facet;
 namespace mailio
 {
 
-
+const string message::ADDRESS_BEGIN_STR(1, ADDRESS_BEGIN_CHAR);
+const string message::ADDRESS_END_STR(1, ADDRESS_END_CHAR);
 const string message::ATEXT{"!#$%&'*+-./=?^_`{|}~"};
 const string message::DTEXT{"!#$%&'*+-.@/=?^_`{|}~"}; // atext with monkey
 const string message::FROM_HEADER{"From"};
@@ -108,7 +109,7 @@ void message::format(string& message_str, bool dot_escape) const
             content_part.header_codec(_header_codec);
             string cps;
             content_part.format(cps, dot_escape);
-            message_str += BOUNDARY_DELIMITER + _boundary + END_OF_LINE + cps + END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + _boundary + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
         // recursively format mime parts
@@ -116,9 +117,9 @@ void message::format(string& message_str, bool dot_escape) const
         {
             string p_str;
             p.format(p_str, dot_escape);
-            message_str += BOUNDARY_DELIMITER + _boundary + END_OF_LINE + p_str + END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + _boundary + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
-        message_str += BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER + END_OF_LINE;
+        message_str += BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
     else
         message_str += format_content(dot_escape);
@@ -367,12 +368,12 @@ string message::format_header() const
     if (_from.addresses.size() > 1 && _sender.empty())
         throw message_error("No sender for multiple authors.");
 
-    header += FROM_HEADER + HEADER_SEPARATOR_STR + from_to_string() + END_OF_LINE;
-    header += _sender.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + END_OF_LINE;
-    header += _reply_address.name.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + END_OF_LINE;
-    header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + END_OF_LINE;
-    header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + END_OF_LINE;
-    header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + END_OF_LINE;
+    header += FROM_HEADER + HEADER_SEPARATOR_STR + from_to_string() + codec::END_OF_LINE;
+    header += _sender.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + codec::END_OF_LINE;
+    header += _reply_address.name.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + codec::END_OF_LINE;
+    header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + codec::END_OF_LINE;
+    header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
+    header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
     if (!_date_time->is_not_a_date_time())
@@ -382,14 +383,14 @@ string message::format_header() const
         local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
         ss.imbue(locale(ss.getloc(), facet));
         ss << *_date_time;
-        header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + END_OF_LINE;
+        header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + codec::END_OF_LINE;
     }
 
     if (!_parts.empty())
-        header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + _version + END_OF_LINE;
+        header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + _version + codec::END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + END_OF_LINE;
+    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
     
     return header;
 }
@@ -465,34 +466,34 @@ string message::format_address_list(const mailboxes& mailbox_list) const
     for (auto ma = mailbox_list.addresses.begin(); ma != mailbox_list.addresses.end(); ma++)
     {
         if (mailbox_list.addresses.size() > 1 && ma != mailbox_list.addresses.begin())
-            mailbox_str += codec::DOUBLE_SPACE_STR + format_address(ma->name, ma->address);
+            mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address);
         else
             mailbox_str += format_address(ma->name, ma->address);
 
         if (ma != mailbox_list.addresses.end() - 1)
-            mailbox_str += codec::COMMA_STR + END_OF_LINE;
+            mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
     }
 
     if (!mailbox_list.groups.empty() && !mailbox_list.addresses.empty())
-        mailbox_str += codec::COMMA_STR + END_OF_LINE + codec::DOUBLE_SPACE_STR;
+        mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE + NEW_LINE_INDENT;
 
     for (auto mg = mailbox_list.groups.begin(); mg != mailbox_list.groups.end(); mg++)
     {
         if (!regex_match(mg->name, m, ATEXT_REGEX))
             throw message_error("Formatting failure of address list, bad group name `" + mg->name + "`.");
 
-        mailbox_str += mg->name + codec::COLON_CHAR + codec::SPACE_CHAR;
+        mailbox_str += mg->name + MAILGROUP_NAME_SEPARATOR + codec::SPACE_CHAR;
         for (auto ma = mg->members.begin(); ma != mg->members.end(); ma++)
         {
             if (mg->members.size() > 1 && ma != mg->members.begin())
-                mailbox_str += codec::DOUBLE_SPACE_STR + format_address(ma->name, ma->address);
+                mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address);
             else
                 mailbox_str += format_address(ma->name, ma->address);
 
             if (ma != mg->members.end() - 1)
-                mailbox_str += codec::COMMA_STR + END_OF_LINE;
+                mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
         }
-        mailbox_str += mg != mailbox_list.groups.end() - 1 ? codec::SEMICOLON_STR + END_OF_LINE + codec::DOUBLE_SPACE_STR : codec::SEMICOLON_STR;
+        mailbox_str += mg != mailbox_list.groups.end() - 1 ? string(1, MAILGROUP_SEPARATOR) + codec::END_OF_LINE + NEW_LINE_INDENT : string(1, MAILGROUP_SEPARATOR);
     }
 
     return mailbox_str;
@@ -534,7 +535,7 @@ string message::format_address(const string& name, const string& address) const
     if (!address.empty())
     {
         if (regex_match(address, m, DTEXT_REGEX))
-            addr = codec::LESS_THAN_CHAR + address + codec::GREATER_THAN_CHAR;
+            addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
         else
             throw message_error("Formatting failure of address `" + address + "`.");
     }
@@ -641,7 +642,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                 }
                 else if (*ch == codec::QUOTE_CHAR)
                     state = state_t::QNAMEADDRBEG;
-                else if (*ch == codec::LESS_THAN_CHAR)
+                else if (*ch == ADDRESS_BEGIN_CHAR)
                     state = state_t::ADDRBRBEG;
                 else
                     throw message_error("Parsing failure of address or group at `" + string(1, *ch) + "`.");
@@ -688,7 +689,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     token += *ch;
                     state = state_t::NAME;
                 }
-                else if (*ch == codec::COMMA_CHAR)
+                else if (*ch == ADDRESS_SEPARATOR)
                 {
                     cur_address.name = token;
                     trim(cur_address.name);
@@ -698,7 +699,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     monkey_found = false;
                     state = state_t::BEGIN;
                 }
-                else if (*ch == codec::COLON_CHAR)
+                else if (*ch == MAILGROUP_NAME_SEPARATOR)
                 {
                     if (group_found)
                         throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
@@ -711,7 +712,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     group_found = true;
                     state = state_t::GROUPBEG;
                 }
-                else if (*ch == codec::LESS_THAN_CHAR)
+                else if (*ch == ADDRESS_BEGIN_CHAR)
                 {
                     cur_address.name = token;
                     trim(cur_address.name);
@@ -758,7 +759,7 @@ mailboxes message::parse_address_list(const string& address_list) const
             {
                 if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || isspace(*ch))
                     token += *ch;
-                else if (*ch == codec::LESS_THAN_CHAR)
+                else if (*ch == ADDRESS_BEGIN_CHAR)
                 {
                     cur_address.name = token;
                     trim(cur_address.name);
@@ -788,7 +789,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                 // TODO: space is allowed in the address?
                 else if (isspace(*ch))
                     ;
-                else if (*ch == codec::COMMA_CHAR)
+                else if (*ch == ADDRESS_SEPARATOR)
                 {
                     cur_address.address = token;
                     token.clear();
@@ -799,7 +800,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     monkey_found = false;
                     state = state_t::BEGIN;
                 }
-                else if (*ch == codec::SEMICOLON_CHAR)
+                else if (*ch == MAILGROUP_SEPARATOR)
                 {
                     if (group_found)
                     {
@@ -895,7 +896,7 @@ mailboxes message::parse_address_list(const string& address_list) const
             {
                if (isspace(*ch))
                    ;
-               else if (*ch == codec::LESS_THAN_CHAR)
+               else if (*ch == ADDRESS_BEGIN_CHAR)
                    state = state_t::ADDRBRBEG;
                else
                    throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
@@ -916,7 +917,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     token += *ch;
                     monkey_found = true;
                 }
-                else if (*ch == codec::GREATER_THAN_CHAR)
+                else if (*ch == ADDRESS_END_CHAR)
                 {
                     cur_address.address = token;
                     token.clear();
@@ -955,9 +956,9 @@ mailboxes message::parse_address_list(const string& address_list) const
             {
                 if (isspace(*ch))
                     ;
-                else if (*ch == codec::COMMA_CHAR)
+                else if (*ch == ADDRESS_SEPARATOR)
                     state = state_t::BEGIN;
-                else if (*ch == codec::SEMICOLON_CHAR)
+                else if (*ch == MAILGROUP_SEPARATOR)
                 {
                     if (group_found)
                     {
@@ -1006,11 +1007,11 @@ mailboxes message::parse_address_list(const string& address_list) const
                 }
                 else if (isspace(*ch))
                     ;
-                else if (*ch == codec::LESS_THAN_CHAR)
+                else if (*ch == ADDRESS_BEGIN_CHAR)
                 {
                     state = state_t::ADDRBRBEG;
                 }
-                else if (*ch == codec::SEMICOLON_CHAR)
+                else if (*ch == MAILGROUP_SEPARATOR)
                 {
                     cur_group.add(mail_addrs);
                     mail_addrs.clear();
@@ -1124,13 +1125,13 @@ string message::format_subject() const
     {
         q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
         vector<string> hdr = qc.encode(_subject);
-        subject += hdr.at(0) + END_OF_LINE;
+        subject += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
-                subject += codec::SPACE_STR + *h + END_OF_LINE;
+                subject += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject += _subject + END_OF_LINE;
+        subject += _subject + codec::END_OF_LINE;
 
     return subject;
 }

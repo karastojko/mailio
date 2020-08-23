@@ -79,9 +79,9 @@ void smtp::authenticate(const string& username, const string& password, auth_met
 void smtp::submit(const message& msg)
 {
     if (!msg.sender().address.empty())
-        _dlg->send("MAIL FROM: " + codec::LESS_THAN_STR + msg.sender().address + codec::GREATER_THAN_STR);
+        _dlg->send("MAIL FROM: " + message::ADDRESS_BEGIN_STR + msg.sender().address + message::ADDRESS_END_STR);
     else
-        _dlg->send("MAIL FROM: " + codec::LESS_THAN_STR + msg.from().addresses.at(0).address + codec::GREATER_THAN_STR);
+        _dlg->send("MAIL FROM: " + message::ADDRESS_BEGIN_STR + msg.from().addresses.at(0).address + message::ADDRESS_END_STR);
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
     if (std::get<1>(tokens) && !positive_completion(std::get<0>(tokens)))
@@ -89,7 +89,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.recipients().addresses)
     {
-        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.address + codec::GREATER_THAN_STR);
+        _dlg->send("RCPT TO: " + message::ADDRESS_BEGIN_STR + rcpt.address + message::ADDRESS_END_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -98,7 +98,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.recipients().groups)
     {
-        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.name + codec::GREATER_THAN_STR);
+        _dlg->send("RCPT TO: " + message::ADDRESS_BEGIN_STR + rcpt.name + message::ADDRESS_END_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -107,7 +107,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.cc_recipients().addresses)
     {
-        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.address + codec::GREATER_THAN_STR);
+        _dlg->send("RCPT TO: " + message::ADDRESS_BEGIN_STR + rcpt.address + message::ADDRESS_END_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -116,7 +116,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.cc_recipients().groups)
     {
-        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.name + codec::GREATER_THAN_STR);
+        _dlg->send("RCPT TO: " + message::ADDRESS_BEGIN_STR + rcpt.name + message::ADDRESS_END_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -125,7 +125,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.bcc_recipients().addresses)
     {
-        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.address + codec::GREATER_THAN_STR);
+        _dlg->send("RCPT TO: " + message::ADDRESS_BEGIN_STR + rcpt.address + message::ADDRESS_END_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -134,7 +134,7 @@ void smtp::submit(const message& msg)
 
     for (const auto& rcpt : msg.bcc_recipients().groups)
     {
-        _dlg->send("RCPT TO: " + codec::LESS_THAN_STR + rcpt.name + codec::GREATER_THAN_STR);
+        _dlg->send("RCPT TO: " + message::ADDRESS_BEGIN_STR + rcpt.name + message::ADDRESS_END_STR);
         line = _dlg->receive();
         tokens = parse_line(line);
         if (!positive_completion(std::get<0>(tokens)))
@@ -149,7 +149,7 @@ void smtp::submit(const message& msg)
 
     string msg_str;
     msg.format(msg_str, true);
-    _dlg->send(msg_str + codec::CRLF + codec::DOT_CHAR);
+    _dlg->send(msg_str + codec::END_OF_LINE + codec::END_OF_MESSAGE);
     line = _dlg->receive();
     tokens = parse_line(line);
     if (!positive_completion(std::get<0>(tokens)))

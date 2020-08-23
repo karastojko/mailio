@@ -59,7 +59,7 @@ public:
     virtual ~smtp();
 
     smtp(const smtp&) = delete;
-    
+
     smtp(smtp&&) = delete;
 
     void operator=(const smtp&) = delete;
@@ -80,7 +80,7 @@ public:
 
     /**
     Submitting a message.
-    
+
     @param msg        Mail message to send.
     @throw smtp_error Mail sender rejection.
     @throw smtp_error Mail recipient rejection.
@@ -137,7 +137,7 @@ protected:
 
     /**
     Issuing `EHLO` and/or `HELO` commands.
-    
+
     @throw smtp_error Initial message rejection.
     @throw *          `parse_line(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
@@ -223,7 +223,7 @@ public:
 
     /**
     Making a connection to the server.
-    
+
     Parent constructor is called to do all the work.
 
     @param hostname Hostname of the server.
@@ -235,7 +235,7 @@ public:
 
     /**
     Sending the quit command and closing the connection.
-    
+
     Parent destructor is called to do all the work.
     **/
     ~smtps() = default;
@@ -262,7 +262,7 @@ protected:
 
     /**
     Switching to TLS layer.
-    
+
     @throw smtp_error Start TLS refused by server.
     @throw *          `parse_line(const string&)`, `ehlo()`, `dialog::send(const string&)`, `dialog::receive()`, `switch_to_ssl()`.
     **/

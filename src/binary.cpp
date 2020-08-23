@@ -42,7 +42,7 @@ string binary::decode(const vector<string>& text) const
 {
     string dec_text;
     for (const auto& line : text)
-        dec_text += line + CRLF;
+        dec_text += line + END_OF_LINE;
     return dec_text;
 }
 

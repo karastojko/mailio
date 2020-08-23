@@ -8,7 +8,7 @@ Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
 Distributed under the FreeBSD license, see the accompanying file LICENSE or
 copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
-*/ 
+*/
 
 
 #pragma once
@@ -57,12 +57,12 @@ public:
         Number of messages in the mailbox.
         **/
         unsigned int messages_no;
-        
+
         /**
         Size of the mailbox.
         **/
         unsigned long mailbox_size;
-        
+
         /**
         Setting the number of messages and mailbox size to zero.
         **/
@@ -83,7 +83,7 @@ public:
 
     /**
     Sending the quit command and closing the connection.
-    **/    
+    **/
     virtual ~pop3();
 
     pop3(const pop3&) = delete;
@@ -108,7 +108,7 @@ public:
 
     /**
     Listing the size in octets of a message or all messages in a mailbox.
-    
+
     @param message_no Number of the message to list. If zero, then all messages are listed.
     @return           Message list.
     @throw pop3_error Listing message failure.
@@ -121,7 +121,7 @@ public:
 
     /**
     Fetching the mailbox statistics.
-    
+
     @return           Number of messages and mailbox size in octets.
     @throw pop3_error Reading statistics failure.
     @throw pop3_error Parser failure.
@@ -134,7 +134,7 @@ public:
 
     The flag for fetching the header only uses a different POP3 command (than for retrieving the full messsage) which is not mandatory by POP3. In case the
     command fails, the method will not report an error but rather the `msg` parameter will be empty.
-    
+
     @param message_no  Message number to fetch.
     @param msg         Fetched message.
     @param header_only Flag if only the message header should be fetched.
@@ -145,7 +145,7 @@ public:
 
     /**
     Removing a message in the mailbox.
-    
+
     @param message_no Message number to remove.
     @throw pop3_error Removing message failure.
     @throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
@@ -153,6 +153,11 @@ public:
     void remove(unsigned long message_no);
 
 protected:
+
+    /**
+    Character used by POP3 to separate tokens.
+    **/
+    static const char TOKEN_SEPARATOR_CHAR{' '};
 
     /**
     Initializing a connection to the server.
@@ -175,7 +180,7 @@ protected:
 
     /**
     Parsing a response line for the status.
-    
+
     @param line       Response line to parse.
     @return           Tuple with the status and rest of the line.
     @throw pop3_error Response status unknown.
@@ -203,7 +208,7 @@ public:
 
     /**
     Making a connection to server.
-    
+
     Parent constructor is called to do all the work.
 
     @param hostname Hostname of the server.
@@ -242,7 +247,7 @@ protected:
 
     /**
     Switching to TLS layer.
-    
+
     @throw pop3_error Start TLS failure.
     @throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`, `switch_to_ssl()`.
     **/

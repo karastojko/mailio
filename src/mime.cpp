@@ -84,13 +84,13 @@ const string mime::CONTENT_TRANSFER_ENCODING_BINARY{"Binary"};
 const string mime::CONTENT_DISPOSITION_HEADER{"Content-Disposition"};
 const string mime::CONTENT_DISPOSITION_ATTACHMENT{"attachment"};
 const string mime::CONTENT_DISPOSITION_INLINE{"inline"};
-const string mime::END_OF_LINE = codec::CRLF;
+const string mime::NEW_LINE_INDENT{"  "};
 const string mime::HEADER_SEPARATOR_STR{": "};
-const string mime::NAME_VALUE_SEPARATOR_STR = codec::EQUAL_STR;
+const string mime::NAME_VALUE_SEPARATOR_STR{"="};
 const string mime::ATTRIBUTES_SEPARATOR_STR{"; "};
 const string mime::ATTRIBUTE_NAME{"name"};
 const string mime::ATTRIBUTE_FILENAME{"filename"};
-const string mime::BOUNDARY_DELIMITER(2, codec::MINUS_CHAR);
+const string mime::BOUNDARY_DELIMITER(2, '-');
 const string mime::QTEXT{"\t !#$%&'()*+,-.@/:;<=>?[]^_`{|}~"};
 // exluded double quote and backslash characters from the header name
 const string mime::HEADER_NAME_ALPHABET{"!#$%&'()*+,-./;<=>?@[]^_`{|}~"};
@@ -111,22 +111,22 @@ void mime::format(string& mime_str, bool dot_escape) const
     if (!_boundary.empty() && _content_type.type != media_type_t::MULTIPART)
         throw mime_error("Formatting failure, non multipart message with boundary.");
 
-    mime_str += format_header() + END_OF_LINE;
+    mime_str += format_header() + codec::END_OF_LINE;
     string content = format_content(dot_escape);
     mime_str += content;
 
     if (!_parts.empty())
     {
         if (!content.empty())
-            mime_str += END_OF_LINE;
+            mime_str += codec::END_OF_LINE;
         // recursively format mime parts
         for (auto& p : _parts)
         {
             string p_str;
             p.format(p_str, dot_escape);
-            mime_str += BOUNDARY_DELIMITER + _boundary + END_OF_LINE + p_str + END_OF_LINE;
+            mime_str += BOUNDARY_DELIMITER + _boundary + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
-        mime_str += BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER + END_OF_LINE;
+        mime_str += BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
 }
 
@@ -134,7 +134,7 @@ void mime::format(string& mime_str, bool dot_escape) const
 void mime::parse(const string& mime_string, bool dot_escape)
 {
     string::size_type line_begin = 0;
-    string::size_type line_end = mime_string.find(END_OF_LINE, line_begin);
+    string::size_type line_end = mime_string.find(codec::END_OF_LINE, line_begin);
     string line;
     while (line_end != string::npos)
     {
@@ -142,15 +142,15 @@ void mime::parse(const string& mime_string, bool dot_escape)
         parse_by_line(line, dot_escape);
         if (line_end != string::npos)
         {
-            line_end += 2;
+            line_end += codec::END_OF_LINE.length();
             line_begin = line_end;
         }
-        line_end = mime_string.find(END_OF_LINE, line_begin);
+        line_end = mime_string.find(codec::END_OF_LINE, line_begin);
     }
     line = mime_string.substr(line_begin);
     if (!line.empty())
         parse_by_line(line, dot_escape);
-    parse_by_line(END_OF_LINE, dot_escape);
+    parse_by_line(codec::END_OF_LINE, dot_escape);
 }
 
 
@@ -170,7 +170,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
         else
         {
             // end of message reached, decode the body
-            if (line == END_OF_LINE)
+            if (line == codec::END_OF_LINE)
             {
                 parse_content();
                 _mime_status = mime_parsing_status_t::END;
@@ -184,7 +184,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
                     _mime_status = mime_parsing_status_t::BEGIN;
                     // begin of another mime part means that the current part (if exists) is ended and parsed; another part is created
                     if (!_parts.empty())
-                        _parts.back().parse_by_line(END_OF_LINE);
+                        _parts.back().parse_by_line(codec::END_OF_LINE);
                     mime m;
                     m.line_policy(_line_policy, _decoder_line_policy);
                     m.strict_codec_mode(_strict_codec_mode);
@@ -194,7 +194,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
                 else if (line == BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER && !_boundary.empty())
                 {
                     _mime_status = mime_parsing_status_t::END;
-                    _parts.back().parse_by_line(END_OF_LINE);
+                    _parts.back().parse_by_line(codec::END_OF_LINE);
                 }
                 // mime content being parsed
                 else
@@ -435,9 +435,9 @@ string mime::format_content(bool dot_escape) const
     string content;
     for (const auto& s : content_lines)
         if (dot_escape && s[0] == codec::DOT_CHAR)
-            content += string(1, codec::DOT_CHAR) + s + END_OF_LINE;
+            content += string(1, codec::DOT_CHAR) + s + codec::END_OF_LINE;
         else
-            content += s + END_OF_LINE;
+            content += s + codec::END_OF_LINE;
 
     return content;
 }
@@ -449,7 +449,7 @@ string mime::format_content_type() const
 
     if (_content_type.type != media_type_t::NONE)
     {
-        line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(_content_type.type) + codec::SLASH_CHAR + _content_type.subtype;
+        line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(_content_type.type) + CONTENT_SUBTYPE_SEPARATOR + _content_type.subtype;
         if (!_content_type.charset.empty())
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + _content_type.charset;
         if (!_name.empty())
@@ -458,13 +458,13 @@ string mime::format_content_type() const
             const string::size_type line_new_size = line.size() + ATTRIBUTES_SEPARATOR_STR.size() + ATTRIBUTE_NAME.size() + NAME_VALUE_SEPARATOR_STR.size() +
                 sizeof(codec::QUOTE_CHAR) + mn.size() + sizeof(codec::QUOTE_CHAR);
             line += ATTRIBUTES_SEPARATOR_STR;
-            if (line_new_size >= string::size_type(_line_policy) - 2)
-                line += END_OF_LINE + codec::DOUBLE_SPACE_STR;
+            if (line_new_size >= string::size_type(_line_policy) - codec::END_OF_LINE.length())
+                line += codec::END_OF_LINE + NEW_LINE_INDENT;
             line += ATTRIBUTE_NAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_STR + mn + codec::QUOTE_STR;
         }
         if (!_boundary.empty())
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_BOUNDARY + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + _boundary + codec::QUOTE_CHAR;
-        line += END_OF_LINE;
+        line += codec::END_OF_LINE;
     }
 
     return line;
@@ -478,19 +478,19 @@ string mime::format_transfer_encoding() const
     switch (_encoding)
     {
         case content_transfer_encoding_t::BASE_64:
-            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_BASE64 + END_OF_LINE;
+            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_BASE64 + codec::END_OF_LINE;
             break;
 
         case content_transfer_encoding_t::QUOTED_PRINTABLE:
-            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_QUOTED_PRINTABLE + END_OF_LINE;
+            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_QUOTED_PRINTABLE + codec::END_OF_LINE;
             break;
 
         case content_transfer_encoding_t::BIT_8:
-            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_BIT8 + END_OF_LINE;
+            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_BIT8 + codec::END_OF_LINE;
             break;
 
         case content_transfer_encoding_t::BIT_7:
-            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_BIT7 + END_OF_LINE;
+            line += CONTENT_TRANSFER_ENCODING_HEADER + HEADER_SEPARATOR_STR + CONTENT_TRANSFER_ENCODING_BIT7 + codec::END_OF_LINE;
             break;
 
         // default is no transfer encoding specified
@@ -515,10 +515,10 @@ string mime::format_content_disposition() const
             line += CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + CONTENT_DISPOSITION_ATTACHMENT + ATTRIBUTES_SEPARATOR_STR;
             const string::size_type line_new_size = CONTENT_DISPOSITION_HEADER.size() + HEADER_SEPARATOR_STR.size() + CONTENT_DISPOSITION_ATTACHMENT.size() +
                 ATTRIBUTE_FILENAME.size() + sizeof(codec::EQUAL_CHAR) + sizeof(codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR) +
-                END_OF_LINE.size();
-            if (line_new_size >= string::size_type(_line_policy) - 2)
-                line += END_OF_LINE + codec::DOUBLE_SPACE_STR;
-            line += ATTRIBUTE_FILENAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + name + codec::QUOTE_STR + END_OF_LINE;
+                codec::END_OF_LINE.size();
+            if (line_new_size >= string::size_type(_line_policy) - codec::END_OF_LINE.length())
+                line += codec::END_OF_LINE + NEW_LINE_INDENT;
+            line += ATTRIBUTE_FILENAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + name + codec::QUOTE_STR + codec::END_OF_LINE;
 
             break;
         }
@@ -528,10 +528,10 @@ string mime::format_content_disposition() const
             string name = format_mime_name(_name);
             line += CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + CONTENT_DISPOSITION_INLINE + ATTRIBUTES_SEPARATOR_STR;
             const string::size_type line_new_size = CONTENT_DISPOSITION_HEADER.size() + HEADER_SEPARATOR_STR.size() + CONTENT_DISPOSITION_INLINE.size() +
-                ATTRIBUTE_FILENAME.size() + NAME_VALUE_SEPARATOR_STR.size() + sizeof(codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR) + END_OF_LINE.size();
-            if (line_new_size >= string::size_type(_line_policy) - 2)
-                line += END_OF_LINE + codec::DOUBLE_SPACE_STR;
-            line += ATTRIBUTE_FILENAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR + END_OF_LINE;
+                ATTRIBUTE_FILENAME.size() + NAME_VALUE_SEPARATOR_STR.size() + sizeof(codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR) + codec::END_OF_LINE.size();
+            if (line_new_size >= string::size_type(_line_policy) - codec::END_OF_LINE.length())
+                line += codec::END_OF_LINE + NEW_LINE_INDENT;
+            line += ATTRIBUTE_FILENAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR + codec::END_OF_LINE;
 
             break;
         }
@@ -730,7 +730,7 @@ void mime::parse_content_type(const string& content_type_hdr, media_type_t& medi
     bool is_media_type = true;
     for (auto ch : header_value)
     {
-        if (ch == codec::SLASH_CHAR)
+        if (ch == CONTENT_SUBTYPE_SEPARATOR)
         {
             media_type = mime_type_as_enum(media_type_s);
             is_media_type = false;
