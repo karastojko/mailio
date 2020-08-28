@@ -10,8 +10,10 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */ 
 
+
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
 #include <stdexcept>
 #include <utility>
@@ -36,6 +38,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 using std::string;
 using std::vector;
+using std::list;
 using std::multimap;
 using std::pair;
 using std::make_pair;
@@ -46,6 +49,7 @@ using std::ostream;
 using std::stringstream;
 using std::shared_ptr;
 using std::make_shared;
+using std::tuple;
 using std::size_t;
 using boost::trim_copy;
 using boost::trim;
@@ -319,6 +323,49 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
     m.name(att_name);
     m.content(content);
     _parts.push_back(m);
+}
+
+
+void message::attach(const list<tuple<istream&, string, content_type_t>>& attachments)
+{
+    if (_boundary.empty())
+        _boundary = make_boundary();
+
+    // the content goes to the first mime part, and then it's deleted
+    if (!_content.empty())
+    {
+        if (_content_type.type == media_type_t::NONE)
+            _content_type = content_type_t(media_type_t::TEXT, "plain");
+
+        mime content_part;
+        content_part.content(_content);
+        content_part.content_type(_content_type);
+        content_part.content_transfer_encoding(_encoding);
+        content_part.line_policy(_line_policy, _decoder_line_policy);
+        content_part.strict_mode(_strict_mode);
+        content_part.strict_codec_mode(_strict_codec_mode);
+        content_part.header_codec(_header_codec);
+        _parts.push_back(content_part);
+        _content.clear();
+    }
+
+    _content_type.type = media_type_t::MULTIPART;
+    _content_type.subtype = "mixed";
+    for (const auto& att : attachments)
+    {
+        stringstream ss;
+        ss << std::get<0>(att).rdbuf();
+
+        mime m;
+        m.header_codec(this->header_codec());
+        m.content_type(content_type_t(std::get<2>(att)));
+        // content type charset is not set, so it will be treated as us-ascii
+        m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
+        m.content_disposition(content_disposition_t::ATTACHMENT);
+        m.name(std::get<1>(att));
+        m.content(ss.str());
+        _parts.push_back(m);
+    }
 }
 
 

@@ -98,12 +98,18 @@ public:
         content_type_t();
 
         /**
+        Copy constructor is default.
+        **/
+        content_type_t(const content_type_t&) = default;
+
+        /**
         Initializing the content type with the given media type and subtype.
 
-        @param media_type    Media type to set.
-        @param media_subtype Media subtype to set.
+        @param media_type      Media type to set.
+        @param media_subtype   Media subtype to set.
+        @param content_charset Charset to set.
         **/
-        content_type_t(media_type_t media_type, const std::string& media_subtype);
+        content_type_t(media_type_t media_type, const std::string& media_subtype, const std::string& content_charset = "");
 
         /**
         Assignment operator.

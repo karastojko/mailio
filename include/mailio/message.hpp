@@ -15,6 +15,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <vector>
+#include <list>
 #include <utility>
 #include <stdexcept>
 #include <memory>
@@ -338,6 +339,18 @@ public:
                     `mime::content_disposition(content_disposition_t)`.
     **/
     void attach(const std::istream& att_strm, const std::string& att_name, media_type_t type, const std::string& subtype);
+
+    /**
+    Attaching a list of streams.
+
+    If the content is set, attaching a file moves the content to the first MIME part. Thus, the content and the attached files are MIME parts, as described in
+    RFC 2046 section 5.1. The consequence is that the content remains empty afterwards.
+
+    @param attachments Files to attach. Each tuple consists of a stream, attachment name and content type.
+    @throw *           `mime::content_type(const content_type_t&)`, `mime::content_transfer_encoding(content_transfer_encoding_t)`,
+                       `mime::content_disposition(content_disposition_t)`.
+    **/
+    void attach(const std::list<std::tuple<std::istream&, std::string, content_type_t>>& attachments);
 
     /**
     Getting the number of attachments.

@@ -55,10 +55,11 @@ mime::content_type_t::content_type_t() : type(media_type_t::NONE)
 }
 
 
-mime::content_type_t::content_type_t(media_type_t media_type, const string& media_subtype)
+mime::content_type_t::content_type_t(media_type_t media_type, const string& media_subtype, const string& content_charset)
 {
     type = media_type;
     subtype = to_lower_copy(media_subtype);
+    charset = content_charset;
 }
 
 
@@ -99,7 +100,7 @@ const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
 mime::mime() : _version("1.0"), _line_policy(codec::line_len_policy_t::RECOMMENDED),
-  _decoder_line_policy(codec::line_len_policy_t::RECOMMENDED), _strict_mode(false), _strict_codec_mode(false),
+    _decoder_line_policy(codec::line_len_policy_t::RECOMMENDED), _strict_mode(false), _strict_codec_mode(false),
     _header_codec(header_codec_t::QUOTED_PRINTABLE), _content_type(media_type_t::NONE, ""), _encoding(content_transfer_encoding_t::NONE),
     _disposition(content_disposition_t::NONE), _parsing_header(true), _mime_status(mime_parsing_status_t::NONE)
 {
