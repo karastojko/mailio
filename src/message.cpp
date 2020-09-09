@@ -451,6 +451,7 @@ Some of the headers cannot be empty by RFC, but still they can occur. Thus, pars
 values are set. The following headers are recognized by the parser:
 - `From` cannot be empty by RFC 5322, section 3.6.2. So far, empty field did not occur, so no need to set default mode when empty.
 - `Reply-To` is optional by RFC 5322, section 3.6.2. So far, empty field did not occur, so no need to set default mode when empty.
+- `Sender` is optional by RFC 5322, section 3.6.2.
 - `To` cannot be empty by RFC 5322, section 3.6.3. So far, empty field did not occur, so no need to set default mode when empty.
 - `Cc` cannot be empty by RFC 5322, section 3.6.3. So far, empty field did not occur, so no need to set default mode when empty.
 - `Subject` can be empty.
@@ -467,7 +468,6 @@ void message::parse_header_line(const string& header_line)
     // TODO: header name and header value already parsed in `mime::parse_header_line`, so this is not the optimal way to do it
     string header_name, header_value;
     parse_header_name_value(header_line, header_name, header_value);
-
 
     if (iequals(header_name, FROM_HEADER))
     {
