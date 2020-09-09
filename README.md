@@ -135,21 +135,6 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * SSL certificate is not verified.
 
 
-# Roadmap #
-
-* version 0.8.0 (Q4/2016): More advanced test scenarios, more examples.
-* version 0.9.0 (Q4/2016): Binary content transfer encoding, strict mode for codec parsers.
-* version 0.10.0 (Q2/2017): Strict mode for message parser.
-* version 0.11.0 (Q2/2017): Q codec to support non-ASCII message subjects.
-* version 0.12.0 (Q3/2017): Non-ASCII name part of a mail address.
-* version 0.13.0 (Q4/2017): UTF-8 filename of an attachment.
-* version 0.14.0 (Q4/2017): Mail content is sent with attachments as another MIME part.
-* version 0.15.0 (Q1/2018): Line policy applied to the header. Clang/MacOS build support in Makefile.
-* version 0.16.0 (Q2/2018): Cmake scripts tested on Linux, MacOS and Windows. Sender header added.
-* version 0.17.0 (Q3/2018): Timeouts for I/O operations. Fetching only message header with IMAP.
-* version 0.18.0 (Q1/2019): Fixes of IMAP parser. Managing folders in IMAP.
-* version 0.19.0 (Q3/2019): IMAP searching, fetching messages by UIDs.
-
 # Contributors #
 
 * [Trevor Mellon](https://github.com/TrevorMellon): CMake build scripts.
