@@ -301,6 +301,21 @@ public:
     std::string bcc_recipients_to_string() const;
 
     /**
+    Setting the message ID.
+
+    @param id            The message ID in the format `string1@string2`.
+    @throw message_error Invalid message ID.
+    **/
+    void message_id(std::string id);
+
+    /**
+    Getting the message ID.
+
+    @return Message ID.
+    **/
+    std::string message_id() const;
+
+    /**
     Setting the subject.
 
     @param mail_subject Subject to set.
@@ -412,6 +427,11 @@ protected:
     static const std::string BCC_HEADER;
 
     /**
+    `Message-ID` header name.
+    **/
+    static const std::string MESSAGE_ID_HEADER;
+
+    /**
     Subject header name.
     **/
     static const std::string SUBJECT_HEADER;
@@ -498,6 +518,21 @@ protected:
     boost::local_time::local_date_time parse_date(const std::string& date_str) const;
 
     /**
+    Formatting the message ID.
+
+    @return Message ID formatted header.
+    **/
+    std::string format_message_id() const;
+
+    /**
+    Parsing the message ID.
+
+    @param id            Message ID header to parse.
+    @throw message_error Parsing failure of the message ID.
+    **/
+    void parse_message_id(const std::string& id);
+
+    /**
     Formatting the subject which can be ASCII or UTF-8.
 
     @return Formatted subject.
@@ -556,6 +591,11 @@ protected:
     List of BCC recipients.
     **/
     mailboxes _bcc_recipients;
+
+    /**
+    Message ID.
+    **/
+    std::string _message_id;
 
     /**
     Message subject.

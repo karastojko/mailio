@@ -8,7 +8,7 @@ Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
 Distributed under the FreeBSD license, see the accompanying file LICENSE or
 copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
-*/ 
+*/
 
 
 #include <string>
@@ -53,11 +53,14 @@ using std::tuple;
 using std::size_t;
 using boost::trim_copy;
 using boost::trim;
+using boost::trim_left_if;
+using boost::trim_right_if;
 using boost::iequals;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
 using boost::sregex_iterator;
+using boost::algorithm::is_any_of;
 using boost::local_time::local_date_time;
 using boost::local_time::local_time_input_facet;
 using boost::local_time::not_a_date_time;
@@ -81,6 +84,7 @@ const string message::REPLY_TO_HEADER{"Reply-To"};
 const string message::TO_HEADER{"To"};
 const string message::CC_HEADER{"Cc"};
 const string message::BCC_HEADER{"Bcc"};
+const string message::MESSAGE_ID_HEADER{"Message-ID"};
 const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
@@ -279,6 +283,24 @@ string message::bcc_recipients_to_string() const
 }
 
 
+void message::message_id(string id)
+{
+    const regex r{R"(([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+))"};
+    smatch m;
+
+    if (regex_match(id, m, r))
+        _message_id = id;
+    else
+        throw message_error("Invalid message ID.");
+}
+
+
+string message::message_id() const
+{
+    return _message_id;
+}
+
+
 void message::subject(const string& mail_subject)
 {
     _subject = mail_subject;
@@ -313,7 +335,7 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
     stringstream ss;
     ss << att_strm.rdbuf();
     string content = ss.str();
-    
+
     mime m;
     m.header_codec(this->header_codec());
     m.content_type(content_type_t(type, subtype));
@@ -383,7 +405,7 @@ void message::attachment(size_t index, ostream& att_strm, string& att_name) cons
 {
     if (index == 0)
         throw message_error("Bad attachment index.");
-    
+
     size_t no = 0;
     for (auto& m : _parts)
         if (m.content_disposition() == content_disposition_t::ATTACHMENT)
@@ -396,7 +418,7 @@ void message::attachment(size_t index, ostream& att_strm, string& att_name) cons
                 break;
             }
         }
-    
+
     if (no > _parts.size())
         throw message_error("Bad attachment index.");
 }
@@ -405,7 +427,7 @@ void message::attachment(size_t index, ostream& att_strm, string& att_name) cons
 string message::format_header() const
 {
     string header;
-    
+
     if (!_boundary.empty() && _content_type.type != media_type_t::MULTIPART)
         throw message_error("No boundary for multipart message.");
 
@@ -421,6 +443,8 @@ string message::format_header() const
     header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + codec::END_OF_LINE;
     header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
     header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
+    string msg_id = format_message_id();
+    header += _message_id.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
     if (!_date_time->is_not_a_date_time())
@@ -438,7 +462,7 @@ string message::format_header() const
     header += mime::format_header();
 
     header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
-    
+
     return header;
 }
 
@@ -456,6 +480,7 @@ values are set. The following headers are recognized by the parser:
 - `Cc` cannot be empty by RFC 5322, section 3.6.3. So far, empty field did not occur, so no need to set default mode when empty.
 - `Subject` can be empty.
 - `Date` can be empty.
+- `Message-ID` cannot be empty.
 - `MIME-Version` cannot be empty by RFC 2045, section 4. In case it's empty, set it to `1.0`.
 */
 void message::parse_header_line(const string& header_line)
@@ -494,6 +519,10 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, CC_HEADER))
     {
         _cc_recipients = parse_address_list(header_value);
+    }
+    else if (iequals(header_name, MESSAGE_ID_HEADER))
+    {
+        parse_message_id(header_value);
     }
     else if (iequals(header_name, SUBJECT_HEADER))
         _subject = parse_subject(header_value);
@@ -586,7 +615,7 @@ string message::format_address(const string& name, const string& address) const
         else
             throw message_error("Formatting failure of address `" + address + "`.");
     }
-    
+
     string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : " " + addr));
     if (addr_name.length() > string::size_type(_line_policy))
         throw message_error("Formatting failure of address, line policy overflow.");
@@ -596,7 +625,7 @@ string message::format_address(const string& name, const string& address) const
 
 /*
 See [rfc 5322, section 3.4, page 16-18].
-    
+
 Implementation goes by using state machine. Diagram is shown in graphviz dot language:
 ```
 digraph address_list
@@ -1161,6 +1190,27 @@ local_date_time message::parse_date(const string& date_str) const
     {
         throw message_error("Parsing failure of date.");
     }
+}
+
+
+string message::format_message_id() const
+{
+    return ADDRESS_BEGIN_STR + _message_id + ADDRESS_END_STR;
+}
+
+
+void message::parse_message_id(const string& id)
+{
+    const regex r(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
+    smatch m;
+    if (regex_match(id, m, r))
+    {
+        _message_id = m[0].str();
+        trim_left_if(_message_id, is_any_of(codec::LESS_THAN_STR));
+        trim_right_if(_message_id, is_any_of(codec::GREATER_THAN_STR));
+    }
+    else
+        throw message_error("Parsing failure of the message ID.");
 }
 
 
