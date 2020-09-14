@@ -45,7 +45,6 @@ if(NOT SHARE_INSTALL_DIR)
 endif(NOT SHARE_INSTALL_DIR)
 
 # options for mailio to control how the project is built.
-option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build mailio as a shared library." ON)
 option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
 
@@ -115,8 +114,6 @@ if(${MAILIO_BUILD_DOCUMENTATION})
         message(STATUS "doxygen was not found, documentation will not be built")
     endif(DOXYGEN_FOUND)
 endif(${MAILIO_BUILD_DOCUMENTATION})
-
-set(BUILD_SHARED_LIBS ${MAILIO_BUILD_SHARED_LIBRARY})
 
 add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
 
