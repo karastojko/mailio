@@ -24,6 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <fstream>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <mailio/codec.hpp>
@@ -56,6 +57,7 @@ using boost::trim;
 using boost::trim_left_if;
 using boost::trim_right_if;
 using boost::iequals;
+using boost::split;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
@@ -85,6 +87,7 @@ const string message::TO_HEADER{"To"};
 const string message::CC_HEADER{"Cc"};
 const string message::BCC_HEADER{"Bcc"};
 const string message::MESSAGE_ID_HEADER{"Message-ID"};
+const string message::IN_REPLY_TO_HEADER{"In-Reply-To"};
 const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
@@ -301,6 +304,22 @@ string message::message_id() const
 }
 
 
+void message::add_in_reply_to(const string& in_reply)
+{
+    const regex r{R"(([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+))"};
+    smatch m;
+    if (!regex_match(in_reply, m, r))
+        throw message_error("Invalid In Reply To ID.");
+    _in_reply_to.push_back(in_reply);
+}
+
+
+vector<string> message::in_reply_to() const
+{
+    return _in_reply_to;
+}
+
+
 void message::subject(const string& mail_subject)
 {
     _subject = mail_subject;
@@ -443,8 +462,10 @@ string message::format_header() const
     header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + codec::END_OF_LINE;
     header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
     header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
-    string msg_id = format_message_id();
+    string msg_id = format_many_ids(_message_id);
     header += _message_id.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
+    string in_reply = format_many_ids(_in_reply_to);
+    header += _in_reply_to.empty() ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + in_reply + codec::END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
     if (!_date_time->is_not_a_date_time())
@@ -522,7 +543,12 @@ void message::parse_header_line(const string& header_line)
     }
     else if (iequals(header_name, MESSAGE_ID_HEADER))
     {
-        parse_message_id(header_value);
+        auto ids = parse_many_ids(header_value);
+        _message_id = ids[0];
+    }
+    else if (iequals(header_name, IN_REPLY_TO_HEADER))
+    {
+        _in_reply_to = parse_many_ids(header_value);
     }
     else if (iequals(header_name, SUBJECT_HEADER))
         _subject = parse_subject(header_value);
@@ -1193,24 +1219,43 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-string message::format_message_id() const
+string message::format_many_ids(const vector<string>& ids)
 {
-    return ADDRESS_BEGIN_STR + _message_id + ADDRESS_END_STR;
+    string ids_str;
+    for (auto s = ids.begin(); s != ids.end(); s++)
+    {
+        ids_str += ADDRESS_BEGIN_STR + *s + ADDRESS_END_STR;
+        if (s != ids.end() - 1)
+            ids_str += codec::SPACE_STR;
+    }
+    return ids_str;
 }
 
 
-void message::parse_message_id(const string& id)
+string message::format_many_ids(const string& id)
 {
+    return format_many_ids(vector<string>{id});
+}
+
+
+vector<string> message::parse_many_ids(const string& ids)
+{
+    vector<string> idv;
+    split(idv, ids, is_any_of(codec::SPACE_STR), boost::algorithm::token_compress_on);
     const regex r(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
     smatch m;
-    if (regex_match(id, m, r))
+    for (auto& id : idv)
     {
-        _message_id = m[0].str();
-        trim_left_if(_message_id, is_any_of(codec::LESS_THAN_STR));
-        trim_right_if(_message_id, is_any_of(codec::GREATER_THAN_STR));
+        if (regex_match(id, m, r))
+        {
+            trim_left_if(id, is_any_of(codec::LESS_THAN_STR));
+            trim_right_if(id, is_any_of(codec::GREATER_THAN_STR));
+        }
+        else
+            throw message_error("Parsing failure of the message ID.");
     }
-    else
-        throw message_error("Parsing failure of the message ID.");
+
+    return idv;
 }
 
 

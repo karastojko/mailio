@@ -316,6 +316,20 @@ public:
     std::string message_id() const;
 
     /**
+    Adding the in-reply-to ID.
+
+    @param In-reply-to ID.
+    **/
+    void add_in_reply_to(const std::string& in_reply);
+
+    /**
+    Getting the in-reply-to ID.
+
+    @return In-reply-to ID.
+    **/
+    std::vector<std::string> in_reply_to() const;
+
+    /**
     Setting the subject.
 
     @param mail_subject Subject to set.
@@ -432,6 +446,11 @@ protected:
     static const std::string MESSAGE_ID_HEADER;
 
     /**
+    `In-Reply-To` header name.
+    **/
+    static const std::string IN_REPLY_TO_HEADER;
+
+    /**
     Subject header name.
     **/
     static const std::string SUBJECT_HEADER;
@@ -518,19 +537,29 @@ protected:
     boost::local_time::local_date_time parse_date(const std::string& date_str) const;
 
     /**
-    Formatting the message ID.
+    Formatting the vector of IDs.
 
-    @return Message ID formatted header.
+    @param ids Vector of IDs.
+    @return    String of IDs in the angle brackets.
     **/
-    std::string format_message_id() const;
+    static std::string format_many_ids(const std::vector<std::string>& ids);
 
     /**
-    Parsing the message ID.
+    Formatting the ID.
 
-    @param id            Message ID header to parse.
+    @param id ID to format.
+    @return   ID within the angle brackets.
+    **/
+    static std::string format_many_ids(const std::string& id);
+
+    /**
+    Parsing a string of IDs into a vector.
+
+    @param ids           String of IDs within the angle brackets.
+    @return              Vector of IDs.
     @throw message_error Parsing failure of the message ID.
     **/
-    void parse_message_id(const std::string& id);
+    static std::vector<std::string> parse_many_ids(const std::string& ids);
 
     /**
     Formatting the subject which can be ASCII or UTF-8.
@@ -596,6 +625,11 @@ protected:
     Message ID.
     **/
     std::string _message_id;
+
+    /**
+    In reply to list of IDs.
+    **/
+    std::vector<std::string> _in_reply_to;
 
     /**
     Message subject.
