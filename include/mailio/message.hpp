@@ -318,16 +318,30 @@ public:
     /**
     Adding the in-reply-to ID.
 
-    @param In-reply-to ID.
+    @param in-reply ID of the in-reply-to header.
     **/
     void add_in_reply_to(const std::string& in_reply);
 
     /**
     Getting the in-reply-to ID.
 
-    @return In-reply-to ID.
+    @return List of in-reply-to IDs.
     **/
     std::vector<std::string> in_reply_to() const;
+
+    /**
+    Adding the reference ID to the list.
+
+    @param reference_id Reference ID.
+    **/
+    void add_references(const std::string& reference_id);
+
+    /**
+    Getting the references list of IDs.
+
+    @return List of references IDs.
+    **/
+    std::vector<std::string> references() const;
 
     /**
     Setting the subject.
@@ -449,6 +463,11 @@ protected:
     `In-Reply-To` header name.
     **/
     static const std::string IN_REPLY_TO_HEADER;
+
+    /**
+    `References` header name.
+    **/
+    static const std::string REFERENCES_HEADER;
 
     /**
     Subject header name.
@@ -630,6 +649,11 @@ protected:
     In reply to list of IDs.
     **/
     std::vector<std::string> _in_reply_to;
+
+    /**
+    References list of IDs.
+    **/
+    std::vector<std::string> _references;
 
     /**
     Message subject.

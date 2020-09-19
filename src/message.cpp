@@ -88,6 +88,7 @@ const string message::CC_HEADER{"Cc"};
 const string message::BCC_HEADER{"Bcc"};
 const string message::MESSAGE_ID_HEADER{"Message-ID"};
 const string message::IN_REPLY_TO_HEADER{"In-Reply-To"};
+const string message::REFERENCES_HEADER{"References"};
 const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
@@ -320,6 +321,22 @@ vector<string> message::in_reply_to() const
 }
 
 
+void message::add_references(const string& reference_id)
+{
+    const regex r{R"(([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+))"};
+    smatch m;
+    if (!regex_match(reference_id, m, r))
+        throw message_error("Invalid Reference ID.");
+    _references.push_back(reference_id);
+}
+
+
+vector<string> message::references() const
+{
+    return _references;
+}
+
+
 void message::subject(const string& mail_subject)
 {
     _subject = mail_subject;
@@ -466,6 +483,8 @@ string message::format_header() const
     header += _message_id.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
     string in_reply = format_many_ids(_in_reply_to);
     header += _in_reply_to.empty() ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + in_reply + codec::END_OF_LINE;
+    string references = format_many_ids(_references);
+    header += _references.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
     if (!_date_time->is_not_a_date_time())
@@ -547,9 +566,9 @@ void message::parse_header_line(const string& header_line)
         _message_id = ids[0];
     }
     else if (iequals(header_name, IN_REPLY_TO_HEADER))
-    {
         _in_reply_to = parse_many_ids(header_value);
-    }
+    else if (iequals(header_name, REFERENCES_HEADER))
+        _references = parse_many_ids(header_value);
     else if (iequals(header_name, SUBJECT_HEADER))
         _subject = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
