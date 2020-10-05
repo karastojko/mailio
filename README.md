@@ -133,6 +133,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * Non-ASCII attachment name is assumed to be UTF-8.
 * Header attribute cannot contain space between name and value.
 * SSL certificate is not verified.
+* SSL version not configurable (v2.3 hardcoded).
 
 
 # Contributors #
