@@ -1,0 +1,2 @@
+sudo apt-get install doxygen doxygen-doc graphviz libboost-all-dev libssl-dev
+after the first successful 'make install': sudo ldconfig
