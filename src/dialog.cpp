@@ -257,10 +257,11 @@ dialog_ssl::dialog_ssl(const dialog& other) : dialog(other), _context(make_share
         _ssl_socket->handshake(boost::asio::ssl::stream_base::client);
         _ssl = true;
     }
-    catch (system_error&)
+    catch (system_error& ex)
     {
-        // TODO: perhaps the message is confusing
-        throw dialog_error("Switching to SSL failed.");
+        std::string sMsg("Switching to SSL failed: ");
+        sMsg += std::string(ex.what()) + " / " + ex.code().message();
+        throw dialog_error(sMsg);
     }
 }
 
