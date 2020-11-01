@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16.3)
+cmake_minimum_required (VERSION 3.13.3)
 
 project(mailio VERSION 0.20.0)
 set(CMAKE_CXX_STANDARD 17)
