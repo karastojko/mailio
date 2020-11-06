@@ -91,6 +91,7 @@ const string message::IN_REPLY_TO_HEADER{"In-Reply-To"};
 const string message::REFERENCES_HEADER{"References"};
 const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
+const string message::DISPOSITION_NOTIFICATION_HEADER{"Disposition-Notification-To"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
 
 
@@ -287,6 +288,24 @@ string message::bcc_recipients_to_string() const
 }
 
 
+void message::disposition_notification(const mail_address& address)
+{
+    _disposition_notification = address;
+}
+
+
+mail_address message::disposition_notification() const
+{
+    return _disposition_notification;
+}
+
+
+string message::disposition_notification_to_string() const
+{
+    return format_address(_disposition_notification.name, _disposition_notification.address);
+}
+
+
 void message::message_id(string id)
 {
     const regex r{R"(([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+))"};
@@ -479,6 +498,8 @@ string message::format_header() const
     header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + codec::END_OF_LINE;
     header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
     header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
+    header += _disposition_notification.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
+        format_address(_disposition_notification.name,_disposition_notification.address) + codec::END_OF_LINE;
     string msg_id = format_many_ids(_message_id);
     header += _message_id.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
     string in_reply = format_many_ids(_in_reply_to);
@@ -559,6 +580,12 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, CC_HEADER))
     {
         _cc_recipients = parse_address_list(header_value);
+    }
+    else if (iequals(header_name, DISPOSITION_NOTIFICATION_HEADER))
+    {
+        mailboxes mbx = parse_address_list(header_value);
+        if (!mbx.addresses.empty())
+            _disposition_notification = mbx.addresses[0];
     }
     else if (iequals(header_name, MESSAGE_ID_HEADER))
     {

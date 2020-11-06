@@ -301,6 +301,28 @@ public:
     std::string bcc_recipients_to_string() const;
 
     /**
+    Setting the disposition notification mail address.
+
+    @param mail Mail address to set.
+    **/
+    void disposition_notification(const mail_address& mail);
+
+    /**
+    Getting the disposition notification mail address.
+
+    @return Dispostion notification mail address.
+    **/
+    mail_address disposition_notification() const;
+
+    /**
+    Getting the disposition notification mail address as string.
+
+    @return  Disposition notification mail address as string.
+    @throw * `format_address(const string&, const string&)`.
+    **/
+    std::string disposition_notification_to_string() const;
+
+    /**
     Setting the message ID.
 
     @param id            The message ID in the format `string1@string2`.
@@ -479,6 +501,12 @@ protected:
     **/
     static const std::string DATE_HEADER;
 
+
+    /**
+    Disposition notification header name.
+    **/
+    static const std::string DISPOSITION_NOTIFICATION_HEADER;
+
     /**
     Mime version header name.
     **/
@@ -639,6 +667,11 @@ protected:
     List of BCC recipients.
     **/
     mailboxes _bcc_recipients;
+
+    /**
+    Disposition notification address.
+    **/
+    mail_address _disposition_notification;
 
     /**
     Message ID.
