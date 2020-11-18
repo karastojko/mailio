@@ -204,6 +204,7 @@ public:
     @param dot_escape Flag if the leading dot should be escaped.
     @return           Mime itself.
     @throw *          `parse_header()`, `parse_content`.
+    @todo             Determine a default charset.
     **/
     mime& parse_by_line(const std::string& line, bool dot_escape = false);
 

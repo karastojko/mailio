@@ -155,7 +155,6 @@ void mime::parse(const string& mime_string, bool dot_escape)
 }
 
 
-// TODO: what is default charset?
 mime& mime::parse_by_line(const string& line, bool dot_escape)
 {
     // mark end of header and parse it
