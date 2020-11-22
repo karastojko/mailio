@@ -35,6 +35,9 @@ using std::pair;
 using std::multimap;
 using std::vector;
 using std::map;
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
 using boost::to_lower_copy;
 using boost::trim_copy;
 using boost::trim;
@@ -94,7 +97,8 @@ const string mime::ATTRIBUTE_FILENAME{"filename"};
 const string mime::BOUNDARY_DELIMITER(2, '-');
 const string mime::QTEXT{"\t !#$%&'()*+,-.@/:;<=>?[]^_`{|}~"};
 // exluded double quote and backslash characters from the header name
-const string mime::HEADER_NAME_ALPHABET{"!#$%&'()*+,-./;<=>?@[]^_`{|}~"};
+const regex mime::HEADER_NAME_REGEX{R"(([a-zA-Z0-9\!#\$%&'\(\)\*\+\-\./;\<=\>\?@\[\\\]\^\_`\{\|\}\~]+))"};
+const regex mime::HEADER_VALUE_REGEX{R"(([a-zA-Z0-9\ \!\"#\$%&'\(\)\*\+\,\-\./:;\<=\>\?@\[\\\]\^\_`\{\|\}\~]+))"};
 const string mime::CONTENT_ATTR_ALPHABET{"!#$%&*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
@@ -289,11 +293,6 @@ string mime::boundary() const
 }
 
 
-multimap<string, string> mime::headers() const
-{
-    return _headers;
-}
-
 void mime::content(const string& content_str)
 {
     _content = content_str;
@@ -373,7 +372,6 @@ mime::header_codec_t mime::header_codec() const
 }
 
 
-// TODO: format attributes for all headers
 string mime::format_header() const
 {
     return format_content_type() + format_transfer_encoding() + format_content_disposition();
@@ -645,7 +643,6 @@ void mime::parse_header_line(const string& header_line)
 {
     string header_name, header_value;
     parse_header_name_value(header_line, header_name, header_value);
-    _headers.insert(make_pair(header_name, header_value));
 
     if (iequals(header_name, CONTENT_TYPE_HEADER))
     {
@@ -692,32 +689,23 @@ void mime::parse_header_line(const string& header_line)
 
 void mime::parse_header_name_value(const string& header_line, string& header_name, string& header_value) const
 {
-    string::size_type colon_pos = 0;
-    // flag if header name is being parsed
-    bool is_header_name = true;
-    while (colon_pos++ < header_line.length())
-    {
-        if (header_line[colon_pos] == HEADER_SEPARATOR_CHAR)
-        {
-            header_name = header_line.substr(0, colon_pos);
-            trim(header_name);
-            header_value = header_line.substr(colon_pos + 1);
-            trim(header_value);
-            is_header_name = false;
-            break;
-        }
-
-        if (is_header_name && !isalpha(header_line[colon_pos]) && !isdigit(header_line[colon_pos]) &&
-            HEADER_NAME_ALPHABET.find(header_line[colon_pos]) == string::npos)
-        {
-            throw mime_error("Parsing failure of header name.");
-        }
-
-    }
-    if (colon_pos >= header_line.length())
+    string::size_type colon_pos = header_line.find(HEADER_SEPARATOR_CHAR);
+    if (colon_pos == string::npos)
         throw mime_error("Parsing failure of header line.");
+
+    header_name = header_line.substr(0, colon_pos);
+    trim(header_name);
+    header_value = header_line.substr(colon_pos + 1);
+    trim(header_value);
+
     if (header_name.empty() || (_strict_mode && header_value.empty()))
-        throw mime_error("Parsing failure, header name or value empty.");
+        throw mime_error("Parsing failure, header name or value empty: " + header_line);
+
+    smatch m;
+    if (!regex_match(header_name, m, HEADER_NAME_REGEX))
+        throw mime_error("Format failure of the header name `" + header_name + "`.");
+    if (!regex_match(header_value, m, HEADER_VALUE_REGEX))
+        throw mime_error("Format failure of the header value `" + header_value + "`.");
 }
 
 

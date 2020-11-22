@@ -18,6 +18,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include "codec.hpp"
 #include "export.hpp"
@@ -290,13 +291,6 @@ public:
     std::string boundary() const;
 
     /**
-    Returning all headers.
-
-    @return Mime headers.
-    **/
-    std::multimap<std::string, std::string> headers() const;
-
-    /**
     Setting the content given as string.
 
     @param content_str Content to set.
@@ -522,9 +516,14 @@ protected:
     static const std::string QTEXT;
 
     /**
-    Header name allowed characters.
+    Allowed characters for the header name. They consist of the printable ASCII characters without the colon.
     **/
-    static const std::string HEADER_NAME_ALPHABET;
+    static const boost::regex HEADER_NAME_REGEX;
+
+    /**
+    Allowed characters for the header value. They consist of the printable ASCII characters with the space.
+    **/
+    static const boost::regex HEADER_VALUE_REGEX;
 
     /**
     Content type attribute value allowed characters.
@@ -752,11 +751,6 @@ protected:
     Content disposition of the mime part.
     **/
     content_disposition_t _disposition;
-
-    /**
-    All headers of the mime part, including those parsed into separate values of the mime.
-    **/
-    std::multimap<std::string, std::string> _headers;
 
     /**
     Raw representation of the content.

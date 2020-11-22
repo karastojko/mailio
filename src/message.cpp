@@ -479,10 +479,25 @@ void message::attachment(size_t index, ostream& att_strm, string& att_name) cons
 }
 
 
+void message::add_header(const string& name, const string& value)
+{
+    smatch m;
+    if (!regex_match(name, m, mime::HEADER_NAME_REGEX))
+        throw message_error("Format failure of the header name `" + name + "`.");
+    if (!regex_match(value, m, mime::HEADER_VALUE_REGEX))
+        throw message_error("Format failure of the header value `" + value + "`.");
+    _headers.insert(make_pair(name, value));
+}
+
+
+multimap<string, string> message::headers() const
+{
+    return _headers;
+}
+
+
 string message::format_header() const
 {
-    string header;
-
     if (!_boundary.empty() && _content_type.type != media_type_t::MULTIPART)
         throw message_error("No boundary for multipart message.");
 
@@ -491,6 +506,15 @@ string message::format_header() const
 
     if (_from.addresses.size() > 1 && _sender.empty())
         throw message_error("No sender for multiple authors.");
+
+    string header;
+    for_each(_headers.begin(), _headers.end(),
+        [&header](const auto& hdr)
+        {
+            header += hdr.first + HEADER_SEPARATOR_STR + hdr.second + codec::END_OF_LINE;
+        }
+    );
+
 
     header += FROM_HEADER + HEADER_SEPARATOR_STR + from_to_string() + codec::END_OF_LINE;
     header += _sender.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + codec::END_OF_LINE;
@@ -602,6 +626,14 @@ void message::parse_header_line(const string& header_line)
         *_date_time = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
         _version = trim_copy(header_value);
+    else
+    {
+        if (!iequals(header_name, CONTENT_TYPE_HEADER) && !iequals(header_name, CONTENT_TRANSFER_ENCODING_HEADER) &&
+            !iequals(header_name, CONTENT_DISPOSITION_HEADER))
+        {
+            _headers.insert(make_pair(header_name, header_value));
+        }
+    }
 }
 
 

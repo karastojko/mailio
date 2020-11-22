@@ -434,15 +434,31 @@ public:
     **/
     void attachment(std::size_t index, std::ostream& att_strm, std::string& att_name) const;
 
+    /**
+    Adding another header. Adding a header defined by other methods leads to the undefined behaviour.
+
+    @param name  Header name.
+    @param value Header value.
+    @todo        Disallowing already defined headers?
+    **/
+    void add_header(const std::string& name, const std::string& value);
+
+    /**
+    Returning the other headers.
+
+    @return Message headers.
+    **/
+    std::multimap<std::string, std::string> headers() const;
+
 protected:
 
     /**
-    Alphanumerics plus some special character allowed in the address.
+    Printable ASCII characters without the alphanumerics, double quote, comma, colon, semicolon, angle and square brackets and monkey.
     **/
     static const std::string ATEXT;
 
     /**
-    Printable ASCII not including brackets and backslash.
+    Printable ASCII characters without the alphanumerics, brackets and backslash.
     **/
     static const std::string DTEXT;
 
@@ -697,6 +713,11 @@ protected:
     Message date and time with time zone.
     **/
     std::shared_ptr<boost::local_time::local_date_time> _date_time;
+
+    /**
+    Other headers not included into the known ones.
+    **/
+    std::multimap<std::string, std::string> _headers;
 };
 
 
