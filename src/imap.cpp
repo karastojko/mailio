@@ -61,6 +61,7 @@ namespace mailio
 {
 
 const string imap::UNTAGGED_RESPONSE{"*"};
+const string imap::CONTINUE_RESPONSE{"+"};
 const string imap::RANGE_SEPARATOR{":"};
 const string imap::LIST_SEPARATOR{","};
 const string imap::TOKEN_SEPARATOR_STR{" "};
@@ -432,6 +433,40 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
     }
 
     reset_response_parser();
+}
+
+
+void imap::append(const list<string>& folder_name, const message& msg)
+{
+    string delim = folder_delimiter();
+    string folder_name_s = folder_tree_to_string(folder_name, delim);
+
+    string msg_str;
+    msg.format(msg_str, true);
+
+    string cmd = "APPEND " + folder_name_s;
+    cmd.append(" {" + to_string(msg_str.size()) + "}");
+    _dlg->send(format(cmd));
+    string line = _dlg->receive();
+    tag_result_response_t parsed_line = parse_tag_result(line);
+    if (parsed_line.result == tag_result_response_t::BAD || parsed_line.tag != CONTINUE_RESPONSE)
+        throw imap_error("Message appending failure.");
+
+    _dlg->send(msg_str);
+    bool has_more = true;
+    while (has_more)
+    {
+        line = _dlg->receive();
+        tag_result_response_t parsed_line = parse_tag_result(line);
+        if (parsed_line.tag == to_string(_tag))
+        {
+            if (parsed_line.result != tag_result_response_t::OK)
+                throw imap_error("Message appending failure.");
+            has_more = false;
+        }
+        else if (parsed_line.tag != UNTAGGED_RESPONSE)
+            throw imap_error("Message appending failure.");
+    }
 }
 
 

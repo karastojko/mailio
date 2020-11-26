@@ -275,6 +275,16 @@ public:
                bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
 
     /**
+    Appending a message to the given folder.
+
+    @param folder_name Folder to append the message.
+    @param msg         Message to append.
+    @throw imap_error  `Message appending failure.`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`,
+                       `message::format(std::string&, bool)`.
+    **/
+    void append(const std::list<std::string>& folder_name, const message& msg);
+
+    /**
     Getting the mailbox statistics.
 
     The server might not support unseen, uidnext, or uidvalidity, which will cause an exception, so those parameters are optional.
@@ -393,6 +403,11 @@ protected:
     Untagged response character as defined by the protocol.
     **/
     static const std::string UNTAGGED_RESPONSE;
+
+    /**
+    Continuation response character as defined by the protocol.
+    **/
+    static const std::string CONTINUE_RESPONSE;
 
     /**
     Colon as a separator in the message list range.
