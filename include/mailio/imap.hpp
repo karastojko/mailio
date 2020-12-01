@@ -300,6 +300,17 @@ public:
     **/
     mailbox_stat_t statistics(const std::string& mailbox, unsigned int info = mailbox_stat_t::DEFAULT);
 
+
+    /**
+    Overload of the `statistics(const std::string&, unsigned int)`.
+
+    @param folder_name Name of the folder to query for the statistics.
+    @param info        Statistics information to be retrieved.
+    @return            Mailbox statistics.
+    @throw *           `statistics(const std::string&, unsigned int)`.
+    **/
+    mailbox_stat_t statistics(const std::list<std::string>& folder_name, unsigned int info = mailbox_stat_t::DEFAULT);
+
     /**
     Removing a message from the given mailbox.
 

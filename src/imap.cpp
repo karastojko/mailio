@@ -565,6 +565,14 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
 }
 
 
+auto imap::statistics(const list<string>& folder_name, unsigned int info) -> mailbox_stat_t
+{
+    string delim = folder_delimiter();
+    string folder_name_s = folder_tree_to_string(folder_name, delim);
+    return statistics(folder_name_s, info);
+}
+
+
 void imap::remove(const string& mailbox, unsigned long message_no)
 {
     select(mailbox);
