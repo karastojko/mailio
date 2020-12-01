@@ -415,6 +415,11 @@ protected:
     static const std::string RANGE_SEPARATOR;
 
     /**
+    Character to mark all messages until the end of range.
+    **/
+    static const std::string RANGE_ALL;
+
+    /**
     Comma as a separator of the list members.
     **/
     static const std::string LIST_SEPARATOR;

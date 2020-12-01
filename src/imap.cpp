@@ -63,6 +63,7 @@ namespace mailio
 const string imap::UNTAGGED_RESPONSE{"*"};
 const string imap::CONTINUE_RESPONSE{"+"};
 const string imap::RANGE_SEPARATOR{":"};
+const string imap::RANGE_ALL{"*"};
 const string imap::LIST_SEPARATOR{","};
 const string imap::TOKEN_SEPARATOR_STR{" "};
 const string imap::QUOTED_STRING_SEPARATOR{"\""};
@@ -70,7 +71,7 @@ const string imap::QUOTED_STRING_SEPARATOR{"\""};
 
 string imap::messages_range_to_string(imap::messages_range_t id_pair)
 {
-    return to_string(id_pair.first) + (id_pair.second.has_value() ? RANGE_SEPARATOR + to_string(id_pair.second.value()) : "");
+    return to_string(id_pair.first) + (id_pair.second.has_value() ? RANGE_SEPARATOR + to_string(id_pair.second.value()) : RANGE_SEPARATOR + RANGE_ALL);
 }
 
 
