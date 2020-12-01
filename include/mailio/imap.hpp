@@ -112,7 +112,7 @@ public:
     enum class auth_method_t {LOGIN};
 
     /**
-    Single message ID or range of message IDs to be searched for,
+    Single message ID or range of message IDs to be searched for.
     **/
     typedef std::pair<unsigned long, std::optional<unsigned long>> messages_range_t;
 
