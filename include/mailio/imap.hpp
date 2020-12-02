@@ -196,9 +196,11 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
+    @return         The server greeting message.
+
     @throw *        `connect()`, `auth_login(const string&, const string&)`.
     **/
-    void authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
     /**
     Selecting a mailbox.
@@ -493,12 +495,13 @@ protected:
     /**
     Initiating a session to the server.
 
+    @return           The server greeting message.
     @throw imap_error Connection to server failure.
     @throw imap_error Parsing failure.
     @throw *          `parse_tag_result(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
     **/
-    void connect();
+    std::string connect();
 
     /**
     Performing an authentication by using the login method.
@@ -818,7 +821,7 @@ public:
     @param method   Authentication method to use.
     @throw *        `connect()`, `switch_to_ssl()`, `start_tls()`, `auth_login(const std::string&, const std::string&)`.
     **/
-    void authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
 protected:
 

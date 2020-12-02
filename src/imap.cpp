@@ -181,11 +181,12 @@ imap::~imap()
 }
 
 
-void imap::authenticate(const string& username, const string& password, auth_method_t method)
+string imap::authenticate(const string& username, const string& password, auth_method_t method)
 {
-    connect();
+    string greeting = connect();
     if (method == auth_method_t::LOGIN)
         auth_login(username, password);
+    return greeting;
 }
 
 
@@ -750,7 +751,7 @@ bool imap::rename_folder(const list<string>& old_name, const list<string>& new_n
 }
 
 
-void imap::connect()
+string imap::connect()
 {
     // read greetings message
     string line = _dlg->receive();
@@ -760,6 +761,7 @@ void imap::connect()
         throw imap_error("Parsing failure.");
     if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
         throw imap_error("Connection to server failure.");
+    return parsed_line.response;
 }
 
 
@@ -1292,20 +1294,22 @@ imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap
 }
 
 
-void imaps::authenticate(const string& username, const string& password, auth_method_t method)
+string imaps::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    string greeting;
     if (method == auth_method_t::LOGIN)
     {
         switch_to_ssl();
-        connect();
+        greeting = connect();
         auth_login(username, password);
     }
     else if (method == auth_method_t::START_TLS)
     {
-        connect();
+        greeting = connect();
         start_tls();
         auth_login(username, password);
     }
+    return greeting;
 }
 
 
