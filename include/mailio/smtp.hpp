@@ -74,9 +74,10 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
+    @return         The server greeting message.
     @throw *        `connect()`, `ehlo()`, `auth_login(const string&, const string&)`.
     **/
-    void authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
     /**
     Submitting a message.
@@ -121,7 +122,7 @@ protected:
     @throw smtp_error Connection rejection.
     @throw *          `parse_line(const string&)`, `dialog::receive()`.
     **/
-    void connect();
+    std::string connect();
 
     /**
     Authenticating with the login method.
@@ -254,9 +255,10 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
+    @return         The server greeting message.
     @throw *        `start_tls()`, `switch_to_ssl()`, `ehlo()`, `auth_login(const string&, const string&)`, `connect()`.
     **/
-    void authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
 protected:
 

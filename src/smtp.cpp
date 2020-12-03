@@ -61,9 +61,9 @@ smtp::~smtp()
 }
 
 
-void smtp::authenticate(const string& username, const string& password, auth_method_t method)
+string smtp::authenticate(const string& username, const string& password, auth_method_t method)
 {
-    connect();
+    string greeting = connect();
     if (method == auth_method_t::NONE)
     {
         ehlo();
@@ -73,6 +73,7 @@ void smtp::authenticate(const string& username, const string& password, auth_met
         ehlo();
         auth_login(username, password);
     }
+    return greeting;
 }
 
 
@@ -169,17 +170,21 @@ string smtp::source_hostname() const
 }
 
 
-void smtp::connect()
+string smtp::connect()
 {
+    string greeting;
     string line = _dlg->receive();
     tuple<int, bool, string> tokens = parse_line(line);
     while (!std::get<1>(tokens))
     {
+        greeting += std::get<2>(tokens) + to_string(codec::CR_CHAR) + to_string(codec::LF_CHAR);
         line = _dlg->receive();
         tokens = parse_line(line);
     }
     if (std::get<0>(tokens) != SERVICE_READY_STATUS)
         throw smtp_error("Connection rejection.");
+    greeting += std::get<2>(tokens);
+    return greeting;
 }
 
 
@@ -298,28 +303,30 @@ smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp
 }
 
 
-void smtps::authenticate(const string& username, const string& password, auth_method_t method)
+string smtps::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    string greeting;
     if (method == auth_method_t::NONE)
     {
         switch_to_ssl();
-        connect();
+        greeting = connect();
         ehlo();
     }
     else if (method == auth_method_t::LOGIN)
     {
         switch_to_ssl();
-        connect();
+        greeting = connect();
         ehlo();
         auth_login(username, password);
     }
     else if (method == auth_method_t::START_TLS)
     {
-        connect();
+        greeting = connect();
         ehlo();
         start_tls();
         auth_login(username, password);
     }
+    return greeting;
 }
 
 
