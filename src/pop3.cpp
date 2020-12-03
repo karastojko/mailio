@@ -65,13 +65,14 @@ pop3::~pop3()
 }
 
 
-void pop3::authenticate(const string& username, const string& password, auth_method_t method)
+string pop3::authenticate(const string& username, const string& password, auth_method_t method)
 {
-    connect();
+    string greeting = connect();
     if (method == auth_method_t::LOGIN)
     {
         auth_login(username, password);
     }
+    return greeting;
 }
 
 
@@ -232,12 +233,13 @@ void pop3::remove(unsigned long message_no)
 }
 
 
-void pop3::connect()
+string pop3::connect()
 {
     string line = _dlg->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
         throw pop3_error("Connection to server failure.");
+    return std::get<1>(stat_msg);
 }
 
 
@@ -279,20 +281,22 @@ pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3
 }
 
 
-void pop3s::authenticate(const string& username, const string& password, auth_method_t method)
+string pop3s::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    string greeting;
     if (method == auth_method_t::LOGIN)
     {
         switch_to_ssl();
-        connect();
+        greeting = connect();
         auth_login(username, password);
     }
     if (method == auth_method_t::START_TLS)
     {
-        connect();
+        greeting = connect();
         start_tls();
         auth_login(username, password);
     }
+    return greeting;
 }
 
 

@@ -102,9 +102,10 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
+    @return         The server greeting message.
     @throw *        `connect()`, `auth_login(const string&, const string&)`.
     **/
-    void authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
     /**
     Listing the size in octets of a message or all messages in a mailbox.
@@ -162,10 +163,11 @@ protected:
     /**
     Initializing a connection to the server.
 
+    @return           The server greeting message.
     @throw pop3_error Connection to server failure.
     @throw *          `parse_status(const string&)`, `dialog::receive()`.
     **/
-    void connect();
+    std::string connect();
 
     /**
     Authentication of a user.
@@ -239,9 +241,10 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
+    @return         The server greeting message.
     @throw *        `start_tls()`, `pop3::auth_login(const string&, const string&)`.
     **/
-    void authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
 protected:
 
