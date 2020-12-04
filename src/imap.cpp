@@ -92,9 +92,15 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
                 imap_string = "ALL";
                 break;
 
-            case ID_LIST:
+            case SID_LIST:
             {
                 imap_string = messages_range_list_to_string(std::get<list<messages_range_t>>(value));
+                break;
+            }
+
+            case UID_LIST:
+            {
+                imap_string = "UID " + messages_range_list_to_string(std::get<list<messages_range_t>>(value));
                 break;
             }
 
