@@ -273,7 +273,7 @@ public:
     @todo                 Add server error messages to exceptions.
     **/
     void fetch(const std::list<messages_range_t> messages_range, std::map<unsigned long, message>& found_messages, bool is_uids = false,
-               bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
+        bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
 
     /**
     Appending a message to the given folder.
@@ -392,6 +392,17 @@ public:
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
     bool rename_folder(const std::list<std::string>& old_name, const std::list<std::string>& new_name);
+
+    /**
+    Determining folder delimiter of a mailbox.
+
+    It is required to know the folder delimiter string in case one wants to deal with the folder names as strings.
+
+    @return           Folder delimiter.
+    @throw imap_error Determining folder delimiter failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    std::string folder_delimiter();
 
 protected:
 
@@ -539,15 +550,6 @@ protected:
     @todo              Add server error messages to exceptions.
     **/
     void search(const std::string& conditions, std::list<unsigned long>& results, bool want_uids = false);
-
-    /**
-    Determining folder delimiter of a mailbox.
-
-    @return           Folder delimiter.
-    @throw imap_error Determining folder delimiter failure.
-    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-    **/
-    std::string folder_delimiter();
 
     /**
     Parsed elements of IMAP response line.

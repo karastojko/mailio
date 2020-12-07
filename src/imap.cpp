@@ -961,34 +961,37 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
 
 string imap::folder_delimiter()
 {
-    string delimiter;
-    _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR));
-    bool has_more = true;
-    while (has_more)
+    static string delimiter;
+    if (delimiter.empty())
     {
-        string line = _dlg->receive();
-        tag_result_response_t parsed_line = parse_tag_result(line);
-        if (parsed_line.tag == UNTAGGED_RESPONSE && delimiter.empty())
+        _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR));
+        bool has_more = true;
+        while (has_more)
         {
-            parse_response(parsed_line.response);
-            if (!iequals(_mandatory_part.front()->atom, "LIST"))
-                throw imap_error("Determining folder delimiter failure.");
-            _mandatory_part.pop_front();
+            string line = _dlg->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
+            if (parsed_line.tag == UNTAGGED_RESPONSE && delimiter.empty())
+            {
+                parse_response(parsed_line.response);
+                if (!iequals(_mandatory_part.front()->atom, "LIST"))
+                    throw imap_error("Determining folder delimiter failure.");
+                _mandatory_part.pop_front();
 
-            if (_mandatory_part.size() < 3)
-                throw imap_error("Determining folder delimiter failure.");
-            auto it = _mandatory_part.begin();
-            if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
-                throw imap_error("Determining folder delimiter failure.");
-            delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
-            reset_response_parser();
-        }
-        else if (parsed_line.tag == to_string(_tag))
-        {
-            if (parsed_line.result.value() != tag_result_response_t::OK)
-                throw imap_error("Determining folder delimiter failure.");
+                if (_mandatory_part.size() < 3)
+                    throw imap_error("Determining folder delimiter failure.");
+                auto it = _mandatory_part.begin();
+                if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
+                    throw imap_error("Determining folder delimiter failure.");
+                delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
+                reset_response_parser();
+            }
+            else if (parsed_line.tag == to_string(_tag))
+            {
+                if (parsed_line.result.value() != tag_result_response_t::OK)
+                    throw imap_error("Determining folder delimiter failure.");
 
-            has_more = false;
+                has_more = false;
+            }
         }
     }
     return delimiter;
