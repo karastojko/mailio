@@ -280,10 +280,19 @@ public:
 
     @param folder_name Folder to append the message.
     @param msg         Message to append.
+    @throw *           `append(const string&, const message&)`.
+    **/
+    void append(const std::list<std::string>& folder_name, const message& msg);
+
+    /**
+    Appending a message to the given folder.
+
+    @param folder_name Folder to append the message.
+    @param msg         Message to append.
     @throw imap_error  `Message appending failure.`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`,
                        `message::format(std::string&, bool)`.
     **/
-    void append(const std::list<std::string>& folder_name, const message& msg);
+    void append(const std::string& folder_name, const message& msg);
 
     /**
     Getting the mailbox statistics.

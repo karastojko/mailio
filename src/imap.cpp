@@ -448,11 +448,16 @@ void imap::append(const list<string>& folder_name, const message& msg)
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);
+    append(folder_name_s, msg);
+}
 
+
+void imap::append(const string& folder_name, const message& msg)
+{
     string msg_str;
     msg.format(msg_str, true);
 
-    string cmd = "APPEND " + folder_name_s;
+    string cmd = "APPEND " + folder_name;
     cmd.append(" {" + to_string(msg_str.size()) + "}");
     _dlg->send(format(cmd));
     string line = _dlg->receive();
