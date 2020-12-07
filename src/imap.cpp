@@ -204,6 +204,112 @@ auto imap::select(const list<string>& folder_name, bool read_only) -> mailbox_st
 }
 
 
+auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
+{
+    string cmd;
+    if (read_only)
+        cmd = format("EXAMINE " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR);
+    else
+        cmd = format("SELECT " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR);
+    _dlg->send(cmd);
+
+    mailbox_stat_t stat;
+    bool exists_found = false;
+    bool recent_found = false;
+    bool has_more = true;
+
+    try
+    {
+        while (has_more)
+        {
+            reset_response_parser();
+            string line = _dlg->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
+            parse_response(parsed_line.response);
+
+            if (parsed_line.tag == UNTAGGED_RESPONSE)
+            {
+                const auto result = parsed_line.result;
+                if (result.has_value() && result.value() == tag_result_response_t::OK)
+                {
+                    if (_optional_part.size() != 2)
+                        continue;
+
+                    auto key = _optional_part.front();
+                    _optional_part.pop_front();
+                    if (key->token_type == response_token_t::token_type_t::ATOM)
+                    {
+                        auto value = _optional_part.front();
+                        if (iequals(key->atom, "UNSEEN"))
+                        {
+                            if (value->token_type != response_token_t::token_type_t::ATOM)
+                                throw imap_error("Parsing failure.");
+                            stat.messages_first_unseen = stoul(value->atom);
+                        }
+                        else if (iequals(key->atom, "UIDNEXT"))
+                        {
+                            if (value->token_type != response_token_t::token_type_t::ATOM)
+                                throw imap_error("Parsing failure.");
+                            stat.uid_next = stoul(value->atom);
+                        }
+                        else if (iequals(key->atom, "UIDVALIDITY"))
+                        {
+                            if (value->token_type != response_token_t::token_type_t::ATOM)
+                                throw imap_error("Parsing failure.");
+                            stat.uid_validity = stoul(value->atom);
+                        }
+                    }
+                }
+                else
+                {
+                    if (_mandatory_part.size() == 2 && _mandatory_part.front()->token_type == response_token_t::token_type_t::ATOM)
+                    {
+                        auto value = _mandatory_part.front();
+                        _mandatory_part.pop_front();
+                        auto key = _mandatory_part.front();
+                        _mandatory_part.pop_front();
+                        if (iequals(key->atom, "EXISTS"))
+                        {
+                            stat.messages_no = stoul(value->atom);
+                            exists_found = true;
+                        }
+                        else if (iequals(key->atom, "RECENT"))
+                        {
+                            stat.messages_recent = stoul(value->atom);
+                            recent_found = true;
+                        }
+                    }
+                }
+            }
+            else if (parsed_line.tag == to_string(_tag))
+            {
+                if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
+                    throw imap_error("Select or examine mailbox failure.");
+
+                has_more = false;
+            }
+            else
+                throw imap_error("Parsing failure.");
+        }
+    }
+    catch (const invalid_argument& exc)
+    {
+        throw imap_error("Parsing failure.");
+    }
+    catch (const out_of_range& exc)
+    {
+        throw imap_error("Parsing failure.");
+    }
+
+    // The EXISTS and RECENT are required, the others may be missing in earlier protocol versions.
+    if (!exists_found || !recent_found)
+        throw imap_error("Parsing failure.");
+
+    reset_response_parser();
+    return stat;
+}
+
+
 void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, bool header_only)
 {
     select(mailbox);
@@ -796,112 +902,6 @@ void imap::auth_login(const string& username, const string& password)
 
         has_more = false;
     }
-}
-
-
-auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
-{
-    string cmd;
-    if (read_only)
-        cmd = format("EXAMINE " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR);
-    else
-        cmd = format("SELECT " + QUOTED_STRING_SEPARATOR + mailbox + QUOTED_STRING_SEPARATOR);
-    _dlg->send(cmd);
-
-    mailbox_stat_t stat;
-    bool exists_found = false;
-    bool recent_found = false;
-    bool has_more = true;
-
-    try
-    {
-        while (has_more)
-        {
-            reset_response_parser();
-            string line = _dlg->receive();
-            tag_result_response_t parsed_line = parse_tag_result(line);
-            parse_response(parsed_line.response);
-
-            if (parsed_line.tag == UNTAGGED_RESPONSE)
-            {
-                const auto result = parsed_line.result;
-                if (result.has_value() && result.value() == tag_result_response_t::OK)
-                {
-                    if (_optional_part.size() != 2)
-                        continue;
-
-                    auto key = _optional_part.front();
-                    _optional_part.pop_front();
-                    if (key->token_type == response_token_t::token_type_t::ATOM)
-                    {
-                        auto value = _optional_part.front();
-                        if (iequals(key->atom, "UNSEEN"))
-                        {
-                            if (value->token_type != response_token_t::token_type_t::ATOM)
-                                throw imap_error("Parsing failure.");
-                            stat.messages_first_unseen = stoul(value->atom);
-                        }
-                        else if (iequals(key->atom, "UIDNEXT"))
-                        {
-                            if (value->token_type != response_token_t::token_type_t::ATOM)
-                                throw imap_error("Parsing failure.");
-                            stat.uid_next = stoul(value->atom);
-                        }
-                        else if (iequals(key->atom, "UIDVALIDITY"))
-                        {
-                            if (value->token_type != response_token_t::token_type_t::ATOM)
-                                throw imap_error("Parsing failure.");
-                            stat.uid_validity = stoul(value->atom);
-                        }
-                    }
-                }
-                else
-                {
-                    if (_mandatory_part.size() == 2 && _mandatory_part.front()->token_type == response_token_t::token_type_t::ATOM)
-                    {
-                        auto value = _mandatory_part.front();
-                        _mandatory_part.pop_front();
-                        auto key = _mandatory_part.front();
-                        _mandatory_part.pop_front();
-                        if (iequals(key->atom, "EXISTS"))
-                        {
-                            stat.messages_no = stoul(value->atom);
-                            exists_found = true;
-                        }
-                        else if (iequals(key->atom, "RECENT"))
-                        {
-                            stat.messages_recent = stoul(value->atom);
-                            recent_found = true;
-                        }
-                    }
-                }
-            }
-            else if (parsed_line.tag == to_string(_tag))
-            {
-                if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
-                    throw imap_error("Select or examine mailbox failure.");
-
-                has_more = false;
-            }
-            else
-                throw imap_error("Parsing failure.");
-        }
-    }
-    catch (const invalid_argument& exc)
-    {
-        throw imap_error("Parsing failure.");
-    }
-    catch (const out_of_range& exc)
-    {
-        throw imap_error("Parsing failure.");
-    }
-
-    // The EXISTS and RECENT are required, the others may be missing in earlier protocol versions.
-    if (!exists_found || !recent_found)
-        throw imap_error("Parsing failure.");
-
-    reset_response_parser();
-    return stat;
 }
 
 

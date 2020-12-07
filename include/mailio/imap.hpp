@@ -215,6 +215,19 @@ public:
     mailbox_stat_t select(const std::list<std::string>& folder_name, bool read_only = false);
 
     /**
+    Selecting a mailbox.
+
+    @param mailbox    Mailbox to select.
+    @param read_only  Flag if the selected mailbox is only readable of also writable.
+    @return           Mailbox statistics.
+    @throw imap_error Selecting mailbox failure.
+    @throw imap_error Parsing failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo             Add server error messages to exceptions.
+    **/
+    mailbox_stat_t select(const std::string& mailbox, bool read_only = false);
+
+    /**
     Fetching a message from the mailbox.
 
     Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
@@ -533,19 +546,6 @@ protected:
     @todo             Add server error messages to exceptions.
     **/
     void auth_login(const std::string& username, const std::string& password);
-
-    /**
-    Selecting a mailbox.
-
-    @param mailbox    Mailbox to select.
-    @param read_only  Flag if the selected mailbox is only readable of also writable.
-    @return           Mailbox statistics.
-    @throw imap_error Selecting mailbox failure.
-    @throw imap_error Parsing failure.
-    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-    @todo             Add server error messages to exceptions.
-    **/
-    mailbox_stat_t select(const std::string& mailbox, bool read_only = false);
 
     /**
     Searching a mailbox.
