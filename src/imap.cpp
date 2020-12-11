@@ -329,6 +329,7 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
     _dlg->send(format(cmd));
 
     bool has_more = true;
+    string msg_str;
     while (has_more)
     {
         reset_response_parser();
@@ -397,7 +398,7 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
                         trim_eol(line);
                     parse_response(line);
                 }
-                msg.parse(literal_token->literal);
+                msg_str = std::move(literal_token->literal);
             }
             else
                 throw imap_error("Parsing failure.");
@@ -407,6 +408,8 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
             if (parsed_line.result.value() == tag_result_response_t::OK)
             {
                 has_more = false;
+                // Wait for the OK response in order to parse the message.
+                msg.parse(msg_str);
             }
             else
                 throw imap_error("Fetching message failure.");
