@@ -383,7 +383,7 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 
             if (literal_token != nullptr)
             {
-                // loop to read string literal
+                // Loop to read string literal.
                 while (_literal_state == string_literal_state_t::READING)
                 {
                     string line = _dlg->receive(true);
@@ -391,7 +391,7 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
                         trim_eol(line);
                     parse_response(line);
                 }
-                // closing parenthesis not yet read
+                // Closing parenthesis not yet read.
                 if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
                 {
                     string line = _dlg->receive(true);
@@ -509,7 +509,7 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
 
             if (literal_token != nullptr)
             {
-                // loop to read string literal
+                // Loop to read string literal.
                 while (_literal_state == string_literal_state_t::READING)
                 {
                     string line = _dlg->receive(true);
@@ -517,7 +517,7 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
                         trim_eol(line);
                     parse_response(line);
                 }
-                // closing parenthesis not yet read
+                // Closing parenthesis not yet read.
                 if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
                 {
                     string line = _dlg->receive(true);
