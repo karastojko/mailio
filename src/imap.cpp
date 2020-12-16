@@ -328,8 +328,9 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
     cmd.append("FETCH " + to_string(message_no) + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
     _dlg->send(format(cmd));
 
-    bool has_more = true;
+    // Stores a message as string literals for parsing after the OK response.
     string msg_str;
+    bool has_more = true;
     while (has_more)
     {
         reset_response_parser();
@@ -434,6 +435,8 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
     cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
     _dlg->send(format(cmd));
 
+    // Stores messages as string literals for parsing after the OK response.
+    map<unsigned long, string> msg_str;
     bool has_more = true;
     while (has_more)
     {
@@ -522,18 +525,13 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
                         trim_eol(line);
                     parse_response(line);
                 }
+                msg_str.emplace(is_uids ? uid : msg_no, move(literal_token->literal));
 
                 // If no UID was found, but we asked for them, it's an error.
                 if (is_uids && uid == 0)
                 {
                     throw imap_error("Parsing failure.");
                 }
-
-                message msg;
-                msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
-                msg.parse(literal_token->literal);
-                // Success. Put the message into the result map, indexed either by message number or UID if we asked for UIDs.
-                found_messages.insert(std::pair<unsigned long, message>(is_uids ? uid : msg_no, msg));
             }
             else
                 throw imap_error("Parsing failure.");
@@ -541,7 +539,16 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
         else if (parsed_line.tag == to_string(_tag))
         {
             if (parsed_line.result.value() == tag_result_response_t::OK)
+            {
                 has_more = false;
+                for (const auto& ms : msg_str)
+                {
+                    message msg;
+                    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
+                    msg.parse(ms.second);
+                    found_messages.emplace(ms.first, move(msg));
+                }
+            }
             else
                 throw imap_error("Fetching message failure.");
         }
