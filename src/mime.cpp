@@ -698,8 +698,13 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
     header_value = header_line.substr(colon_pos + 1);
     trim(header_value);
 
-    if (header_name.empty() || (_strict_mode && header_value.empty()))
+    if (header_name.empty())
         throw mime_error("Parsing failure, header name or value empty: " + header_line);
+    if (header_value.empty())
+        if (_strict_mode)
+            throw mime_error("Parsing failure, header name or value empty: " + header_line);
+        else
+            return;
 
     smatch m;
     if (!regex_match(header_name, m, HEADER_NAME_REGEX))
