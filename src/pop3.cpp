@@ -137,6 +137,67 @@ auto pop3::list(unsigned message_no) -> message_list_t
 }
 
 
+auto pop3::uidl(unsigned message_no) -> uidl_list_t
+{
+	uidl_list_t results;
+	try
+	{
+		if (message_no > 0)
+		{
+			_dlg->send("UIDL " + to_string(message_no));
+			string line = _dlg->receive();
+			tuple<string, string> stat_msg = parse_status(line);
+			if (iequals(std::get<0>(stat_msg), "-ERR"))
+				throw pop3_error("UIDL command not supported.");
+
+			// parse data
+			string::size_type pos = std::get<1>(stat_msg).find(TOKEN_SEPARATOR_CHAR);
+			if (pos == string::npos)
+				throw pop3_error("Parser failure: " + std::get<1>(stat_msg));
+			unsigned msg_id = stoi(std::get<1>(stat_msg).substr(0, pos));
+			auto msg_uid = std::get<1>(stat_msg).substr(pos + 1);
+			results[msg_id] = msg_uid;
+		}
+		else
+		{
+			_dlg->send("UIDL");
+			string line = _dlg->receive();
+			tuple<string, string> stat_msg = parse_status(line);
+			if (iequals(std::get<0>(stat_msg), "-ERR"))
+				throw pop3_error("Listing all messages failure.");
+
+			// parse data
+			bool end_of_msg = false;
+			while (!end_of_msg)
+			{
+				line = _dlg->receive();
+				if (line == codec::END_OF_MESSAGE)
+					end_of_msg = true;
+				else
+				{
+					string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
+					if (pos == string::npos)
+						throw pop3_error("Parser failure: " + line);
+					unsigned msg_id = stoi(line.substr(0, pos));
+					auto msg_uid = line.substr(pos + 1);
+					results[msg_id] = msg_uid;
+				}
+			}
+		}
+	}
+	catch (out_of_range& ex)
+	{
+		throw pop3_error("Parser failure: " + std::string(ex.what()));
+	}
+	catch (invalid_argument& ex)
+	{
+		throw pop3_error("Parser failure: " + std::string(ex.what()));
+	}
+
+	return results;
+}
+
+
 auto pop3::statistics() -> mailbox_stat_t
 {
     _dlg->send("STAT");
