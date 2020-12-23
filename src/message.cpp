@@ -614,7 +614,12 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, MESSAGE_ID_HEADER))
     {
         auto ids = parse_many_ids(header_value);
-        _message_id = ids[0];
+		if (_strict_mode && ids.empty())
+			_message_id = {};
+		else if (!ids.empty())
+			_message_id = ids[0];
+		else
+			throw message_error("Parsing failure of the message ID.");
     }
     else if (iequals(header_name, IN_REPLY_TO_HEADER))
         _in_reply_to = parse_many_ids(header_value);
@@ -1318,7 +1323,11 @@ string message::format_many_ids(const string& id)
 
 vector<string> message::parse_many_ids(const string& ids)
 {
-    vector<string> idv;
+	vector<string> idv;
+	if (!_strict_mode && ids.empty())
+	{
+		return {};
+	}
     split(idv, ids, is_any_of(codec::SPACE_STR), boost::algorithm::token_compress_on);
     const regex r(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
     smatch m;
