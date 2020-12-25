@@ -60,7 +60,12 @@ using boost::iequals;
 using boost::split;
 using boost::regex;
 using boost::regex_match;
+using boost::match_default;
+using boost::match_prev_avail;
+using boost::match_not_bob;
 using boost::smatch;
+using boost::match_flag_type;
+using boost::match_results;
 using boost::sregex_iterator;
 using boost::algorithm::is_any_of;
 using boost::local_time::local_date_time;
@@ -1324,12 +1329,27 @@ string message::format_many_ids(const string& id)
 vector<string> message::parse_many_ids(const string& ids)
 {
 	vector<string> idv;
+	const regex r(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
 	if (!_strict_mode && ids.empty())
 	{
 		return {};
 	}
+	else if (!_strict_mode)
+	{
+		auto start = ids.cbegin();
+		auto end = ids.cend();
+		match_flag_type flags = match_default;
+		match_results<string::const_iterator> what;
+		while (regex_search(start, end, what, r, flags))
+		{
+			idv.push_back(what[0]);
+			start = what[0].second;
+			flags |= match_prev_avail;
+			flags |= match_not_bob;
+		}
+		return idv;
+	}
     split(idv, ids, is_any_of(codec::SPACE_STR), boost::algorithm::token_compress_on);
-    const regex r(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
     smatch m;
     for (auto& id : idv)
     {
@@ -1339,7 +1359,7 @@ vector<string> message::parse_many_ids(const string& ids)
             trim_right_if(id, is_any_of(codec::GREATER_THAN_STR));
         }
         else
-            throw message_error("Parsing failure of the message ID.");
+			throw message_error("Parsing failure of the message ID: <" + id	+ ">");
     }
 
     return idv;
