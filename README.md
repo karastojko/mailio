@@ -144,6 +144,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Paul Tsouchlos](mailto:developer.paul.123[at]gmail.com): Modernizing build scripts.
 * [Anton Zhvakin](mailto:a.zhvakin[at]galament.com): Replacement of deprecated Boost Asio entities.
 * [terminator356](mailto:termtech[at]rogers.com): IMAP searching, fetching messages by UIDs.
+* [Ilya Tsybulsky](mailto:ilya.tsybulsky@gmail.com): MIME parsing and encoding.
 
 
 # Contact #
