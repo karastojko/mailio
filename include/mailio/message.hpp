@@ -622,7 +622,7 @@ protected:
     @return              Vector of IDs.
     @throw message_error Parsing failure of the message ID.
     **/
-	std::vector<std::string> parse_many_ids(const std::string& ids);
+    std::vector<std::string> parse_many_ids(const std::string& ids) const;
 
     /**
     Formatting the subject which can be ASCII or UTF-8.
