@@ -700,9 +700,9 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
 
     if (header_name.empty())
         throw mime_error("Parsing failure, header name or value empty: " + header_line);
-	smatch m;
-	if (!regex_match(header_name, m, HEADER_NAME_REGEX))
-		throw mime_error("Format failure of the header name `" + header_name + "`.");
+    smatch m;
+    if (!regex_match(header_name, m, HEADER_NAME_REGEX))
+        throw mime_error("Format failure of the header name `" + header_name + "`.");
     if (header_value.empty())
         if (_strict_mode)
             throw mime_error("Parsing failure, header name or value empty: " + header_line);
