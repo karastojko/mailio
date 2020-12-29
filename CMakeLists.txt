@@ -65,37 +65,37 @@ set(THREADS_PREFER_PTHREAD_FLAG)
 find_package(Threads)
 
 set(project_sources 
-    ${PROJECT_SOURCE_DIR}/src/base64.cpp
-    ${PROJECT_SOURCE_DIR}/src/binary.cpp
-    ${PROJECT_SOURCE_DIR}/src/bit7.cpp
-    ${PROJECT_SOURCE_DIR}/src/bit8.cpp
-    ${PROJECT_SOURCE_DIR}/src/codec.cpp
-    ${PROJECT_SOURCE_DIR}/src/dialog.cpp
-    ${PROJECT_SOURCE_DIR}/src/imap.cpp
-    ${PROJECT_SOURCE_DIR}/src/mailboxes.cpp
-    ${PROJECT_SOURCE_DIR}/src/message.cpp
-    ${PROJECT_SOURCE_DIR}/src/mime.cpp
-    ${PROJECT_SOURCE_DIR}/src/pop3.cpp
-    ${PROJECT_SOURCE_DIR}/src/quoted_printable.cpp
-    ${PROJECT_SOURCE_DIR}/src/q_codec.cpp
-    ${PROJECT_SOURCE_DIR}/src/smtp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/base64.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/binary.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bit7.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bit8.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/codec.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/dialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/imap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/mailboxes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/message.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/mime.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pop3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/quoted_printable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/q_codec.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/smtp.cpp
 )
 
 set(project_headers
-    ${PROJECT_SOURCE_DIR}/include/mailio/base64.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/binary.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/bit7.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/bit8.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/codec.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/dialog.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/imap.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/mailboxes.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/message.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/mime.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/pop3.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/quoted_printable.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/q_codec.hpp
-    ${PROJECT_SOURCE_DIR}/include/mailio/smtp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/base64.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/binary.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/bit7.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/bit8.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/codec.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/dialog.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/imap.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/mailboxes.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/message.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/mime.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/pop3.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/quoted_printable.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/q_codec.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mailio/smtp.hpp
 )
 
 # handle documentation
@@ -106,7 +106,7 @@ if(${MAILIO_BUILD_DOCUMENTATION})
         set(DOXYGEN_GENERATE_LATEX ${MAILIO_BUILD_LATEX_DOCUMENTATION})
         set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
 
-        doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        doxygen_add_docs(docs ${CMAKE_CURRENT_SOURCE_DIR}/include WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
         # install the documentation
         install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
@@ -140,7 +140,7 @@ endif(IS_ABSOLUTE "${INCLUDE_INSTALL_DIR}")
 configure_file(mailio.pc.in ${CMAKE_BINARY_DIR}/mailio.pc IMMEDIATE @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/mailio.pc DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
 
-configure_file(${PROJECT_SOURCE_DIR}/include/version.hpp.in version.hpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in version.hpp)
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}")
 install(FILES ${CMAKE_BINARY_DIR}/version.hpp DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME})
 
@@ -150,7 +150,7 @@ include(GenerateExportHeader)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME export.hpp)
 target_include_directories(${PROJECT_NAME} 
     PUBLIC
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:include>"
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/export.hpp DESTINATION "${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
@@ -176,6 +176,6 @@ install(TARGETS ${PROJECT_NAME}
 # optionally build examples
 if(${MAILIO_BUILD_EXAMPLES})
     add_subdirectory(examples)
-    file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
+    file(GLOB PNGS "${CMAKE_CURRENT_SOURCE_DIR}/examples/*.png")
     install(FILES ${PNGS} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/examples/")
 endif(${MAILIO_BUILD_EXAMPLES})
