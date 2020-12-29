@@ -61,6 +61,8 @@ using boost::split;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
+using boost::match_flag_type;
+using boost::match_results;
 using boost::sregex_iterator;
 using boost::algorithm::is_any_of;
 using boost::local_time::local_date_time;
@@ -614,7 +616,8 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, MESSAGE_ID_HEADER))
     {
         auto ids = parse_many_ids(header_value);
-        _message_id = ids[0];
+        if (!ids.empty())
+            _message_id = ids[0];
     }
     else if (iequals(header_name, IN_REPLY_TO_HEADER))
         _in_reply_to = parse_many_ids(header_value);
@@ -1316,22 +1319,30 @@ string message::format_many_ids(const string& id)
 }
 
 
-vector<string> message::parse_many_ids(const string& ids)
+vector<string> message::parse_many_ids(const string& ids) const
 {
+    if (!_strict_mode && ids.empty())
+        return {};
+
     vector<string> idv;
-    split(idv, ids, is_any_of(codec::SPACE_STR), boost::algorithm::token_compress_on);
-    const regex r(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
-    smatch m;
-    for (auto& id : idv)
+    const regex rgx(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
+    auto start = ids.cbegin();
+    auto end = ids.cend();
+    match_flag_type flags = boost::match_default | boost::match_not_null;
+    match_results<string::const_iterator> tokens;
+    bool all_tokens_parsed = false;
+    while (regex_search(start, end, tokens, rgx, flags))
     {
-        if (regex_match(id, m, r))
-        {
-            trim_left_if(id, is_any_of(codec::LESS_THAN_STR));
-            trim_right_if(id, is_any_of(codec::GREATER_THAN_STR));
-        }
-        else
-            throw message_error("Parsing failure of the message ID.");
+        string id = tokens[0];
+        trim_left_if(id, is_any_of(codec::LESS_THAN_STR));
+        trim_right_if(id, is_any_of(codec::GREATER_THAN_STR));
+        idv.push_back(id);
+        start = tokens[0].second;
+        all_tokens_parsed = (start == end);
     }
+
+    if (!all_tokens_parsed)
+        throw message_error("Parsing failure of the ID: " + ids);
 
     return idv;
 }
