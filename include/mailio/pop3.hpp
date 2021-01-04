@@ -48,10 +48,10 @@ public:
     **/
     typedef std::map<unsigned, unsigned long> message_list_t;
 
-	/**
-	Message order numbers and their corresponding unique IDs (a UIDL response from server).
-	**/
-	typedef std::map<unsigned, std::string> uidl_list_t;
+    /**
+    Message order numbers and their corresponding unique IDs (a UIDL response from server).
+    **/
+    typedef std::map<unsigned, std::string> uidl_list_t;
 
     /**
     Mailbox statistics structure.
@@ -125,17 +125,17 @@ public:
     **/
     message_list_t list(unsigned message_no = 0);
 
-	/**
-	Getting the unique ID of a message or all messages in a mailbox (UIDL command; might not be supported by server).
+    /**
+    Getting the unique ID of a message or all messages in a mailbox (UIDL command; might not be supported by server).
 
-	@param message_no Number of the message to get ID for. If zero, then all messages are listed.
-	@return           Uidl list.
-	@throw pop3_error Listing message failure.
-	@throw pop3_error Listing all messages failure.
-	@throw pop3_error Parser failure.
-	@throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
-	**/
-	uidl_list_t uidl(unsigned message_no = 0);
+    @param message_no Number of the message to get ID for. If zero, then all messages are listed.
+    @return           Uidl list.
+    @throw pop3_error Listing message failure.
+    @throw pop3_error Listing all messages failure.
+    @throw pop3_error Parser failure.
+    @throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    uidl_list_t uidl(unsigned message_no = 0);
 
     /**
     Fetching the mailbox statistics.
