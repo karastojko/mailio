@@ -145,6 +145,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Anton Zhvakin](mailto:a.zhvakin[at]galament.com): Replacement of deprecated Boost Asio entities.
 * [terminator356](mailto:termtech[at]rogers.com): IMAP searching, fetching messages by UIDs.
 * [Ilya Tsybulsky](mailto:ilya.tsybulsky@gmail.com): MIME parsing and formatting issues. UIDL command for POP3.
+* [Ayaz Salikhov](https://github.com/mathbunnyru): Conan packaging.
 
 
 # Contact #
