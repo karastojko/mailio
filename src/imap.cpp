@@ -196,7 +196,7 @@ string imap::authenticate(const string& username, const string& password, auth_m
 }
 
 
-auto imap::select(const list<string>& folder_name, bool read_only) -> mailbox_stat_t
+auto imap::select(const list<string>& folder_name, bool /*read_only*/) -> mailbox_stat_t
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);
@@ -759,7 +759,7 @@ void imap::remove(unsigned long message_no, bool is_uid)
 void imap::search(const list<imap::search_condition_t>& conditions, list<unsigned long>& results, bool want_uids)
 {
     string cond_str;
-    int elem = 0;
+    std::size_t elem = 0;
     for (const auto& c : conditions)
         if (elem++ < conditions.size() - 1)
             cond_str += c.imap_string + TOKEN_SEPARATOR_STR;
@@ -1278,7 +1278,7 @@ void imap::trim_eol(string& line)
 string imap::folder_tree_to_string(const list<string>& folder_tree, string delimiter) const
 {
     string folders;
-    int elem = 0;
+    std::size_t elem = 0;
     for (const auto& f : folder_tree)
         if (elem++ < folder_tree.size() - 1)
             folders += f + delimiter;

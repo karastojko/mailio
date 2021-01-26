@@ -51,19 +51,6 @@ struct MAILIO_EXPORT mail_address
     mail_address(const std::string& mail_name, const std::string& mail_address);
 
     /**
-    Default destructor.
-    **/
-    ~mail_address() = default;
-
-    /**
-    Assigning a mail.
-
-    @param other Mail to assign.
-    @return      This object.
-    **/
-    mail_address& operator=(const mail_address& other);
-
-    /**
     Checking if a mail is empty, i.e. name and address are empty.
 
     @return True if empty, false if not.

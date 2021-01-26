@@ -27,17 +27,6 @@ mail_address::mail_address(const string& mail_name, const string& mail_address) 
 }
 
 
-mail_address& mail_address::operator=(const mail_address& other)
-{
-    if (this != &other)
-    {
-        name = other.name;
-        address = other.address;
-    }
-    return *this;
-}
-
-
 bool mail_address::empty() const
 {
     return name.empty() && address.empty();

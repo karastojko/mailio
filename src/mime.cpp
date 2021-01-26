@@ -704,10 +704,16 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
     if (!regex_match(header_name, m, HEADER_NAME_REGEX))
         throw mime_error("Format failure of the header name `" + header_name + "`.");
     if (header_value.empty())
+    {
         if (_strict_mode)
+        {
             throw mime_error("Parsing failure, header name or value empty: " + header_line);
+        }
         else
+        {
             return;
+        }
+    }
 
     if (!regex_match(header_value, m, HEADER_VALUE_REGEX))
         throw mime_error("Format failure of the header value `" + header_value + "`.");
@@ -918,6 +924,10 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     state = state_t::ATTR_BEGIN;
                 else
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
+                break;
+
+            case state_t::END:
+                return;
         }
     }
 }

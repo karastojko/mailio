@@ -45,8 +45,10 @@ boost::asio::io_context dialog::_ios;
 
 dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
     _hostname(hostname), _port(port), _socket(make_shared<tcp::socket>(_ios)), _timer(make_shared<deadline_timer>(_ios)),
-    _strmbuf(make_shared<streambuf>()), _istrm(make_shared<istream>(_strmbuf.get())), _timeout(timeout), _timer_expired(false)
+    _timeout(timeout), _timer_expired(false), _strmbuf(make_shared<streambuf>())
 {
+    _istrm = make_shared<istream>(_strmbuf.get());
+
     try
     {
         if (_timeout.count() == 0)
@@ -65,8 +67,9 @@ dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
 
 
 dialog::dialog(const dialog& other) : _hostname(move(other._hostname)), _port(other._port), _socket(other._socket), _timer(other._timer),
-    _strmbuf(other._strmbuf), _istrm(other._istrm), _timeout(other._timeout), _timer_expired(other._timer_expired)
+    _timeout(other._timeout), _timer_expired(other._timer_expired), _strmbuf(other._strmbuf)
 {
+    _istrm = other._istrm;
 }
 
 
@@ -147,7 +150,7 @@ void dialog::connect_async()
 
     bool has_connected = false;
     async_connect(*_socket, res.resolve(_hostname, to_string(_port)),
-        [&has_connected](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint)
+        [&has_connected](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& /*endpoint*/)
     {
         if (!error)
             has_connected = true;
