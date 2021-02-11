@@ -1221,9 +1221,13 @@ mailboxes message::parse_address_list(const string& address_list) const
                     state = state_t::BEGIN;
                 }
                 else if (*ch == codec::LEFT_PARENTHESIS_CHAR)
+                {
                     state = state_t::COMMBEG;
+                }
                 else if (isspace(*ch))
+                {
                     ;
+                }
 
                 if (ch == address_list.end() - 1)
                 {
