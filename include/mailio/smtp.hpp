@@ -83,6 +83,7 @@ public:
     Submitting a message.
 
     @param msg        Mail message to send.
+    @return           The SMTP server's reply on accepting the message.
     @throw smtp_error Mail sender rejection.
     @throw smtp_error Mail recipient rejection.
     @throw smtp_error Mail group recipient rejection.
@@ -93,7 +94,7 @@ public:
     @throw smtp_error Mail message rejection.
     @throw *          `parse_line(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
-    void submit(const message& msg);
+    std::string submit(const message& msg);
 
     /**
     Setting the source hostname.

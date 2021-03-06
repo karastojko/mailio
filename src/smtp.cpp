@@ -77,7 +77,7 @@ string smtp::authenticate(const string& username, const string& password, auth_m
 }
 
 
-void smtp::submit(const message& msg)
+string smtp::submit(const message& msg)
 {
     if (!msg.sender().address.empty())
         _dlg->send("MAIL FROM: " + message::ADDRESS_BEGIN_STR + msg.sender().address + message::ADDRESS_END_STR);
@@ -155,6 +155,7 @@ void smtp::submit(const message& msg)
     tokens = parse_line(line);
     if (!positive_completion(std::get<0>(tokens)))
         throw smtp_error("Mail message rejection.");
+    return std::get<2>(tokens);
 }
 
 
