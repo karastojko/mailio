@@ -32,7 +32,7 @@ namespace mailio
 /**
 Dealing with network in a line oriented fashion.
 **/
-class MAILIO_EXPORT dialog
+class dialog
 {
 public:
 
