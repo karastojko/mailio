@@ -95,7 +95,7 @@ From the terminal go into the directory where the library is downloaded to, and 
 mkdir build
 cd ./build
 cmake ..
-make install
+sudo make install
 ```
 
 
