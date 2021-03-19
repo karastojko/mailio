@@ -148,6 +148,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Ayaz Salikhov](https://github.com/mathbunnyru): Conan packaging.
 * [Tim Lukas Harken](tlh[at]tlharken.de): Removing compilation warnings.
 * [Rainer Sabelka](saba[at]sabanet.at]): SMTP server response on accepting a mail.
+* [David Garcia](david.garcia@antiteum.com): Vcpkg port.
 
 
 # Contact #
