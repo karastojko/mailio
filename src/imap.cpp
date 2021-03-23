@@ -292,11 +292,11 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
                 throw imap_error("Parsing failure.");
         }
     }
-    catch (const invalid_argument& exc)
+    catch (const invalid_argument&)
     {
         throw imap_error("Parsing failure.");
     }
-    catch (const out_of_range& exc)
+    catch (const out_of_range&)
     {
         throw imap_error("Parsing failure.");
     }
@@ -962,11 +962,11 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
             }
         }
     }
-    catch (const invalid_argument& exc)
+    catch (const invalid_argument&)
     {
         throw imap_error("Parsing failure.");
     }
-    catch (const out_of_range& exc)
+    catch (const out_of_range&)
     {
         throw imap_error("Parsing failure.");
     }
