@@ -1,7 +1,7 @@
 
 # mailio #
 
-mailio is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on the standard C++ 17 and Boost library.
+*mailio* is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on the standard C++ 17 and Boost library.
 
 
 # Examples #
@@ -53,7 +53,7 @@ generated password for all three protocols.
 
 # Requirements #
 
-Mailio library is supposed to work on all platforms supporting C++ 17 compiler, recent Boost libraries and CMake build tool.
+*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, recent Boost libraries and CMake build tool.
 
 For Linux the following configuration is tested:
 
@@ -80,6 +80,11 @@ For Microsoft Windows the following configuration is tested:
 
 # Setup #
 
+There are two ways to build *mailio*: by cloning the [repo](https://github.com/karastojko/mailio.git) and using Cmake or by using Vcpkg.
+
+
+## CMake ##
+
 Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could use CMake options `-DOPENSSL_ROOT_DIR` and `-DBOOST_ROOT` to set
 them. Boost must be built with the OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include` parameters of
 `b2` script (after `bootstrap` finishes). Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default
@@ -88,7 +93,7 @@ installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INS
 and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 
-## Linux, MacOS ##
+### Linux, MacOS ###
 
 From the terminal go into the directory where the library is downloaded to, and execute:
 ```
@@ -99,7 +104,7 @@ make install
 ```
 
 
-## Microsoft Windows ##
+### Microsoft Windows ###
 
 From the command prompt go into the directory where the library is downloaded, and execute:
 ```
@@ -108,6 +113,14 @@ cd .\build
 cmake ..
 ```
 A solution file will be built, open it from Visual Studio and build the project.
+
+
+## Vcpkg ##
+
+Install [Vcpkg](https://github.com/microsoft/vcpkg) and run:
+```
+vcpkg install mailio
+```
 
 
 # Features #
