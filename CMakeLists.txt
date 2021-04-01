@@ -64,7 +64,7 @@ set(CMAKE_THREAD_PREFER_PTHREAD)
 set(THREADS_PREFER_PTHREAD_FLAG)
 find_package(Threads)
 
-set(project_sources 
+set(project_sources
     ${PROJECT_SOURCE_DIR}/src/base64.cpp
     ${PROJECT_SOURCE_DIR}/src/binary.cpp
     ${PROJECT_SOURCE_DIR}/src/bit7.cpp
@@ -102,11 +102,11 @@ set(project_headers
 if(${MAILIO_BUILD_DOCUMENTATION})
     find_package(Doxygen COMPONENTS doxygen OPTIONAL_COMPONENTS dot)
     if(DOXYGEN_FOUND)
-        set(DOCOUTDIR ${PROJECT_BINARY_DIR}/docs)	
+        set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/docs)
         set(DOXYGEN_GENERATE_LATEX ${MAILIO_BUILD_LATEX_DOCUMENTATION})
         set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
 
-        doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include ALL WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
         # install the documentation
         install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
@@ -148,7 +148,7 @@ install(FILES ${CMAKE_BINARY_DIR}/version.hpp DESTINATION ${INCLUDE_INSTALL_DIR}
 # this is needed to generate a shared library.
 include(GenerateExportHeader)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME export.hpp)
-target_include_directories(${PROJECT_NAME} 
+target_include_directories(${PROJECT_NAME}
     PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}>"
         "$<INSTALL_INTERFACE:include>"
