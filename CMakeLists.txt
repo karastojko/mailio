@@ -102,15 +102,14 @@ set(project_headers
 if(${MAILIO_BUILD_DOCUMENTATION})
     find_package(Doxygen COMPONENTS doxygen OPTIONAL_COMPONENTS dot)
     if(DOXYGEN_FOUND)
-        set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/docs)
+        set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/docs/mailio)
         set(DOXYGEN_GENERATE_LATEX ${MAILIO_BUILD_LATEX_DOCUMENTATION})
         set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
 
         doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include ALL WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
         # install the documentation
-        install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/html DESTINATION docs)
-        install(DIRECTORY ${PROJECT_BINARY_DIR}/docs/latex DESTINATION docs)
+        install(DIRECTORY ${DOXYGEN_OUTPUT_DIRECTORY} DESTINATION docs)
     else(DOXYGEN_FOUND)
         message(STATUS "doxygen was not found, documentation will not be built")
     endif(DOXYGEN_FOUND)
