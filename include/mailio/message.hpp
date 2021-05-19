@@ -712,7 +712,7 @@ protected:
     /**
     Message date and time with time zone.
     **/
-    std::shared_ptr<boost::local_time::local_date_time> _date_time;
+    boost::local_time::local_date_time _date_time;
 
     /**
     Other headers not included into the known ones.

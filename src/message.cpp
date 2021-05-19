@@ -97,10 +97,8 @@ const string message::DISPOSITION_NOTIFICATION_HEADER{"Disposition-Notification-
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
 
 
-message::message() : mime()
+message::message() : mime(), _date_time(second_clock::universal_time(), time_zone_ptr(new posix_time_zone("00:00")))
 {
-    time_zone_ptr tz(new posix_time_zone("00:00"));
-    _date_time = make_shared<local_date_time>(second_clock::universal_time(), tz);
 }
 
 
@@ -372,13 +370,13 @@ string message::subject() const
 
 local_date_time message::date_time() const
 {
-    return *_date_time;
+    return _date_time;
 }
 
 
 void message::date_time(const boost::local_time::local_date_time& mail_dt)
 {
-    *_date_time = mail_dt;
+    _date_time = mail_dt;
 }
 
 
@@ -534,13 +532,13 @@ string message::format_header() const
     header += _references.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
-    if (!_date_time->is_not_a_date_time())
+    if (!_date_time.is_not_a_date_time())
     {
         stringstream ss;
         ss.exceptions(std::ios_base::failbit);
         local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
         ss.imbue(locale(ss.getloc(), facet));
-        ss << *_date_time;
+        ss << _date_time;
         header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + codec::END_OF_LINE;
     }
 
@@ -626,7 +624,7 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, SUBJECT_HEADER))
         _subject = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
-        *_date_time = parse_date(trim_copy(header_value));
+        _date_time = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
         _version = trim_copy(header_value);
     else
