@@ -435,13 +435,24 @@ public:
     void attachment(std::size_t index, std::ostream& att_strm, std::string& att_name) const;
 
     /**
-    Adding another header. Adding a header defined by other methods leads to the undefined behaviour.
+    Adding another header.
+
+    Adding a header defined by other methods leads to the undefined behaviour.
 
     @param name  Header name.
     @param value Header value.
-    @todo        Disallowing already defined headers?
+    @todo        Disallowing standard headers defined elsewhere?
     **/
     void add_header(const std::string& name, const std::string& value);
+
+    /**
+    Removing another header.
+
+    Removing a header defined by other methods leads to the undefined behaviour.
+
+    @param name Header to remove.
+    **/
+    void remove_header(const std::string& name);
 
     /**
     Returning the other headers.

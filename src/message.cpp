@@ -490,6 +490,12 @@ void message::add_header(const string& name, const string& value)
 }
 
 
+void message::remove_header(const std::string& name)
+{
+    _headers.erase(name);
+}
+
+
 multimap<string, string> message::headers() const
 {
     return _headers;
