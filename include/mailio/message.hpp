@@ -403,6 +403,7 @@ public:
     @throw *        `mime::content_type(const content_type_t&)`, `mime::content_transfer_encoding(content_transfer_encoding_t)`,
                     `mime::content_disposition(content_disposition_t)`.
     **/
+    [[deprecated]]
     void attach(const std::istream& att_strm, const std::string& att_name, media_type_t type, const std::string& subtype);
 
     /**

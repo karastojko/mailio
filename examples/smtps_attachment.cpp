@@ -16,6 +16,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <iostream>
 #include <fstream>
+#include <list>
 #include <mailio/message.hpp>
 #include <mailio/smtp.hpp>
 
@@ -28,6 +29,10 @@ using mailio::dialog_error;
 using std::cout;
 using std::endl;
 using std::ifstream;
+using std::string;
+using std::tuple;
+using std::make_tuple;
+using std::list;
 
 
 int main()
@@ -39,11 +44,14 @@ int main()
         msg.from(mail_address("mailio library", "mailio@gmail.com"));// set the correct sender name and address
         msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));// set the correct recipent name and address
         msg.subject("smtps message with attachment");
-        ifstream ifs1("aleph0.png");
-        msg.attach(ifs1, "aleph0.png", message::media_type_t::IMAGE, "png");
-        ifstream ifs2("infinity.png");
-        msg.attach(ifs2, "infinity.png", message::media_type_t::IMAGE, "png");
         msg.content("Here are Aleph0 and Infinity pictures.");
+
+        ifstream ifs1("aleph0.png");
+        ifstream ifs2("infinity.png");
+        list<tuple<std::istream&, string, message::content_type_t>> atts;
+        atts.push_back(make_tuple(std::ref(ifs1), string("aleph0.png"), message::content_type_t(message::media_type_t::IMAGE, "png")));
+        atts.push_back(make_tuple(std::ref(ifs2), "infinity.png", message::content_type_t(message::media_type_t::IMAGE, "png")));
+        msg.attach(atts);
 
         // use a server with plain (non-SSL) connectivity
         smtps conn("smtp.mailserver.com", 465);
