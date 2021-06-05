@@ -57,7 +57,7 @@ generated password for all three protocols.
 
 For Linux the following configuration is tested:
 
-* gcc 8.3.0.
+* Gcc 8.3.0.
 * Boost 1.66 with Regex, Date Time available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
 * CMake 3.16.3
@@ -77,6 +77,12 @@ For Microsoft Windows the following configuration is tested:
 * OpenSSL 1.0.2n available on the system.
 * CMake 3.17.3.
 
+For Cygwin the following configuration is tested:
+* Cygwin 3.2.0 on Windows 10.
+* Gcc 10.2.
+* Boost 1.66.
+* Cmake 3.20.
+* LibSSL 1.0.2t and LibSSL 1.1.1f development packages.
 
 # Setup #
 
@@ -93,7 +99,7 @@ installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INS
 and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 
-### Linux, MacOS ###
+### Linux, MacOS, Cygwin ###
 
 From the terminal go into the directory where the library is downloaded to, and execute:
 ```
