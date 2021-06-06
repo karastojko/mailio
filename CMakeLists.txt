@@ -164,6 +164,10 @@ if(OPENSSL_FOUND)
     target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES})
 endif()
 
+if(MINGW)
+    target_link_libraries(${PROJECT_NAME} -lws2_32 )
+endif(MINGW)
+
 install(DIRECTORY include/mailio DESTINATION ${INCLUDE_INSTALL_DIR})
 
 install(TARGETS ${PROJECT_NAME}
