@@ -403,6 +403,7 @@ public:
     @throw *        `mime::content_type(const content_type_t&)`, `mime::content_transfer_encoding(content_transfer_encoding_t)`,
                     `mime::content_disposition(content_disposition_t)`.
     **/
+    [[deprecated]]
     void attach(const std::istream& att_strm, const std::string& att_name, media_type_t type, const std::string& subtype);
 
     /**
@@ -435,13 +436,24 @@ public:
     void attachment(std::size_t index, std::ostream& att_strm, std::string& att_name) const;
 
     /**
-    Adding another header. Adding a header defined by other methods leads to the undefined behaviour.
+    Adding another header.
+
+    Adding a header defined by other methods leads to the undefined behaviour.
 
     @param name  Header name.
     @param value Header value.
-    @todo        Disallowing already defined headers?
+    @todo        Disallowing standard headers defined elsewhere?
     **/
     void add_header(const std::string& name, const std::string& value);
+
+    /**
+    Removing another header.
+
+    Removing a header defined by other methods leads to the undefined behaviour.
+
+    @param name Header to remove.
+    **/
+    void remove_header(const std::string& name);
 
     /**
     Returning the other headers.
@@ -712,7 +724,7 @@ protected:
     /**
     Message date and time with time zone.
     **/
-    std::shared_ptr<boost::local_time::local_date_time> _date_time;
+    boost::local_time::local_date_time _date_time;
 
     /**
     Other headers not included into the known ones.

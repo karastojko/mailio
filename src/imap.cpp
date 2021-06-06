@@ -151,7 +151,7 @@ string imap::tag_result_response_t::to_string() const
             break;
 
         case NO:
-            result_s = "MO";
+            result_s = "NO";
             break;
 
         case BAD:
