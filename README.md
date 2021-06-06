@@ -169,6 +169,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Rainer Sabelka](mailto:saba[at]sabanet.at]): SMTP server response on accepting a mail.
 * [David Garcia](mailto:david.garcia[at]antiteum.com): Vcpkg port.
 * [ImJustStokedToBeHere](https://github.com/ImJustStokedToBeHere): Typo error in IMAP.
+* [lifof](mailto:youssef.beddad[at]gmail.com): Support for MinGW compilation.
 
 
 # Contact #
