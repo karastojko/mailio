@@ -168,6 +168,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Tim Lukas Harken](tlh[at]tlharken.de): Removing compilation warnings.
 * [Rainer Sabelka](mailto:saba[at]sabanet.at]): SMTP server response on accepting a mail.
 * [David Garcia](mailto:david.garcia[at]antiteum.com): Vcpkg port.
+* [ImJustStokedToBeHere](https://github.com/ImJustStokedToBeHere): Type error in IMAP.
 
 
 # Contact #
