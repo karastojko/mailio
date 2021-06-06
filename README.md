@@ -56,33 +56,37 @@ generated password for all three protocols.
 *mailio* library is supposed to work on all platforms supporting C++ 17 compiler, recent Boost libraries and CMake build tool.
 
 For Linux the following configuration is tested:
-
 * Gcc 8.3.0.
 * Boost 1.66 with Regex, Date Time available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
 * CMake 3.16.3
 
 For MacOS the following configuration is tested:
-
 * Apple LLVM 9.0.0.
 * Boost 1.66.
 * OpenSSL 1.0.2n available on the system.
 * CMake 3.16.3.
 
 For Microsoft Windows the following configuration is tested:
-
 * Windows 10.
 * Visual Studio 2019 Community Edition.
 * Boost 1.71.0.
-* OpenSSL 1.0.2n available on the system.
+* OpenSSL 1.0.2t.
 * CMake 3.17.3.
 
 For Cygwin the following configuration is tested:
 * Cygwin 3.2.0 on Windows 10.
 * Gcc 10.2.
 * Boost 1.66.
-* Cmake 3.20.
+* CMake 3.20.
 * LibSSL 1.0.2t and LibSSL 1.1.1f development packages.
+
+For MinGW the following configuration is tested:
+* MinGW 17.1 on Windows 10 which comes with the bundled Gcc and Boost.
+* Gcc 9.2.
+* Boost 1.71.0.
+* OpenSSL 1.0.2t.
+* CMake 3.17.3.
 
 # Setup #
 
@@ -110,7 +114,7 @@ make install
 ```
 
 
-### Microsoft Windows ###
+### Microsoft Windows/Visual Studio ###
 
 From the command prompt go into the directory where the library is downloaded, and execute:
 ```
@@ -119,6 +123,17 @@ cd .\build
 cmake ..
 ```
 A solution file will be built, open it from Visual Studio and build the project.
+
+
+### Microsoft Windows/MinGW ###
+
+Open the command prompt by using the `open_distro_window.bat` script, and execute:
+```
+mkdir build
+cd .\build
+cmake.exe .. -G "MinGW Makefiles"
+make install
+```
 
 
 ## Vcpkg ##
@@ -169,7 +184,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Rainer Sabelka](mailto:saba[at]sabanet.at]): SMTP server response on accepting a mail.
 * [David Garcia](mailto:david.garcia[at]antiteum.com): Vcpkg port.
 * [ImJustStokedToBeHere](https://github.com/ImJustStokedToBeHere): Typo error in IMAP.
-* [lifof](mailto:youssef.beddad[at]gmail.com): Support for MinGW compilation.
+* [lifof](mailto:youssef.beddad[at]gmail.com): Support for the MinGW compilation.
 
 
 # Contact #
