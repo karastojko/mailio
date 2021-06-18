@@ -66,7 +66,7 @@ public:
     /**
     Content type.
     **/
-    struct content_type_t
+    struct MAILIO_EXPORT content_type_t
     {
         /**
         Charset attribute name.
