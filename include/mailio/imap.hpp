@@ -376,19 +376,42 @@ public:
     /**
     Creating folder.
 
-    @param folder_tree Folder to be created.
+    @param folder_name Folder to be created.
     @return            True if created, false if not.
     @throw imap_error  Parsing failure.
     @throw imap_error  Creating folder failure.
-    @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @throw *           `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Return status really needed?
     **/
-    bool create_folder(const std::list<std::string>& folder_tree);
+    bool create_folder(const std::string& folder_name);
+
+    /**
+    Creating folder.
+
+    @param folder_name Folder to be created.
+    @return            True if created, false if not.
+    @throw *           `folder_delimiter()`, `create_folder(const string&)`.
+    @todo              Return status really needed?
+    **/
+    bool create_folder(const std::list<std::string>& folder_name);
 
     /**
     Listing folders.
 
     @param folder_name Folder to list.
     @return            Subfolder tree of the folder.
+    @throw imap_error  Listing folders failure.
+    @throw imap_error  Parsing failure.
+    @throw *           `folder_delimiter()`, `parse_tag_result`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    mailbox_folder list_folders(const std::string& folder_name);
+
+    /**
+    Listing folders.
+
+    @param folder_name Folder to list.
+    @return            Subfolder tree of the folder.
+    @throw *           `folder_delimiter()`, `list_folders(const string&)`.
     **/
     mailbox_folder list_folders(const std::list<std::string>& folder_name);
 
@@ -400,6 +423,17 @@ public:
     @throw imap_error  Parsing failure.
     @throw imap_error  Deleting folder failure.
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Return status really needed?
+    **/
+    bool delete_folder(const std::string& folder_name);
+
+    /**
+    Deleting a folder.
+
+    @param folder_name Folder to delete.
+    @return            True if deleted, false if not.
+    @throw *           `delete_folder(const string&)`.
+    @todo              Return status really needed?
     **/
     bool delete_folder(const std::list<std::string>& folder_name);
 
@@ -412,6 +446,18 @@ public:
     @throw imap_error  Parsing failure.
     @throw imap_error  Renaming folder failure.
     @throw *           `folder_delimiter()`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @todo              Return status really needed?
+    **/
+    bool rename_folder(const std::string& old_name, const std::string& new_name);
+
+    /**
+    Renaming a folder.
+
+    @param old_name    Old name of the folder.
+    @param new_name    New name of the folder.
+    @return            True if renaming is successful, false if not.
+    @throw *           `rename_folder(const string&, const string&)`.
+    @todo              Return status really needed?
     **/
     bool rename_folder(const std::list<std::string>& old_name, const std::list<std::string>& new_name);
 

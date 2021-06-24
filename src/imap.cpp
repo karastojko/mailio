@@ -769,11 +769,9 @@ void imap::search(const list<imap::search_condition_t>& conditions, list<unsigne
 }
 
 
-bool imap::create_folder(const list<string>& folder_tree)
+bool imap::create_folder(const string& folder_name)
 {
-    string delim = folder_delimiter();
-    string folder_str = folder_tree_to_string(folder_tree, delim);
-    _dlg->send(format("CREATE " + QUOTED_STRING_SEPARATOR + folder_str + QUOTED_STRING_SEPARATOR));
+    _dlg->send(format("CREATE " + QUOTED_STRING_SEPARATOR + folder_name + QUOTED_STRING_SEPARATOR));
 
     string line = _dlg->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -784,14 +782,22 @@ bool imap::create_folder(const list<string>& folder_tree)
     if (parsed_line.result.value() != tag_result_response_t::OK)
         throw imap_error("Creating folder failure.");
     return true;
+
 }
 
 
-auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
+bool imap::create_folder(const list<string>& folder_name)
 {
     string delim = folder_delimiter();
-    string folder_name_s = folder_tree_to_string(folder_name, delim);
-    _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + folder_name_s + "*" +
+    string folder_str = folder_tree_to_string(folder_name, delim);
+    return create_folder(folder_str);
+}
+
+
+auto imap::list_folders(const string& folder_name) -> mailbox_folder
+{
+    string delim = folder_delimiter();
+    _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + folder_name + "*" +
         QUOTED_STRING_SEPARATOR));
     mailbox_folder mailboxes;
 
@@ -840,11 +846,17 @@ auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
 }
 
 
-bool imap::delete_folder(const list<string>& folder_name)
+auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);
-    _dlg->send(format("DELETE " + QUOTED_STRING_SEPARATOR + folder_name_s + QUOTED_STRING_SEPARATOR));
+    return list_folders(folder_name_s);
+}
+
+
+bool imap::delete_folder(const string& folder_name)
+{
+    _dlg->send(format("DELETE " + QUOTED_STRING_SEPARATOR + folder_name + QUOTED_STRING_SEPARATOR));
 
     string line = _dlg->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -858,12 +870,17 @@ bool imap::delete_folder(const list<string>& folder_name)
 }
 
 
-bool imap::rename_folder(const list<string>& old_name, const list<string>& new_name)
+bool imap::delete_folder(const list<string>& folder_name)
 {
     string delim = folder_delimiter();
-    string old_name_s = folder_tree_to_string(old_name, delim);
-    string new_name_s = folder_tree_to_string(new_name, delim);
-    _dlg->send(format("RENAME " + QUOTED_STRING_SEPARATOR + old_name_s + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + new_name_s +
+    string folder_name_s = folder_tree_to_string(folder_name, delim);
+    return delete_folder(folder_name_s);
+}
+
+
+bool imap::rename_folder(const string& old_name, const string& new_name)
+{
+    _dlg->send(format("RENAME " + QUOTED_STRING_SEPARATOR + old_name + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + new_name +
         QUOTED_STRING_SEPARATOR));
 
     string line = _dlg->receive();
@@ -875,6 +892,15 @@ bool imap::rename_folder(const list<string>& old_name, const list<string>& new_n
     if (parsed_line.result.value() != tag_result_response_t::OK)
         throw imap_error("Renaming folder failure.");
     return true;
+}
+
+
+bool imap::rename_folder(const list<string>& old_name, const list<string>& new_name)
+{
+    string delim = folder_delimiter();
+    string old_name_s = folder_tree_to_string(old_name, delim);
+    string new_name_s = folder_tree_to_string(new_name, delim);
+    return rename_folder(old_name_s, new_name_s);
 }
 
 
