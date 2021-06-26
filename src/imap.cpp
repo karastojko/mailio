@@ -794,12 +794,12 @@ bool imap::create_folder(const list<string>& folder_name)
 }
 
 
-auto imap::list_folders(const string& folder_name) -> mailbox_folder
+auto imap::list_folders(const string& folder_name) -> mailbox_folder_t
 {
     string delim = folder_delimiter();
     _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + folder_name + "*" +
         QUOTED_STRING_SEPARATOR));
-    mailbox_folder mailboxes;
+    mailbox_folder_t mailboxes;
 
     bool has_more = true;
     while (has_more)
@@ -823,12 +823,12 @@ auto imap::list_folders(const string& folder_name) -> mailbox_folder
                 vector<string> folders_hierarchy;
                 // TODO: May `delim` contain more than one character?
                 split(folders_hierarchy, (*found_folder)->atom, is_any_of(delim));
-                map<string, mailbox_folder>* mbox = &mailboxes.folders;
+                map<string, mailbox_folder_t>* mbox = &mailboxes.folders;
                 for (auto f : folders_hierarchy)
                 {
-                    auto fit = find_if(mbox->begin(), mbox->end(), [&f](const std::pair<string, mailbox_folder>& mf){ return mf.first == f; });
+                    auto fit = find_if(mbox->begin(), mbox->end(), [&f](const std::pair<string, mailbox_folder_t>& mf){ return mf.first == f; });
                     if (fit == mbox->end())
-                        mbox->insert(std::make_pair(f, mailbox_folder{}));
+                        mbox->insert(std::make_pair(f, mailbox_folder_t{}));
                     mbox = &(mbox->at(f).folders);
                 }
             }
@@ -846,7 +846,7 @@ auto imap::list_folders(const string& folder_name) -> mailbox_folder
 }
 
 
-auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder
+auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder_t
 {
     string delim = folder_delimiter();
     string folder_name_s = folder_tree_to_string(folder_name, delim);

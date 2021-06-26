@@ -101,9 +101,9 @@ public:
     /**
     Mailbox folder tree.
     **/
-    struct mailbox_folder
+    struct mailbox_folder_t
     {
-        std::map<std::string, mailbox_folder> folders;
+        std::map<std::string, mailbox_folder_t> folders;
     };
 
     /**
@@ -404,7 +404,7 @@ public:
     @throw imap_error  Parsing failure.
     @throw *           `folder_delimiter()`, `parse_tag_result`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
-    mailbox_folder list_folders(const std::string& folder_name);
+    mailbox_folder_t list_folders(const std::string& folder_name);
 
     /**
     Listing folders.
@@ -413,7 +413,7 @@ public:
     @return            Subfolder tree of the folder.
     @throw *           `folder_delimiter()`, `list_folders(const string&)`.
     **/
-    mailbox_folder list_folders(const std::list<std::string>& folder_name);
+    mailbox_folder_t list_folders(const std::list<std::string>& folder_name);
 
     /**
     Deleting a folder.
