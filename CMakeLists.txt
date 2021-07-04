@@ -45,7 +45,6 @@ if(NOT SHARE_INSTALL_DIR)
 endif(NOT SHARE_INSTALL_DIR)
 
 # options for mailio to control how the project is built.
-option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build mailio as a shared library." ON)
 option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
 
@@ -115,8 +114,6 @@ if(${MAILIO_BUILD_DOCUMENTATION})
     endif(DOXYGEN_FOUND)
 endif(${MAILIO_BUILD_DOCUMENTATION})
 
-set(BUILD_SHARED_LIBS ${MAILIO_BUILD_SHARED_LIBRARY})
-
 add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
 
 
@@ -140,7 +137,6 @@ configure_file(mailio.pc.in ${CMAKE_BINARY_DIR}/mailio.pc IMMEDIATE @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/mailio.pc DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
 
 configure_file(${PROJECT_SOURCE_DIR}/include/version.hpp.in version.hpp)
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}")
 install(FILES ${CMAKE_BINARY_DIR}/version.hpp DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME})
 
 # generate the export header for exporting symbols
@@ -171,10 +167,15 @@ endif(MINGW)
 install(DIRECTORY include/mailio DESTINATION ${INCLUDE_INSTALL_DIR})
 
 install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Config
     LIBRARY DESTINATION ${LIB_INSTALL_DIR}
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
     RUNTIME DESTINATION ${BIN_INSTALL_DIR}
 )
+
+export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
+
+install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 
 # optionally build examples
 if(${MAILIO_BUILD_EXAMPLES})
