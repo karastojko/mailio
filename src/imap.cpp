@@ -708,6 +708,14 @@ void imap::remove(const string& mailbox, unsigned long message_no)
 }
 
 
+void imap::remove(const list<string>& mailbox, unsigned long message_no)
+{
+    string delim = folder_delimiter();
+    string mailbox_s = folder_tree_to_string(mailbox, delim);
+    remove(mailbox_s, message_no);
+}
+
+
 void imap::remove(unsigned long message_no, bool is_uid)
 {
     string cmd;

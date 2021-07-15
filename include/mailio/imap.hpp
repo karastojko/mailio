@@ -347,6 +347,16 @@ public:
     void remove(const std::string& mailbox, unsigned long message_no);
 
     /**
+    Removing a message from the given mailbox.
+
+    @param mailbox    Mailbox to use.
+    @param message_no Number of the message to remove.
+    @throw *          `remove(const string&, bool)`.
+    @todo             Add server error messages to exceptions.
+    **/
+    void remove(const std::list<std::string>& mailbox, unsigned long message_no);
+
+    /**
     Removing a message from an already selected mailbox.
 
     @param message_no Number of the message to remove.
