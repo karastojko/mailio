@@ -701,18 +701,18 @@ auto imap::statistics(const list<string>& folder_name, unsigned int info) -> mai
 }
 
 
-void imap::remove(const string& mailbox, unsigned long message_no)
+void imap::remove(const string& mailbox, unsigned long message_no, bool is_uid)
 {
     select(mailbox);
-    remove(message_no);
+    remove(message_no, is_uid);
 }
 
 
-void imap::remove(const list<string>& mailbox, unsigned long message_no)
+void imap::remove(const list<string>& mailbox, unsigned long message_no, bool is_uid)
 {
     string delim = folder_delimiter();
     string mailbox_s = folder_tree_to_string(mailbox, delim);
-    remove(mailbox_s, message_no);
+    remove(mailbox_s, message_no, is_uid);
 }
 
 

@@ -339,22 +339,24 @@ public:
 
     @param mailbox    Mailbox to use.
     @param message_no Number of the message to remove.
+    @param is_uid     Using a message uid number instead of a message sequence number.
     @throw imap_error Deleting message failure.
     @throw imap_error Parsing failure.
     @throw *          `select(const string&)`, `parse_tag_result(const string&)`, `remove(unsigned long, bool)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
     **/
-    void remove(const std::string& mailbox, unsigned long message_no);
+    void remove(const std::string& mailbox, unsigned long message_no, bool is_uid = false);
 
     /**
     Removing a message from the given mailbox.
 
     @param mailbox    Mailbox to use.
     @param message_no Number of the message to remove.
+    @param is_uid     Using a message uid number instead of a message sequence number.
     @throw *          `remove(const string&, bool)`.
     @todo             Add server error messages to exceptions.
     **/
-    void remove(const std::list<std::string>& mailbox, unsigned long message_no);
+    void remove(const std::list<std::string>& mailbox, unsigned long message_no, bool is_uid = false);
 
     /**
     Removing a message from an already selected mailbox.
