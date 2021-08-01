@@ -116,7 +116,7 @@ make install
 
 ### Microsoft Windows/Visual Studio ###
 
-From the command prompt go into the directory where the library is downloaded, and execute:
+From the command prompt for Visual Studio, go into the directory where the library is downloaded, and execute:
 ```
 mkdir build
 cd .\build
