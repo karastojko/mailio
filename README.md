@@ -121,8 +121,9 @@ From the command prompt go into the directory where the library is downloaded, a
 mkdir build
 cd .\build
 cmake ..
+cmake --build .. --config Release
 ```
-A solution file will be built, open it from Visual Studio and build the project.
+The release solution will be built. For Debug, use `--config Debug`.
 
 
 ### Microsoft Windows/MinGW ###
