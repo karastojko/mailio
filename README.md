@@ -121,7 +121,7 @@ From the command prompt go into the directory where the library is downloaded, a
 mkdir build
 cd .\build
 cmake ..
-cmake --build .. --config Release
+cmake --build . --config Release
 ```
 The release solution will be built. For Debug, use `--config Debug`.
 
