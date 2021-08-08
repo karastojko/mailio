@@ -438,122 +438,133 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
     // Stores messages as string literals for parsing after the OK response.
     map<unsigned long, string> msg_str;
     bool has_more = true;
-    while (has_more)
+    try
     {
-        reset_response_parser();
-        string line = _dlg->receive();
-        tag_result_response_t parsed_line = parse_tag_result(line);
-
-        if (parsed_line.tag == UNTAGGED_RESPONSE)
+        while (has_more)
         {
-            parse_response(parsed_line.response);
-            unsigned long msg_no = 0;
-            if (_mandatory_part.front()->token_type != response_token_t::token_type_t::ATOM)
-                throw imap_error("Fetching message failure.");
-            msg_no = stoul(_mandatory_part.front()->atom);
-            _mandatory_part.pop_front();
-            if (msg_no == 0)
-                throw imap_error("Fetching message failure.");
+            reset_response_parser();
+            string line = _dlg->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
 
-            if (!iequals(_mandatory_part.front()->atom, "FETCH"))
-                throw imap_error("Fetching message failure.");
+            if (parsed_line.tag == UNTAGGED_RESPONSE)
+            {
+                parse_response(parsed_line.response);
+                unsigned long msg_no = 0;
+                if (_mandatory_part.front()->token_type != response_token_t::token_type_t::ATOM)
+                    throw imap_error("Fetching message failure.");
+                msg_no = stoul(_mandatory_part.front()->atom);
+                _mandatory_part.pop_front();
+                if (msg_no == 0)
+                    throw imap_error("Fetching message failure.");
 
-            unsigned long uid = 0;
-            shared_ptr<response_token_t> literal_token = nullptr;
-            if (!_mandatory_part.empty())
-                for (auto part : _mandatory_part)
-                {
-                    if (part->token_type == response_token_t::token_type_t::LIST)
+                if (!iequals(_mandatory_part.front()->atom, "FETCH"))
+                    throw imap_error("Fetching message failure.");
+
+                unsigned long uid = 0;
+                shared_ptr<response_token_t> literal_token = nullptr;
+                if (!_mandatory_part.empty())
+                    for (auto part : _mandatory_part)
                     {
-                        bool key_found = false;
-                        string key;
-
-                        for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
+                        if (part->token_type == response_token_t::token_type_t::LIST)
                         {
-                            if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+                            bool key_found = false;
+                            string key;
+
+                            for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
                             {
-                                const string& atm = (*token)->atom;
-                                if (key_found)
+                                if ((*token)->token_type == response_token_t::token_type_t::ATOM)
                                 {
-                                    if(iequals(key, "UID"))
+                                    const string& atm = (*token)->atom;
+                                    if (key_found)
                                     {
-                                        uid = stoul(atm);
+                                        if(iequals(key, "UID"))
+                                        {
+                                            uid = stoul(atm);
+                                        }
+                                        // Reset.
+                                        key_found = false;
                                     }
-                                    // Reset.
-                                    key_found = false;
-                                }
-                                else
-                                {
-                                    key = atm;
-                                    key_found = true;
-                                }
-                            }
-                            else if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
-                            {
-                                if (key_found)
-                                {
-                                    if (iequals(key, RFC822_TOKEN))
+                                    else
                                     {
-                                        literal_token = *token;
-                                        // Break because reading the string literal text should follow.
-                                        break;
+                                        key = atm;
+                                        key_found = true;
                                     }
-                                    key_found = false;
                                 }
-                                // Anything else is an error.
-                                throw imap_error("Parsing failure.");
+                                else if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
+                                {
+                                    if (key_found)
+                                    {
+                                        if (iequals(key, RFC822_TOKEN))
+                                        {
+                                            literal_token = *token;
+                                            // Break because reading the string literal text should follow.
+                                            break;
+                                        }
+                                        key_found = false;
+                                    }
+                                    // Anything else is an error.
+                                    throw imap_error("Parsing failure.");
+                                }
                             }
                         }
                     }
-                }
 
-            if (literal_token != nullptr)
-            {
-                // Loop to read string literal.
-                while (_literal_state == string_literal_state_t::READING)
+                if (literal_token != nullptr)
                 {
-                    string line = _dlg->receive(true);
-                    if (!line.empty())
-                        trim_eol(line);
-                    parse_response(line);
-                }
-                // Closing parenthesis not yet read.
-                if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
-                {
-                    string line = _dlg->receive(true);
-                    if (!line.empty())
-                        trim_eol(line);
-                    parse_response(line);
-                }
-                msg_str.emplace(is_uids ? uid : msg_no, move(literal_token->literal));
+                    // Loop to read string literal.
+                    while (_literal_state == string_literal_state_t::READING)
+                    {
+                        string line = _dlg->receive(true);
+                        if (!line.empty())
+                            trim_eol(line);
+                        parse_response(line);
+                    }
+                    // Closing parenthesis not yet read.
+                    if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
+                    {
+                        string line = _dlg->receive(true);
+                        if (!line.empty())
+                            trim_eol(line);
+                        parse_response(line);
+                    }
+                    msg_str.emplace(is_uids ? uid : msg_no, move(literal_token->literal));
 
-                // If no UID was found, but we asked for them, it's an error.
-                if (is_uids && uid == 0)
-                {
+                    // If no UID was found, but we asked for them, it's an error.
+                    if (is_uids && uid == 0)
+                    {
+                        throw imap_error("Parsing failure.");
+                    }
+                }
+                else
                     throw imap_error("Parsing failure.");
+            }
+            else if (parsed_line.tag == to_string(_tag))
+            {
+                if (parsed_line.result.value() == tag_result_response_t::OK)
+                {
+                    has_more = false;
+                    for (const auto& ms : msg_str)
+                    {
+                        message msg;
+                        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
+                        msg.parse(ms.second);
+                        found_messages.emplace(ms.first, move(msg));
+                    }
                 }
+                else
+                    throw imap_error("Fetching message failure.");
             }
             else
                 throw imap_error("Parsing failure.");
         }
-        else if (parsed_line.tag == to_string(_tag))
-        {
-            if (parsed_line.result.value() == tag_result_response_t::OK)
-            {
-                has_more = false;
-                for (const auto& ms : msg_str)
-                {
-                    message msg;
-                    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
-                    msg.parse(ms.second);
-                    found_messages.emplace(ms.first, move(msg));
-                }
-            }
-            else
-                throw imap_error("Fetching message failure.");
-        }
-        else
-            throw imap_error("Parsing failure.");
+    }
+    catch (const invalid_argument&)
+    {
+        throw imap_error("Parsing failure.");
+    }
+    catch (const out_of_range&)
+    {
+        throw imap_error("Parsing failure.");
     }
 
     reset_response_parser();
@@ -617,75 +628,86 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
     mailbox_stat_t stat;
 
     bool has_more = true;
-    while (has_more)
+    try
     {
-        reset_response_parser();
-        string line = _dlg->receive();
-        tag_result_response_t parsed_line = parse_tag_result(line);
-
-        if (parsed_line.tag == UNTAGGED_RESPONSE)
+        while (has_more)
         {
-            parse_response(parsed_line.response);
-            if (!iequals(_mandatory_part.front()->atom, "STATUS"))
-                throw imap_error("Getting statistics failure.");
-            _mandatory_part.pop_front();
+            reset_response_parser();
+            string line = _dlg->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
 
-            bool mess_found = false, recent_found = false;
-            for (auto it = _mandatory_part.begin(); it != _mandatory_part.end(); it++)
-                if ((*it)->token_type == response_token_t::token_type_t::LIST && (*it)->parenthesized_list.size() >= 2)
-                {
-                    bool key_found = false;
-                    string key;
-                    auto mp = *it;
-                    for(auto il = mp->parenthesized_list.begin(); il != mp->parenthesized_list.end(); ++il)
+            if (parsed_line.tag == UNTAGGED_RESPONSE)
+            {
+                parse_response(parsed_line.response);
+                if (!iequals(_mandatory_part.front()->atom, "STATUS"))
+                    throw imap_error("Getting statistics failure.");
+                _mandatory_part.pop_front();
+
+                bool mess_found = false, recent_found = false;
+                for (auto it = _mandatory_part.begin(); it != _mandatory_part.end(); it++)
+                    if ((*it)->token_type == response_token_t::token_type_t::LIST && (*it)->parenthesized_list.size() >= 2)
                     {
-                        const string& value = (*il)->atom;
-                        if (key_found)
+                        bool key_found = false;
+                        string key;
+                        auto mp = *it;
+                        for(auto il = mp->parenthesized_list.begin(); il != mp->parenthesized_list.end(); ++il)
                         {
-                            if (iequals(key, "MESSAGES"))
+                            const string& value = (*il)->atom;
+                            if (key_found)
                             {
-                                stat.messages_no = stoul(value);
-                                mess_found = true;
+                                if (iequals(key, "MESSAGES"))
+                                {
+                                    stat.messages_no = stoul(value);
+                                    mess_found = true;
+                                }
+                                else if (iequals(key, "RECENT"))
+                                {
+                                    stat.messages_recent = stoul(value);
+                                    recent_found = true;
+                                }
+                                else if (iequals(key, "UNSEEN"))
+                                {
+                                    stat.messages_unseen = stoul(value);
+                                }
+                                else if (iequals(key, "UIDNEXT"))
+                                {
+                                    stat.uid_next = stoul(value);
+                                }
+                                else if (iequals(key, "UIDVALIDITY"))
+                                {
+                                    stat.uid_validity = stoul(value);
+                                }
+                                key_found = false;
                             }
-                            else if (iequals(key, "RECENT"))
+                            else
                             {
-                                stat.messages_recent = stoul(value);
-                                recent_found = true;
+                                key = value;
+                                key_found = true;
                             }
-                            else if (iequals(key, "UNSEEN"))
-                            {
-                                stat.messages_unseen = stoul(value);
-                            }
-                            else if (iequals(key, "UIDNEXT"))
-                            {
-                                stat.uid_next = stoul(value);
-                            }
-                            else if (iequals(key, "UIDVALIDITY"))
-                            {
-                                stat.uid_validity = stoul(value);
-                            }
-                            key_found = false;
-                        }
-                        else
-                        {
-                            key = value;
-                            key_found = true;
                         }
                     }
-                }
-            // The MESSAGES and RECENT are required.
-            if (!mess_found || !recent_found)
+                // The MESSAGES and RECENT are required.
+                if (!mess_found || !recent_found)
+                    throw imap_error("Parsing failure.");
+            }
+            else if (parsed_line.tag == to_string(_tag))
+            {
+                if (parsed_line.result.value() == tag_result_response_t::OK)
+                    has_more = false;
+                else
+                    throw imap_error("Getting statistics failure.");
+            }
+            else
                 throw imap_error("Parsing failure.");
         }
-        else if (parsed_line.tag == to_string(_tag))
-        {
-            if (parsed_line.result.value() == tag_result_response_t::OK)
-                has_more = false;
-            else
-                throw imap_error("Getting statistics failure.");
-        }
-        else
-            throw imap_error("Parsing failure.");
+    }
+    catch (const invalid_argument&)
+    {
+        throw imap_error("Parsing failure.");
+    }
+    catch (const out_of_range&)
+    {
+        throw imap_error("Parsing failure.");
     }
 
     reset_response_parser();
@@ -725,41 +747,52 @@ void imap::remove(unsigned long message_no, bool is_uid)
     _dlg->send(format(cmd));
 
     bool has_more = true;
-    while (has_more)
+    try
     {
-        reset_response_parser();
-        string line = _dlg->receive();
-        tag_result_response_t parsed_line = parse_tag_result(line);
+        while (has_more)
+        {
+            reset_response_parser();
+            string line = _dlg->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
 
-        if (parsed_line.tag == UNTAGGED_RESPONSE)
-        {
-            parse_response(parsed_line.response);
-            auto token = _mandatory_part.front();
-            if (token->token_type != response_token_t::token_type_t::ATOM || stoul(token->atom) != message_no)
-                throw imap_error("Deleting message failure.");
-            // TODO: Untagged FETCH response also to be checked?
-            continue;
-        }
-        else if (parsed_line.tag == to_string(_tag))
-        {
-            if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
-                throw imap_error("Deleting message failure.");
-            else
+            if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
-                reset_response_parser();
-                _dlg->send(format("CLOSE"));
-                string line = _dlg->receive();
-                tag_result_response_t parsed_line = parse_tag_result(line);
-
-                if (!iequals(parsed_line.tag, to_string(_tag)))
-                    throw imap_error("Parsing failure.");
+                parse_response(parsed_line.response);
+                auto token = _mandatory_part.front();
+                if (token->token_type != response_token_t::token_type_t::ATOM || stoul(token->atom) != message_no)
+                    throw imap_error("Deleting message failure.");
+                // TODO: Untagged FETCH response also to be checked?
+                continue;
+            }
+            else if (parsed_line.tag == to_string(_tag))
+            {
                 if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
                     throw imap_error("Deleting message failure.");
+                else
+                {
+                    reset_response_parser();
+                    _dlg->send(format("CLOSE"));
+                    string line = _dlg->receive();
+                    tag_result_response_t parsed_line = parse_tag_result(line);
+
+                    if (!iequals(parsed_line.tag, to_string(_tag)))
+                        throw imap_error("Parsing failure.");
+                    if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
+                        throw imap_error("Deleting message failure.");
+                }
+                has_more = false;
             }
-            has_more = false;
+            else
+                throw imap_error("Parsing failure.");
         }
-        else
-            throw imap_error("Parsing failure.");
+    }
+    catch (const invalid_argument&)
+    {
+        throw imap_error("Parsing failure.");
+    }
+    catch (const out_of_range&)
+    {
+        throw imap_error("Parsing failure.");
     }
 }
 

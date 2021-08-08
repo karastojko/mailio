@@ -687,6 +687,7 @@ protected:
 
     @param response   Response to parse without tag and result.
     @throw imap_error Parser failure.
+    @throw *          `std::stoul`.
     @todo             Perhaps the error should point to a part of the string where the parsing fails.
     **/
     void parse_response(const std::string& response);
