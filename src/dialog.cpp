@@ -73,19 +73,6 @@ dialog::dialog(const dialog& other) : _hostname(move(other._hostname)), _port(ot
 }
 
 
-dialog::~dialog()
-{
-    try
-    {
-        // TODO: Check if the socket can be closed.
-        //_socket->close();
-    }
-    catch (...)
-    {
-    }
-}
-
-
 void dialog::send(const string& line)
 {
     if (_timeout.count() == 0)
@@ -145,22 +132,24 @@ void dialog::connect_async()
 
     _timer->expires_at(boost::posix_time::pos_infin);
     _timer->expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
-    boost::system::error_code error;
-    check_timeout(error, _socket, _timer, _timer_expired);
+    boost::system::error_code ignored_ec;
+    check_timeout(ignored_ec, _socket, _timer, _timer_expired);
 
-    bool has_connected = false;
+    bool has_connected{false}, connect_error{false};
     async_connect(*_socket, res.resolve(_hostname, to_string(_port)),
-        [&has_connected](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& /*endpoint*/)
-    {
-        if (!error)
-            has_connected = true;
-        else
-            throw dialog_error("Server connecting failed.");
-    });
+        [&has_connected, &connect_error](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint&)
+        {
+            if (!error)
+                has_connected = true;
+            else
+                connect_error = true;
+        });
     do
     {
         if (_timer_expired)
             throw dialog_error("Server connecting timed out.");
+        if (connect_error)
+            throw dialog_error("Server connecting failed.");
         _ios.run_one();
     }
     while (!has_connected);
@@ -171,24 +160,21 @@ template<typename Socket>
 void dialog::send_async(Socket& socket, string line)
 {
     _timer->expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
-    bool has_written = false;
     string l = line + "\r\n";
-    async_write(socket, buffer(l, l.size()), [&has_written](const boost::system::error_code& error, size_t /*bytes_no*/)
-    {
-        if (!error)
-            has_written = true;
-        else
+    bool has_written{false}, send_error{false};
+    async_write(socket, buffer(l, l.size()), [&has_written, &send_error](const boost::system::error_code& error, size_t)
         {
-            string err = "Network sending failed.";
-            if (error.value() == boost::system::errc::operation_canceled)
-                err = "Network sending timed out.";
-            throw dialog_error(err);
-        }
-    });
+            if (!error)
+                has_written = true;
+            else
+                send_error = true;
+        });
     do
     {
         if (_timer_expired)
             throw dialog_error("Network sending timed out.");
+        if (send_error)
+            throw dialog_error("Network sending failed.");
         _ios.run_one();
     }
     while (!has_written);
@@ -199,30 +185,26 @@ template<typename Socket>
 string dialog::receive_async(Socket& socket, bool raw)
 {
     _timer->expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
-    bool has_read = false;
+    bool has_read{false}, receive_error{false};
     string line;
-    async_read_until(socket, *_strmbuf, "\n", [&has_read, this, &line, raw](const boost::system::error_code& error, size_t /*bytes_no*/)
-    {
-        if (!error)
+    async_read_until(socket, *_strmbuf, "\n", [&has_read, &receive_error, this, &line, raw](const boost::system::error_code& error, size_t)
         {
-            getline(*_istrm, line, '\n');
-            if (!raw)
-                trim_if(line, is_any_of("\r\n"));
-            has_read = true;
-        }
-        else
-        {
-            string err = "Network receiving failed.";
-            if (error.value() == boost::system::errc::operation_canceled)
-                err = "Network receiving timed out.";
-            throw dialog_error(err);
-        }
-    });
-
+            if (!error)
+            {
+                getline(*_istrm, line, '\n');
+                if (!raw)
+                    trim_if(line, is_any_of("\r\n"));
+                has_read = true;
+            }
+            else
+                receive_error = true;
+        });
     do
     {
         if (_timer_expired)
             throw dialog_error("Network receiving timed out.");
+        if (receive_error)
+            throw dialog_error("Network receiving failed.");
         _ios.run_one();
     }
     while (!has_read);

@@ -57,7 +57,7 @@ public:
     /**
     Closing the connection.
     **/
-    virtual ~dialog();
+    virtual ~dialog() = default;
 
     dialog(dialog&&) = delete;
 
