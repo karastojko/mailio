@@ -5,12 +5,12 @@ smtp_utf8_qp_msg.cpp
 
 Connects to SMTP server and sends a message with UTF8 content and subject.
 
- 
+
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
 
 Distributed under the FreeBSD license, see the accompanying file LICENSE or
-copy at http://www.freebsd.org/copyright/freebsd-license.html. 
- 
+copy at http://www.freebsd.org/copyright/freebsd-license.html.
+
 */
 
 
@@ -43,12 +43,14 @@ int main()
         msg.add_cc_recipient(mail_address("mailio library", "mailio@yahoo.com"));// add CC recipient
         msg.add_bcc_recipient(mail_address("mailio library", "mailio@zoho.com"));
 
-        msg.subject(u8"smtp utf8 quoted printable message");
+        msg.subject("smtp utf8 quoted printable message");
         // create message in Cyrillic alphabet
         // set Transfer Encoding to Quoted Printable and set Content Type to UTF8
         msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
         msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
-        msg.content(u8"Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
+
+        const auto* msgu8 =
+            u8"Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
             u8"па се надам да ће то овај текст показати.\r\n"
             u8"\r\n"
             u8"Треба видети како познати мејл клијенти ломе текст, па на\r\n"
@@ -61,7 +63,14 @@ int main()
             u8"покаже има ли багова у логици форматирања,\r\n"
             u8"а исто то треба проверити са парсирањем.\r\n"
             u8"\r\n\r\n\r\n\r\n"
-            u8"Овде је и провера за низ празних линија.");
+            u8"Овде је и провера за низ празних линија.";
+        const char* msgs =
+        #if defined(__cpp_char8_t)
+            reinterpret_cast<const char *>(msgu8);
+        #else
+            msgu8;
+        #endif
+        msg.content(msgs);
 
         // use a server with plain (non-SSL) connectivity
         smtp conn("smtp.mailserver.com", 587);
@@ -77,6 +86,6 @@ int main()
     {
         cout << exc.what() << endl;
     }
-    
+
     return EXIT_SUCCESS;
 }
