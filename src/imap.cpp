@@ -460,10 +460,10 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
                 parse_response(parsed_line.response);
-                unsigned long msg_no = 0;
+
                 if (_mandatory_part.front()->token_type != response_token_t::token_type_t::ATOM)
                     throw imap_error("Fetching message failure.");
-                msg_no = stoul(_mandatory_part.front()->atom);
+                unsigned long msg_no = stoul(_mandatory_part.front()->atom);
                 _mandatory_part.pop_front();
                 if (msg_no == 0)
                     throw imap_error("Fetching message failure.");
