@@ -473,52 +473,25 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
 
                 unsigned long uid = 0;
                 shared_ptr<response_token_t> literal_token = nullptr;
-                if (!_mandatory_part.empty())
-                    for (auto part : _mandatory_part)
-                    {
-                        if (part->token_type == response_token_t::token_type_t::LIST)
-                        {
-                            bool key_found = false;
-                            string key;
-
-                            for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
-                            {
-                                if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+                for (auto part : _mandatory_part)
+                    if (part->token_type == response_token_t::token_type_t::LIST)
+                        for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
+                            if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+                                if (iequals((*token)->atom, "UID"))
                                 {
-                                    const string& atm = (*token)->atom;
-                                    if (key_found)
-                                    {
-                                        if(iequals(key, "UID"))
-                                        {
-                                            uid = stoul(atm);
-                                        }
-                                        // Reset.
-                                        key_found = false;
-                                    }
-                                    else
-                                    {
-                                        key = atm;
-                                        key_found = true;
-                                    }
+                                    token++;
+                                    if (token == part->parenthesized_list.end())
+                                        throw imap_error("Parsing failure.");
+                                    uid = stoul((*token)->atom);
                                 }
-                                else if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
+                                else if (iequals((*token)->atom, RFC822_TOKEN))
                                 {
-                                    if (key_found)
-                                    {
-                                        if (iequals(key, RFC822_TOKEN))
-                                        {
-                                            literal_token = *token;
-                                            // Break because reading the string literal text should follow.
-                                            break;
-                                        }
-                                        key_found = false;
-                                    }
-                                    // Anything else is an error.
-                                    throw imap_error("Parsing failure.");
+                                    token++;
+                                    if (token == part->parenthesized_list.end() || (*token)->token_type != response_token_t::token_type_t::LITERAL)
+                                        throw imap_error("Parsing failure.");
+                                    literal_token = *token;
+                                    break;
                                 }
-                            }
-                        }
-                    }
 
                 if (literal_token != nullptr)
                 {
