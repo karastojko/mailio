@@ -317,123 +317,17 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, 
 }
 
 
-// Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
 void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool header_only)
 {
-    const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
-
-    string cmd;
-    if (is_uid)
-        cmd.append("UID ");
-    cmd.append("FETCH " + to_string(message_no) + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
-    _dlg->send(format(cmd));
-
-    try
-    {
-        // Stores a message as string literals for parsing after the OK response.
-        string msg_str;
-        bool has_more = true;
-        while (has_more)
-        {
-            reset_response_parser();
-            string line = _dlg->receive();
-            tag_result_response_t parsed_line = parse_tag_result(line);
-
-            if (parsed_line.tag == UNTAGGED_RESPONSE)
-            {
-                parse_response(parsed_line.response);
-
-                auto msg_no_token = _mandatory_part.front();
-                // TODO: If UID is not wanted, then `message_no` is equal to this atom.
-                if (msg_no_token->token_type != response_token_t::token_type_t::ATOM)
-                    throw imap_error("Fetching message failure.");
-                _mandatory_part.pop_front();
-
-                auto fetch_token = _mandatory_part.front();
-                if (fetch_token->token_type != response_token_t::token_type_t::ATOM || !iequals(fetch_token->atom, "FETCH"))
-                    throw imap_error("Fetching message failure.");
-                _mandatory_part.pop_front();
-
-                shared_ptr<response_token_t> literal_token = nullptr;
-                if (!_mandatory_part.empty())
-                    for (auto part : _mandatory_part)
-                    {
-                        if (part->token_type == response_token_t::token_type_t::LIST)
-                        {
-                            bool rfc_found = false;
-                            for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
-                            {
-                                if ((*token)->token_type == response_token_t::token_type_t::ATOM && iequals((*token)->atom, RFC822_TOKEN))
-                                {
-                                    rfc_found = true;
-                                    continue;
-                                }
-
-                                if ((*token)->token_type == response_token_t::token_type_t::LITERAL)
-                                {
-                                    if (rfc_found)
-                                    {
-                                        literal_token = *token;
-                                        break;
-                                    }
-                                    else
-                                        throw imap_error("Parsing failure.");
-                                }
-                            }
-                        }
-                    }
-
-                if (literal_token != nullptr)
-                {
-                    // Loop to read string literal.
-                    while (_literal_state == string_literal_state_t::READING)
-                    {
-                        string line = _dlg->receive(true);
-                        if (!line.empty())
-                            trim_eol(line);
-                        parse_response(line);
-                    }
-                    // Closing parenthesis not yet read.
-                    if (_literal_state == string_literal_state_t::DONE && _parenthesis_list_counter > 0)
-                    {
-                        string line = _dlg->receive(true);
-                        if (!line.empty())
-                            trim_eol(line);
-                        parse_response(line);
-                    }
-                    msg_str = std::move(literal_token->literal);
-                }
-                else
-                    throw imap_error("Parsing failure.");
-            }
-            else if (parsed_line.tag == to_string(_tag))
-            {
-                if (parsed_line.result.value() == tag_result_response_t::OK)
-                {
-                    has_more = false;
-                    // Wait for the OK response in order to parse the message.
-                    msg.parse(msg_str);
-                }
-                else
-                    throw imap_error("Fetching message failure.");
-            }
-            else
-                throw imap_error("Parsing failure.");
-        }
-    }
-    catch (const invalid_argument&)
-    {
-        throw imap_error("Parsing failure.");
-    }
-    catch (const out_of_range&)
-    {
-        throw imap_error("Parsing failure.");
-    }
-
-    reset_response_parser();
+    list<messages_range_t> messages_range;
+    messages_range.push_back(imap::messages_range_t(message_no, message_no));
+    map<unsigned long, message> found_messages;
+    fetch(messages_range, found_messages, is_uid, header_only, msg.line_policy());
+    msg = std::move(found_messages.begin()->second);
 }
 
 
+// Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
 void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
     codec::line_len_policy_t line_policy)
 {
@@ -530,7 +424,7 @@ void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long,
                     for (const auto& ms : msg_str)
                     {
                         message msg;
-                        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, line_policy);
+                        msg.line_policy(line_policy, line_policy);
                         msg.parse(ms.second);
                         found_messages.emplace(ms.first, move(msg));
                     }
