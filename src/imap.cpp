@@ -328,7 +328,7 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 
 
 // Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
-void imap::fetch(const list<messages_range_t> messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
+void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
     codec::line_len_policy_t line_policy)
 {
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");

@@ -257,7 +257,7 @@ public:
     @param msg         Message to store the result.
     @param is_uid      Using a message uid number instead of a message sequence number.
     @param header_only Flag if only the message header should be fetched.
-    @throw *           `fetch(const list<messages_range_t>, map<unsigned long, message>&, bool, bool, codec::line_len_policy_t)`.
+    @throw *           `fetch(const list<messages_range_t>&, map<unsigned long, message>&, bool, bool, codec::line_len_policy_t)`.
     @todo              Add server error messages to exceptions.
     **/
     void fetch(unsigned long message_no, message& msg, bool is_uid = false, bool header_only = false);
@@ -282,7 +282,7 @@ public:
                           `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo                 Add server error messages to exceptions.
     **/
-    void fetch(const std::list<messages_range_t> messages_range, std::map<unsigned long, message>& found_messages, bool is_uids = false,
+    void fetch(const std::list<messages_range_t>& messages_range, std::map<unsigned long, message>& found_messages, bool is_uids = false,
         bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
 
     /**
