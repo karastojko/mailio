@@ -239,8 +239,7 @@ public:
     @param header_only Flag if only the message header should be fetched.
     @throw imap_error  Fetching message failure.
     @throw imap_error  Parsing failure.
-    @throw *           `parse_tag_result(const string&)`, `select(const string&)`, `parse_response(const string&)`,
-                       `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
+    @throw *           `fetch(const list<messages_range_t>&, map<unsigned long, message>&, bool, bool, codec::line_len_policy_t)`.
     @todo              Add server error messages to exceptions.
     **/
     void fetch(const std::string& mailbox, unsigned long message_no, message& msg, bool header_only = false);
