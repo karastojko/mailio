@@ -20,7 +20,7 @@ smtps conn("smtp.gmail.com", 587);
 conn.authenticate("mailio@gmail.com", "mailiopass", smtps::auth_method_t::START_TLS);
 conn.submit(msg);
 ```
-    
+
 To receive a mail, a `message` object is created to store the received message. Mail can be received over POP3 or IMAP, depending of mail server setup.
 If POP3 is used, then instance of `pop3` (or `pop3s`) class is created and message is fetched:
 
@@ -56,10 +56,17 @@ generated password for all three protocols.
 *mailio* library is supposed to work on all platforms supporting C++ 17 compiler, recent Boost libraries and CMake build tool.
 
 For Linux the following configuration is tested:
+* Ubuntu 20.04.3 LTS.
 * Gcc 8.3.0.
 * Boost 1.66 with Regex, Date Time available.
 * POSIX Threads, OpenSSL and Crypto libraries available on the system.
 * CMake 3.16.3
+
+For FreeBSD the following configuration is tested:
+* FreeBSD 13.
+* Clang 11.0.1.
+* Boost 1.72.0 (port).
+* CMake 3.21.3.
 
 For MacOS the following configuration is tested:
 * Apple LLVM 9.0.0.
@@ -103,7 +110,7 @@ installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INS
 and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 
-### Linux, MacOS, Cygwin ###
+### Linux, FreeBSD, MacOS, Cygwin ###
 
 From the terminal go into the directory where the library is downloaded to, and execute:
 ```
