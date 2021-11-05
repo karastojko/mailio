@@ -636,10 +636,52 @@ void imap::remove(unsigned long message_no, bool is_uid)
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
                 parse_response(parsed_line.response);
-                auto token = _mandatory_part.front();
-                if (token->token_type != response_token_t::token_type_t::ATOM || stoul(token->atom) != message_no)
+
+                if (_mandatory_part.empty())
+                    throw imap_error("Parsing failure.");
+                auto msg_no_token = _mandatory_part.front();
+                _mandatory_part.pop_front();
+
+                if (_mandatory_part.empty())
+                    throw imap_error("Parsing failure.");
+                auto fetch_token = _mandatory_part.front();
+                if (!iequals(fetch_token->atom, "FETCH"))
+                    throw imap_error("Parsing failure.");
+                _mandatory_part.pop_front();
+
+                // Check the list with flags.
+
+                if (_mandatory_part.empty())
+                    throw imap_error("Parsing failure.");
+                auto flags_token_list = _mandatory_part.front();
+                if (flags_token_list->token_type != response_token_t::token_type_t::LIST)
+                    throw imap_error("Parsing failure.");
+
+                std::shared_ptr<response_token_t> uid_token = nullptr;
+                auto uid_token_it = flags_token_list->parenthesized_list.begin();
+                do
+                    if (iequals((*uid_token_it)->atom, "UID"))
+                    {
+                        uid_token_it++;
+                        if (uid_token_it == flags_token_list->parenthesized_list.end())
+                            throw imap_error("Parsing failure.");
+                        uid_token = *uid_token_it;
+                        break;
+                    }
+                    else
+                        uid_token_it++;
+                while (uid_token_it != flags_token_list->parenthesized_list.end());
+
+                if (is_uid)
+                {
+                    if (uid_token == nullptr)
+                        throw imap_error("Parsing failure.");
+                    msg_no_token = uid_token;
+                }
+
+                if (msg_no_token->token_type != response_token_t::token_type_t::ATOM || stoul(msg_no_token->atom) != message_no)
                     throw imap_error("Deleting message failure.");
-                // TODO: Untagged FETCH response also to be checked?
+
                 continue;
             }
             else if (parsed_line.tag == to_string(_tag))
