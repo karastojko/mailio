@@ -28,10 +28,8 @@ using std::cout;
 using std::endl;
 
 
-int main()
-{
-    try
-    {
+int main() {
+    try {
         // mail message to store the fetched one
         message msg;
         // set the line policy to mandatory, so longer lines could be parsed
@@ -41,31 +39,42 @@ int main()
         int dovecotServerPop3Port = 110;
         std::string dovecotServerAuthUsername = "test@wenchao.fit";
         std::string dovecotServerAuthPassword = "wc123456";
+        // connect to server
 
-        int cursor = 10;
+        unsigned long mail_cursor = 1;
+        unsigned long mail_no = 0;
+        while (true) {
 
-        while(1) {
+            // mail message to store the fetched one
+            message msg;
+            // set the line policy to mandatory, so longer lines could be parsed
+            msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::MANDATORY);
 
             pop3s conn(dovecotServerHost, dovecotServerPop3Port);
             // modify to use existing yahoo account
             conn.authenticate(dovecotServerAuthUsername, dovecotServerAuthPassword, pop3s::auth_method_t::LOGIN);
-
-            mailbox_stat_t ms =  conn.statistics();
-
-            // fetch the first message from mailbox
-            conn.fetch(cursor ++, msg);
-            cout << msg.subject() << endl;
-
-
+//            conn.authenticate(dovecotServerAuthUsername, dovecotServerAuthPassword, pop3s::auth_method_t::LOGIN);
+            mailio::pop3::mailbox_stat_t mail_info = conn.statistics();
+            mail_no = mail_info.messages_no;
+            if(mail_no >= mail_cursor) {
+                conn.fetch(mail_cursor, msg);
+                cout << "mail no: " << mail_no << endl;
+                cout << "current mail index: " << mail_cursor << endl;
+                cout << "current mail content: " << msg.content()<< endl;
+                cout << endl;
+                mail_cursor ++;
+            }
 
         }
+
+        // fetch the first message from mailbox
+//        conn.fetch(7, msg);
+//        cout << msg.subject() << endl;
     }
-    catch (pop3_error& exc)
-    {
+    catch (pop3_error &exc) {
         cout << exc.what() << endl;
     }
-    catch (dialog_error& exc)
-    {
+    catch (dialog_error &exc) {
         cout << exc.what() << endl;
     }
 

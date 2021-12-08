@@ -34,15 +34,15 @@ int main()
     {
         // create mail message
         message msg;
-        msg.from(mail_address("mailio library", "mailio@gmail.com"));// set the correct sender name and address
-        msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));// set the correct recipent name and address
-        msg.subject("smtps simple message");
+        msg.from(mail_address("test-send", "test@wenchao.fit"));// set the correct sender name and address
+        msg.add_recipient(mail_address("test-send", "test@wenchao.fit"));// set the correct recipent name and address
+        msg.subject("this is a message");
         msg.content("Hello, World!");
 
         // connect to server
-        smtps conn("smtp.gmail.com", 587);
+        smtps conn("mail.wenchao.fit", 587);
         // modify username/password to use real credentials
-        conn.authenticate("mailio@gmail.com", "mailiopass", smtps::auth_method_t::START_TLS);
+        conn.authenticate("test@wenchao.fit", "wc123456", smtps::auth_method_t::START_TLS);
         conn.submit(msg);
     }
     catch (smtp_error& exc)

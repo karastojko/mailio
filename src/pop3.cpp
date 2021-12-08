@@ -347,7 +347,7 @@ string pop3s::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
+//switch_to_ssl();
         greeting = connect();
         auth_login(username, password);
     }

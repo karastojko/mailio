@@ -309,7 +309,7 @@ string smtps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::NONE)
     {
-        switch_to_ssl();
+        //switch_to_ssl();
         greeting = connect();
         ehlo();
     }
