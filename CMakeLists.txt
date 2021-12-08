@@ -63,6 +63,7 @@ set(CMAKE_THREAD_PREFER_PTHREAD)
 set(THREADS_PREFER_PTHREAD_FLAG)
 find_package(Threads)
 
+
 set(project_sources
     ${PROJECT_SOURCE_DIR}/src/base64.cpp
     ${PROJECT_SOURCE_DIR}/src/binary.cpp
@@ -95,7 +96,7 @@ set(project_headers
     ${PROJECT_SOURCE_DIR}/include/mailio/quoted_printable.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/q_codec.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/smtp.hpp
-)
+        )
 
 # handle documentation
 if(${MAILIO_BUILD_DOCUMENTATION})
