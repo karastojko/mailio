@@ -95,6 +95,7 @@ const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::DISPOSITION_NOTIFICATION_HEADER{"Disposition-Notification-To"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
+const regex message::MESSAGE_ID_REGEX(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
 
 
 message::message() : mime(), _date_time(second_clock::universal_time(), time_zone_ptr(new posix_time_zone("00:00")))
@@ -1333,13 +1334,12 @@ vector<string> message::parse_many_ids(const string& ids) const
         return {};
 
     vector<string> idv;
-    const regex rgx(R"(<([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)\@([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]+)>)");
     auto start = ids.cbegin();
     auto end = ids.cend();
     match_flag_type flags = boost::match_default | boost::match_not_null;
     match_results<string::const_iterator> tokens;
     bool all_tokens_parsed = false;
-    while (regex_search(start, end, tokens, rgx, flags))
+    while (regex_search(start, end, tokens, MESSAGE_ID_REGEX, flags))
     {
         string id = tokens[0];
         trim_left_if(id, is_any_of(codec::LESS_THAN_STR));

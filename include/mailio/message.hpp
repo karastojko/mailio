@@ -541,6 +541,11 @@ protected:
     static const std::string MIME_VERSION_HEADER;
 
     /**
+    Regex for the message id.
+    **/
+    static const boost::regex MESSAGE_ID_REGEX;
+
+    /**
     Formatting the header to a string.
 
     @return              Header as string.
