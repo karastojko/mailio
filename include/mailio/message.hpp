@@ -543,7 +543,7 @@ protected:
     /**
     Regex for the message id.
     **/
-    static const boost::regex MESSAGE_ID_REGEX;
+    static const std::string MESSAGE_ID_REGEX;
 
     /**
     Formatting the header to a string.
