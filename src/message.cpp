@@ -97,6 +97,7 @@ const string message::DISPOSITION_NOTIFICATION_HEADER{"Disposition-Notification-
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
 const string message::MESSAGE_ID_REGEX = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~]+)"
     "\\@([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~]+)";
+const string message::MESSAGE_ID_REGEX_NS = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~\\@\\\\ \\t<\\>]*)";
 
 
 message::message() : mime(), _date_time(second_clock::universal_time(), time_zone_ptr(new posix_time_zone("00:00")))
@@ -310,7 +311,7 @@ string message::disposition_notification_to_string() const
 
 void message::message_id(string id)
 {
-    const regex r(MESSAGE_ID_REGEX);
+    const regex r(_strict_mode ? MESSAGE_ID_REGEX : MESSAGE_ID_REGEX_NS);
     smatch m;
 
     if (regex_match(id, m, r))
@@ -1331,8 +1332,8 @@ string message::format_many_ids(const string& id)
 
 vector<string> message::parse_many_ids(const string& ids) const
 {
-    if (!_strict_mode && ids.empty())
-        return {};
+    if (!_strict_mode)
+        return vector<string>{ids};
 
     vector<string> idv;
     auto start = ids.cbegin();
@@ -1340,7 +1341,7 @@ vector<string> message::parse_many_ids(const string& ids) const
     match_flag_type flags = boost::match_default | boost::match_not_null;
     match_results<string::const_iterator> tokens;
     bool all_tokens_parsed = false;
-    const string ANGLED_MESSAGE_ID_REGEX = "<" + MESSAGE_ID_REGEX + ">";
+    const string ANGLED_MESSAGE_ID_REGEX = codec::LESS_THAN_STR + MESSAGE_ID_REGEX + codec::GREATER_THAN_STR;
     const regex rgx(ANGLED_MESSAGE_ID_REGEX);
     while (regex_search(start, end, tokens, rgx, flags))
     {

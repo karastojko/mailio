@@ -541,9 +541,14 @@ protected:
     static const std::string MIME_VERSION_HEADER;
 
     /**
-    Regex for the message id.
+    Regex for the message id in the strict mode.
     **/
     static const std::string MESSAGE_ID_REGEX;
+
+    /**
+    Regex for the message id in the non-strict mode.
+    **/
+    static const std::string MESSAGE_ID_REGEX_NS;
 
     /**
     Formatting the header to a string.
