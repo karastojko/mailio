@@ -44,7 +44,7 @@ public:
     @param decoder_line_policy  Line policy to apply.
     @param codec_method Method for encoding/decoding.
     **/
-    q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy, codec_method_t codec_method);
+    q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy);
 
     q_codec(const q_codec&) = delete;
 
@@ -65,7 +65,7 @@ public:
     @param text String to encode.
     @return     Encoded string.
     **/
-    std::vector<std::string> encode(const std::string& text) const;
+    std::vector<std::string> encode(const std::string& text, codec_method_t method) const;
 
     /**
     Decoding a string.
@@ -121,7 +121,6 @@ private:
     /**
     Method used for encoding/decoding.
     **/
-    codec_method_t _codec_method;
 };
 
 

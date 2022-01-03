@@ -705,8 +705,8 @@ string message::format_address(const string& name, const string& address) const
 
     if (codec::is_utf8_string(name))
     {
-        q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
-        vector<string> n = qc.encode(name);
+        q_codec qc(_line_policy, _decoder_line_policy);
+        vector<string> n = qc.encode(name, _header_codec);
         // mail has to be formatted into a single line, otherwise it's an error
         if (n.size() > 1)
             throw message_error("Formatting failure of name, line policy overflow.");
@@ -1366,8 +1366,8 @@ string message::format_subject() const
 
     if (codec::is_utf8_string(_subject))
     {
-        q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
-        vector<string> hdr = qc.encode(_subject);
+        q_codec qc(_line_policy, _decoder_line_policy);
+        vector<string> hdr = qc.encode(_subject, _header_codec);
         subject += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
@@ -1382,14 +1382,14 @@ string message::format_subject() const
 
 string message::parse_subject(const string& subject) const
 {
-    q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
+    q_codec qc(_line_policy, _decoder_line_policy);
     return qc.check_decode(subject);
 }
 
 
 string message::parse_address_name(const string& address_name) const
 {
-    q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
+    q_codec qc(_line_policy, _decoder_line_policy);
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
     bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&

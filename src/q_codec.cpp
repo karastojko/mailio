@@ -31,18 +31,18 @@ const string q_codec::BASE64_CODEC_STR = "B";
 const string q_codec::QP_CODEC_STR = "Q";
 
 
-q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy, codec_method_t codec_method) :
-    codec(encoder_line_policy, decoder_line_policy), _codec_method(codec_method)
+q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy) :
+    codec(encoder_line_policy, decoder_line_policy)
 {
 }
 
 
-vector<string> q_codec::encode(const string& text) const
+vector<string> q_codec::encode(const string& text, codec_method_t method) const
 {
     const string::size_type Q_FLAGS_LEN = 12;
     vector<string> enc_text, text_c;
     string codec_flag;
-    if (_codec_method == codec_method_t::BASE64)
+    if (method == codec_method_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
         base64 b64(_line_policy, _decoder_line_policy);

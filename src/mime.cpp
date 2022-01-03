@@ -547,8 +547,8 @@ string mime::format_mime_name(const string& name) const
     if (codec::is_utf8_string(name))
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
-        q_codec qc(codec::line_len_policy_t::MANDATORY, _decoder_line_policy, _header_codec);
-        vector<string> hdr = qc.encode(name);
+        q_codec qc(codec::line_len_policy_t::MANDATORY, _decoder_line_policy);
+        vector<string> hdr = qc.encode(name, _header_codec);
         return hdr.at(0);
     }
 
@@ -663,7 +663,7 @@ void mime::parse_header_line(const string& header_line)
         // name is set if not already set by content disposition
         if (name_it != attributes.end() && _name.empty())
         {
-            q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
+            q_codec qc(_line_policy, _decoder_line_policy);
             _name = qc.check_decode(name_it->second);
         }
     }
@@ -680,7 +680,7 @@ void mime::parse_header_line(const string& header_line)
         attributes_t::iterator filename_it = attributes.find(ATTRIBUTE_FILENAME);
         if (filename_it != attributes.end())
         {
-            q_codec qc(_line_policy, _decoder_line_policy, _header_codec);
+            q_codec qc(_line_policy, _decoder_line_policy);
             _name = qc.check_decode(filename_it->second);
         }
     }
