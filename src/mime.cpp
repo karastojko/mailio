@@ -103,6 +103,17 @@ const string mime::CONTENT_ATTR_ALPHABET{"!#$%&*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
+
+q_codec::codec_method_t mime::cast_q_codec(mime::header_codec_t method)
+{
+    if (method == mime::header_codec_t::BASE64)
+        return q_codec::codec_method_t::BASE64;
+    else if (method == mime::header_codec_t::QUOTED_PRINTABLE)
+        return q_codec::codec_method_t::QUOTED_PRINTABLE;
+    throw mime_error("Wrong header codec.");
+}
+
+
 mime::mime() : _version("1.0"), _line_policy(codec::line_len_policy_t::RECOMMENDED),
     _decoder_line_policy(codec::line_len_policy_t::RECOMMENDED), _strict_mode(false), _strict_codec_mode(false),
     _header_codec(header_codec_t::QUOTED_PRINTABLE), _content_type(media_type_t::NONE, ""), _encoding(content_transfer_encoding_t::NONE),
@@ -548,7 +559,7 @@ string mime::format_mime_name(const string& name) const
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
         q_codec qc(codec::line_len_policy_t::MANDATORY, _decoder_line_policy);
-        vector<string> hdr = qc.encode(name, _header_codec);
+        vector<string> hdr = qc.encode(name, cast_q_codec(_header_codec));
         return hdr.at(0);
     }
 
@@ -703,6 +714,7 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
     smatch m;
     if (!regex_match(header_name, m, HEADER_NAME_REGEX))
         throw mime_error("Format failure of the header name `" + header_name + "`.");
+
     if (header_value.empty())
     {
         if (_strict_mode)
@@ -715,7 +727,7 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
         }
     }
 
-    if (!regex_match(header_value, m, HEADER_VALUE_REGEX))
+    if (!codec::is_utf8_string(header_value) && !regex_match(header_value, m, HEADER_VALUE_REGEX))
         throw mime_error("Format failure of the header value `" + header_value + "`.");
 }
 

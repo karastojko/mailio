@@ -371,7 +371,7 @@ public:
     /**
     Codec used for header fields.
     **/
-    typedef q_codec::codec_method_t header_codec_t;
+    enum class header_codec_t {BASE64, QUOTED_PRINTABLE, UTF8};
 
     /**
     Setting the headers codec.
@@ -534,6 +534,14 @@ protected:
     Content header value allowed characters.
     */
     static const std::string CONTENT_HEADER_VALUE_ALPHABET;
+
+    /**
+    Transforms the header codec to the Q codec enum.
+
+    @param method Header coded to transform.
+    @return       Q codec to get.
+    **/
+    static q_codec::codec_method_t cast_q_codec(mime::header_codec_t method);
 
     /**
     Formatting header.

@@ -42,6 +42,12 @@ int codec::hex_digit_to_int(char digit)
 }
 
 
+bool codec::is_8bit_char(char ch)
+{
+    return static_cast<unsigned>(ch) > 127;
+}
+
+
 bool codec::is_utf8_string(const string& txt)
 {
     for (auto ch : txt)

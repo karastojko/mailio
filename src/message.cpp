@@ -703,14 +703,23 @@ string message::format_address(const string& name, const string& address) const
     string addr;
     smatch m;
 
+    // Check name format.
+
     if (codec::is_utf8_string(name))
     {
-        q_codec qc(_line_policy, _decoder_line_policy);
-        vector<string> n = qc.encode(name, _header_codec);
-        // mail has to be formatted into a single line, otherwise it's an error
-        if (n.size() > 1)
-            throw message_error("Formatting failure of name, line policy overflow.");
-        name_formatted = n[0];
+        if (_header_codec == header_codec_t::UTF8)
+        {
+            name_formatted = name;
+        }
+        else
+        {
+            q_codec qc(_line_policy, _decoder_line_policy);
+            vector<string> n = qc.encode(name, cast_q_codec(_header_codec));
+            // mail has to be formatted into a single line, otherwise it's an error
+            if (n.size() > 1)
+                throw message_error("Formatting failure of name, line policy overflow.");
+            name_formatted = n[0];
+        }
     }
     else
     {
@@ -722,17 +731,27 @@ string message::format_address(const string& name, const string& address) const
             throw message_error("Formatting failure of name `" + name + "`.");
     }
 
+    // Check address format.
+
     if (!address.empty())
     {
-        if (regex_match(address, m, DTEXT_REGEX))
+        if (codec::is_utf8_string(address))
+        {
             addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
+        }
         else
-            throw message_error("Formatting failure of address `" + address + "`.");
+        {
+            if (regex_match(address, m, DTEXT_REGEX))
+                addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
+            else
+                throw message_error("Formatting failure of address `" + address + "`.");
+        }
     }
 
     string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : " " + addr));
     if (addr_name.length() > string::size_type(_line_policy))
         throw message_error("Formatting failure of address, line policy overflow.");
+
     return addr_name;
 }
 
@@ -797,7 +816,7 @@ Meanings of the labels:
 - groupbeg: begin of a group
 - groupend: end of a group
 - commbeg: begin of a comment
-- comment: end of a comment
+- commend: end of a comment
 */
 mailboxes message::parse_address_list(const string& address_list) const
 {
@@ -825,7 +844,7 @@ mailboxes message::parse_address_list(const string& address_list) const
             {
                 if (isspace(*ch))
                     ;
-                else if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos)
+                else if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                 {
                     token += *ch;
                     state = state_t::NAMEADDRGRP;
@@ -866,7 +885,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::NAMEADDRGRP:
             {
-                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos)
+                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                     token += *ch;
                 else if (*ch == codec::MONKEY_CHAR)
                 {
@@ -947,7 +966,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::NAME:
             {
-                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || isspace(*ch))
+                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || isspace(*ch) || codec::is_8bit_char(*ch))
                     token += *ch;
                 else if (*ch == ADDRESS_BEGIN_CHAR)
                 {
@@ -969,7 +988,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::ADDR:
             {
-                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos)
+                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                     token += *ch;
                 else if (*ch == codec::MONKEY_CHAR)
                 {
@@ -1061,7 +1080,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::QNAMEADDRBEG:
             {
-                if (isalpha(*ch) || isdigit(*ch) || isspace(*ch) || QTEXT.find(*ch) != string::npos)
+                if (isalpha(*ch) || isdigit(*ch) || isspace(*ch) || QTEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                     token += *ch;
                 // backslash is invisible, see [rfc 5322, section 3.2.4]
                 else if (*ch == codec::BACKSLASH_CHAR)
@@ -1100,7 +1119,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::ADDRBRBEG:
             {
-                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos)
+                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                     token += *ch;
                 else if (*ch == codec::MONKEY_CHAR)
                 {
@@ -1190,7 +1209,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::GROUPBEG:
             {
-                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos)
+                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                 {
                     token += *ch;
                     state = state_t::BEGIN;
@@ -1222,7 +1241,7 @@ mailboxes message::parse_address_list(const string& address_list) const
 
             case state_t::GROUPEND:
             {
-                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos)
+                if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || codec::is_8bit_char(*ch))
                 {
                     token += *ch;
                     state = state_t::BEGIN;
@@ -1364,10 +1383,10 @@ string message::format_subject() const
 {
     string subject;
 
-    if (codec::is_utf8_string(_subject))
+    if (codec::is_utf8_string(_subject) && _header_codec != header_codec_t::UTF8)
     {
         q_codec qc(_line_policy, _decoder_line_policy);
-        vector<string> hdr = qc.encode(_subject, _header_codec);
+        vector<string> hdr = qc.encode(_subject, cast_q_codec(_header_codec));
         subject += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
@@ -1382,8 +1401,13 @@ string message::format_subject() const
 
 string message::parse_subject(const string& subject) const
 {
-    q_codec qc(_line_policy, _decoder_line_policy);
-    return qc.check_decode(subject);
+    if (codec::is_utf8_string(subject))
+        return subject;
+    else
+    {
+        q_codec qc(_line_policy, _decoder_line_policy);
+        return qc.check_decode(subject);
+    }
 }
 
 

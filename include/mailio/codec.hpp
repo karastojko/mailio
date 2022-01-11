@@ -38,6 +38,14 @@ public:
     static int hex_digit_to_int(char digit);
 
     /**
+    Checking if a character is eight bit.
+
+    @param ch Character to check.
+    @return   True if eight bit, false if seven bit.
+    **/
+    static bool is_8bit_char(char ch);
+
+    /**
     Checking if a string is UTF-8 encoded.
 
     @param txt String to check.
