@@ -297,6 +297,10 @@ public:
     **/
     void content(const std::string& content_str);
 
+#if defined(__cpp_char8_t)
+    void content(const std::u8string& content_str);
+#endif
+
     /**
     Getting the content as a string.
 

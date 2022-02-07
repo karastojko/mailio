@@ -29,6 +29,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 using std::string;
+#if defined(__cpp_char8_t)
+using std::u8string;
+#endif
 using std::ifstream;
 using std::stringstream;
 using std::pair;
@@ -308,6 +311,14 @@ void mime::content(const string& content_str)
 {
     _content = content_str;
 }
+
+
+#if defined(__cpp_char8_t)
+void mime::content(const u8string& content_str)
+{
+    _content = string(reinterpret_cast<const char*>(content_str.c_str()));
+}
+#endif
 
 
 string mime::content() const
