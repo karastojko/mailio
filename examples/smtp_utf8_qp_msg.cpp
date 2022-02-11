@@ -49,7 +49,7 @@ int main()
         msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
         msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
 
-        const auto* msgu8 =
+        msg.content(
             u8"Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
             u8"па се надам да ће то овај текст показати.\r\n"
             u8"\r\n"
@@ -63,14 +63,7 @@ int main()
             u8"покаже има ли багова у логици форматирања,\r\n"
             u8"а исто то треба проверити са парсирањем.\r\n"
             u8"\r\n\r\n\r\n\r\n"
-            u8"Овде је и провера за низ празних линија.";
-        const char* msgs =
-        #if defined(__cpp_char8_t)
-            reinterpret_cast<const char *>(msgu8);
-        #else
-            msgu8;
-        #endif
-        msg.content(msgs);
+            u8"Овде је и провера за низ празних линија.");
 
         // use a server with plain (non-SSL) connectivity
         smtp conn("smtp.mailserver.com", 587);
