@@ -331,6 +331,9 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
     codec::line_len_policy_t line_policy)
 {
+    if (messages_range.empty())
+        throw imap_error("Empty messages range.");
+
     const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
     const string message_ids = messages_range_list_to_string(messages_range);
 
