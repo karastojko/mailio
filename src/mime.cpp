@@ -851,12 +851,13 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
 
     for (auto ch = header.begin(); ch != header.end(); ch++)
     {
+        auto uch = static_cast<unsigned char>(*ch);
         switch (state)
         {
             case state_t::BEGIN:
                 if (isspace(*ch))
                     ;
-                else if (isalpha(*ch) || isdigit(*ch))
+                else if (isalpha(uch) || isdigit(uch))
                 {
                     state = state_t::VALUE;
                     header_value += *ch;
@@ -866,7 +867,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 break;
 
             case state_t::VALUE:
-                if (isalpha(*ch) || isdigit(*ch) || CONTENT_HEADER_VALUE_ALPHABET.find(*ch) != string::npos)
+                if (isalpha(uch) || isdigit(uch) || CONTENT_HEADER_VALUE_ALPHABET.find(*ch) != string::npos)
                     header_value += *ch;
                 else if (*ch == ATTRIBUTES_SEPARATOR_CHAR)
                     state = state_t::ATTR_BEGIN;
@@ -875,9 +876,9 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 break;
 
             case state_t::ATTR_BEGIN:
-                if (isspace(*ch))
+                if (isspace(uch))
                     ;
-                else if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
+                else if (isalpha(uch) || isdigit(uch) || CONTENT_ATTR_ALPHABET.find(uch) != string::npos)
                 {
                     state = state_t::ATTR_NAME;
                     attribute_name += *ch;
@@ -889,7 +890,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 break;
 
             case state_t::ATTR_NAME:
-                if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
+                if (isalpha(uch) || isdigit(uch) || CONTENT_ATTR_ALPHABET.find(uch) != string::npos)
                     attribute_name += *ch;
                 else if (*ch == NAME_VALUE_SEPARATOR_CHAR)
                     state = state_t::ATTR_VALUE;
@@ -898,7 +899,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
             case state_t::ATTR_VALUE:
                 if (*ch == codec::QUOTE_CHAR)
                     state = state_t::QATTR_VALUE_BEGIN;
-                else if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
+                else if (isalpha(uch) || isdigit(uch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
                 {
                     state = state_t::ATTR_VALUE_BEGIN;
                     attribute_value += *ch;
@@ -908,7 +909,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 break;
 
             case state_t::QATTR_VALUE_BEGIN:
-                if (isalpha(*ch) || isdigit(*ch) || QTEXT.find(*ch) != string::npos)
+                if (isalpha(uch) || isdigit(uch) || QTEXT.find(*ch) != string::npos)
                     attribute_value += *ch;
                 else if (*ch == codec::QUOTE_CHAR)
                     state = state_t::ATTR_VALUE_END;
@@ -919,9 +920,9 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 break;
 
             case state_t::ATTR_VALUE_BEGIN:
-                if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
+                if (isalpha(uch) || isdigit(uch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
                     attribute_value += *ch;
-                else if (isspace(*ch))
+                else if (isspace(uch))
                     state = state_t::ATTR_VALUE_END;
                 else if (*ch == ATTRIBUTES_SEPARATOR_CHAR)
                 {
@@ -941,7 +942,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 attribute_name.clear();
                 attribute_value.clear();
 
-                if (isspace(*ch))
+                if (isspace(uch))
                     ;
                 else if (*ch == ATTRIBUTES_SEPARATOR_CHAR)
                     state = state_t::ATTR_BEGIN;
