@@ -178,6 +178,15 @@ public:
     void format(std::string& mime_str, bool dot_escape = true) const;
 
     /**
+    Overload of `format(string&, bool)`.
+
+    Because of the way the u8string is comverted to string, it's more expensive when used with C++20.
+    **/
+#if defined(__cpp_char8_t)
+    void format(std::u8string& mime_str, bool dot_escape = true) const;
+#endif
+
+    /**
     Parsing the mime part from a string.
 
     If a line contains leading dot, then it can be escaped as required by mail protocols.
@@ -189,6 +198,15 @@ public:
     @throw *           `parse_by_line(const std::string&, bool)`.
     **/
     void parse(const std::string& mime_string, bool dot_escape = false);
+
+    /**
+    Overload of `parse(const string&, bool)`.
+
+    Because of the way the u8string is comverted to string, it's more expensive when used with C++20.
+    **/
+#if defined(__cpp_char8_t)
+    void parse(const std::u8string& mime_string, bool dot_escape = false);
+#endif
 
     /**
     Parsing a line of mime part.

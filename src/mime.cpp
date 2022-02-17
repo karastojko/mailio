@@ -150,6 +150,15 @@ void mime::format(string& mime_str, bool dot_escape) const
 }
 
 
+#if defined(__cpp_char8_t)
+void mime::format(u8string& mime_str, bool dot_escape) const
+{
+    string ms = reinterpret_cast<const char*>(mime_str.c_str());
+    format(ms, dot_escape);
+}
+#endif
+
+
 void mime::parse(const string& mime_string, bool dot_escape)
 {
     string::size_type line_begin = 0;
@@ -171,6 +180,14 @@ void mime::parse(const string& mime_string, bool dot_escape)
         parse_by_line(line, dot_escape);
     parse_by_line(codec::END_OF_LINE, dot_escape);
 }
+
+
+#if defined(__cpp_char8_t)
+void mime::parse(const u8string& mime_string, bool dot_escape)
+{
+    parse(reinterpret_cast<const char*>(mime_string.c_str()), dot_escape);
+}
+#endif
 
 
 mime& mime::parse_by_line(const string& line, bool dot_escape)

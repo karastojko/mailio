@@ -145,6 +145,15 @@ void message::format(string& message_str, bool dot_escape) const
 }
 
 
+#if defined(__cpp_char8_t)
+void message::format(u8string& message_str, bool dot_escape) const
+{
+    string m = reinterpret_cast<const char*>(message_str.c_str());
+    format(m, dot_escape);
+}
+#endif
+
+
 void message::parse(const string& message_str, bool dot_escape)
 {
     mime::parse(message_str, dot_escape);
@@ -154,6 +163,14 @@ void message::parse(const string& message_str, bool dot_escape)
 
     // There is no check if there is a sender in case of multiple authors, not sure if that logic is needed.
 }
+
+
+#if defined(__cpp_char8_t)
+void message::parse(const u8string& message_str, bool dot_escape)
+{
+    parse(reinterpret_cast<const char*>(message_str.c_str()), dot_escape);
+}
+#endif
 
 
 bool message::empty() const

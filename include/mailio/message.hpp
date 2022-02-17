@@ -120,6 +120,15 @@ public:
     void format(std::string& message_str, bool dot_escape = false) const;
 
     /**
+    Overload of `format(string&, bool)`.
+
+    Because of the way the u8string is comverted to string, it's more expensive when used with C++20.
+    **/
+#if defined(__cpp_char8_t)
+    void format(std::u8string& message_str, bool dot_escape = false) const;
+#endif
+
+    /**
     Parsing a message from a string.
 
     Essentially, the method calls the same one from `mime` and checks for errors.
@@ -130,6 +139,15 @@ public:
     @throw *             `mime::parse(const string&, bool)`.
     **/
     void parse(const std::string& message_str, bool dot_escape = false);
+
+    /**
+    Overload of `parse(const string&, bool)`.
+
+    Because of the way the u8string is comverted to string, it's more expensive when used with C++20.
+    **/
+#if defined(__cpp_char8_t)
+    void parse(const std::u8string& mime_string, bool dot_escape = false);
+#endif
 
     /**
     Checking if the mail is empty.
