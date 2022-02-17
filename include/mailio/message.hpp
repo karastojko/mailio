@@ -372,6 +372,10 @@ public:
     */
     void subject(const std::string& mail_subject);
 
+#if defined(__cpp_char8_t)
+    void subject(const std::u8string& mail_subject);
+#endif
+
     /**
     Getting the subject.
 

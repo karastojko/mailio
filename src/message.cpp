@@ -38,6 +38,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 using std::string;
+#if defined(__cpp_char8_t)
+using std::u8string;
+#endif
 using std::vector;
 using std::list;
 using std::multimap;
@@ -363,6 +366,14 @@ void message::subject(const string& mail_subject)
 {
     _subject = mail_subject;
 }
+
+
+#if defined(__cpp_char8_t)
+void message::subject(const u8string& mail_subject)
+{
+    _subject = string(reinterpret_cast<const char*>(mail_subject.c_str()));
+}
+#endif
 
 
 string message::subject() const
