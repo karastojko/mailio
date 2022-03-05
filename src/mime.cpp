@@ -845,11 +845,17 @@ digraph header_value_attributes
     attrbegin -> attrbegin [label="space"];
     attrbegin -> attrname [label="token"];
     attrname -> attrname [label="token"];
-    attrname -> attrvalue [label="equal_sign"];
-    attrvalue -> qattrvaluebegin [label="quote"];
+    attrname -> preequal [label="space" style="dashed"]
+    preequal [style="dashed"];
+    preequal -> attrsep [label="equal_sign"];
+    preequal -> preequal [label="space" style="dashed"];
+    attrsep -> postequal [label="space" style="dashed"]
+    postequal [style="dashed"];
+    postequal -> qattrvaluebegin [label="quote"];
+    postequal -> attrvaluebegin [label="token"];
+    postequal -> postequal [label="space" style="dashed"];
     qattrvaluebegin -> qattrvaluebegin [label="qtext"];
     qattrvaluebegin -> attrvalueend [label="quote"];
-    attrvalue -> attrvaluebegin [label="token"];
     attrvaluebegin -> attrvaluebegin [label="token"];
     attrvaluebegin -> attrvalueend [label="space"];
     attrvaluebegin -> attrbegin [label="semicolon"];
@@ -862,7 +868,7 @@ For details see [rfc 2045, section 5.1].
 */
 void mime::parse_header_value_attributes(const string& header, string& header_value, attributes_t& attributes) const
 {
-    enum class state_t {BEGIN, VALUE, ATTR_BEGIN, ATTR_NAME, ATTR_VALUE, QATTR_VALUE_BEGIN, ATTR_VALUE_BEGIN, ATTR_VALUE_END, END};
+    enum class state_t {BEGIN, VALUE, ATTR_BEGIN, ATTR_NAME, PRE_EQUAL, ATTR_SEP, POST_EQUAL, QATTR_VALUE_BEGIN, ATTR_VALUE_BEGIN, ATTR_VALUE_END, END};
     state_t state = state_t::BEGIN;
     string attribute_name, attribute_value;
 
@@ -900,7 +906,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     attribute_name += *ch;
                 }
                 else if (*ch == NAME_VALUE_SEPARATOR_CHAR)
-                    state = state_t::ATTR_VALUE;
+                    state = state_t::ATTR_SEP;
                 else
                     throw mime_error("Parsing attribute name failure at `" + string(1, *ch) + "`.");
                 break;
@@ -908,12 +914,37 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
             case state_t::ATTR_NAME:
                 if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
                     attribute_name += *ch;
+                else if (isspace(*ch) && !_strict_mode)
+                    state = state_t::PRE_EQUAL;
                 else if (*ch == NAME_VALUE_SEPARATOR_CHAR)
-                    state = state_t::ATTR_VALUE;
+                    state = state_t::ATTR_SEP;
                 break;
 
-            case state_t::ATTR_VALUE:
-                if (*ch == codec::QUOTE_CHAR)
+            case state_t::PRE_EQUAL:
+                if (isspace(*ch) && !_strict_mode)
+                    ;
+                else if (*ch == NAME_VALUE_SEPARATOR_CHAR)
+                    state = state_t::ATTR_SEP;
+                break;
+
+            case state_t::ATTR_SEP:
+                if (isspace(*ch) && !_strict_mode)
+                    state = state_t::POST_EQUAL;
+                else if (*ch == codec::QUOTE_CHAR)
+                    state = state_t::QATTR_VALUE_BEGIN;
+                else if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
+                {
+                    state = state_t::ATTR_VALUE_BEGIN;
+                    attribute_value += *ch;
+                }
+                else
+                    throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
+                break;
+
+            case state_t::POST_EQUAL:
+                if (isspace(*ch) && !_strict_mode)
+                    ;
+                else if (*ch == codec::QUOTE_CHAR)
                     state = state_t::QATTR_VALUE_BEGIN;
                 else if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
                 {
