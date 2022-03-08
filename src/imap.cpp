@@ -979,8 +979,7 @@ string imap::folder_delimiter()
 {
     try
     {
-        static string delimiter;
-        if (delimiter.empty())
+        if (_folder_delimiter.empty())
         {
             _dlg->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR));
             bool has_more = true;
@@ -988,7 +987,7 @@ string imap::folder_delimiter()
             {
                 string line = _dlg->receive();
                 tag_result_response_t parsed_line = parse_tag_result(line);
-                if (parsed_line.tag == UNTAGGED_RESPONSE && delimiter.empty())
+                if (parsed_line.tag == UNTAGGED_RESPONSE && _folder_delimiter.empty())
                 {
                     parse_response(parsed_line.response);
                     if (!iequals(_mandatory_part.front()->atom, "LIST"))
@@ -1000,7 +999,7 @@ string imap::folder_delimiter()
                     auto it = _mandatory_part.begin();
                     if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
                         throw imap_error("Determining folder delimiter failure.");
-                    delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
+                    _folder_delimiter = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
                     reset_response_parser();
                 }
                 else if (parsed_line.tag == to_string(_tag))
@@ -1012,7 +1011,7 @@ string imap::folder_delimiter()
                 }
             }
         }
-        return delimiter;
+        return _folder_delimiter;
     }
     catch (const invalid_argument&)
     {

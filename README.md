@@ -192,6 +192,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [David Garcia](mailto:david.garcia[at]antiteum.com): Vcpkg port.
 * [ImJustStokedToBeHere](https://github.com/ImJustStokedToBeHere): Typo error in IMAP.
 * [lifof](mailto:youssef.beddad[at]gmail.com): Support for the MinGW compilation.
+* [Canyon E](https://github.com/canyone2015): IMAP folder delimiter static variable issue.
 
 
 # Contact #

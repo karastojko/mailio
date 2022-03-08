@@ -615,6 +615,11 @@ protected:
     void search(const std::string& conditions, std::list<unsigned long>& results, bool want_uids = false);
 
     /**
+    Folder delimiter string determined by the IMAP server.
+    **/
+    std::string _folder_delimiter;
+
+    /**
     Parsed elements of IMAP response line.
     **/
     struct tag_result_response_t
