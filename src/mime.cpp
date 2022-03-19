@@ -855,8 +855,10 @@ digraph header_value_attributes
     postequal -> attrvaluebegin [label="token"];
     postequal -> postequal [label="space" style="dashed"];
     qattrvaluebegin -> qattrvaluebegin [label="qtext"];
+    qattrvaluebegin -> qattrvaluebegin [label="backslash" style="dashed"];
     qattrvaluebegin -> attrvalueend [label="quote"];
     attrvaluebegin -> attrvaluebegin [label="token"];
+    attrvaluebegin -> attrvaluebegin [label="backslash" style="dashed"];
     attrvaluebegin -> attrvalueend [label="space"];
     attrvaluebegin -> attrbegin [label="semicolon"];
     attrvalueend -> attrbegin [label="semicolon"];
@@ -958,6 +960,8 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
             case state_t::QATTR_VALUE_BEGIN:
                 if (isalpha(*ch) || isdigit(*ch) || QTEXT.find(*ch) != string::npos)
                     attribute_value += *ch;
+                else if (!_strict_mode && *ch == codec::BACKSLASH_CHAR)
+                    attribute_value += *ch;
                 else if (*ch == codec::QUOTE_CHAR)
                     state = state_t::ATTR_VALUE_END;
                 else
@@ -968,6 +972,8 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
 
             case state_t::ATTR_VALUE_BEGIN:
                 if (isalpha(*ch) || isdigit(*ch) || CONTENT_ATTR_ALPHABET.find(*ch) != string::npos)
+                    attribute_value += *ch;
+                else if (!_strict_mode && *ch == codec::BACKSLASH_CHAR)
                     attribute_value += *ch;
                 else if (isspace(*ch))
                     state = state_t::ATTR_VALUE_END;
