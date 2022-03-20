@@ -808,6 +808,7 @@ digraph address_list
     addr -> addr [label = "atext"];
     addr -> begin [label = "comma"];
     addr -> groupend [label = "semicolon"];
+    addr -> addrbrbeg [label="monkey" style="dashed"]
     addr -> commbeg [label = "left_parenthesis"];
     addr -> end [label = "eol"];
     qnameaddrbeg -> qnameaddrbeg [label = "qtext"];
@@ -1022,6 +1023,13 @@ mailboxes message::parse_address_list(const string& address_list) const
                 {
                     token += *ch;
                     monkey_found = true;
+                }
+                else if (*ch == ADDRESS_BEGIN_CHAR && !_strict_mode)
+                {
+                    cur_address.name = token;
+                    trim(cur_address.name);
+                    token.clear();
+                    state = state_t::ADDRBRBEG;
                 }
                 // TODO: space is allowed in the address?
                 else if (isspace(*ch))
