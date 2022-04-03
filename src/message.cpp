@@ -922,6 +922,8 @@ mailboxes message::parse_address_list(const string& address_list) const
                     state = state_t::ADDR;
                     monkey_found = true;
                 }
+                else if (*ch == codec::QUOTE_CHAR && !_strict_mode)
+                    state = state_t::QNAMEADDRBEG;
                 else if (isspace(*ch))
                 {
                     token += *ch;
@@ -997,6 +999,8 @@ mailboxes message::parse_address_list(const string& address_list) const
             {
                 if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || isspace(*ch) || codec::is_8bit_char(*ch))
                     token += *ch;
+                else if (*ch == codec::QUOTE_CHAR && !_strict_mode)
+                    state = state_t::QNAMEADDRBEG;
                 else if (*ch == ADDRESS_BEGIN_CHAR)
                 {
                     cur_address.name = token;
@@ -1130,9 +1134,12 @@ mailboxes message::parse_address_list(const string& address_list) const
                 else
                     throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
 
-                // not allowed to end address list in this state
+                // not allowed to end address list in this state in the strict mode
                 if (ch == address_list.end() - 1)
-                    throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                    if (_strict_mode)
+                        throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                    else
+                        mail_list.push_back(cur_address);
 
                 break;
             }
