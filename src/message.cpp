@@ -803,8 +803,10 @@ digraph address_list
     nameaddrgrp -> groupbeg [label = "colon"];
     nameaddrgrp -> addrbrbeg [label = "left_bracket"];
     nameaddrgrp -> begin [label = "comma"];
+    nameaddrgrp -> qnameaddrbeg [label = "quote" style="dashed"];
     name -> name [label = "atext, space"];
     name -> addrbrbeg [label = "left_bracket"];
+    name -> qnameaddrbeg [label = "quote" style="dashed"];
     addr -> addr [label = "atext"];
     addr -> begin [label = "comma"];
     addr -> groupend [label = "semicolon"];
