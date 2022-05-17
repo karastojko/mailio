@@ -55,6 +55,7 @@ using std::shared_ptr;
 using std::make_shared;
 using std::tuple;
 using std::size_t;
+using std::get;
 using boost::trim_copy;
 using boost::trim;
 using boost::trim_left_if;
@@ -381,19 +382,43 @@ vector<string> message::references() const
 
 void message::subject(const string& mail_subject)
 {
+    _subject.buffer = mail_subject;
+    _subject.charset = "ASCII";
+    if (codec::is_utf8_string(_subject.buffer))
+        _subject.charset = "UTF-8";
+}
+
+
+void message::subject_raw(const string_t& mail_subject)
+{
     _subject = mail_subject;
 }
 
 
 #if defined(__cpp_char8_t)
+
 void message::subject(const u8string& mail_subject)
 {
-    _subject = string(reinterpret_cast<const char*>(mail_subject.c_str()));
+    _subject.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
+    _subject.charset = "UTF-8";
 }
+
+
+void message::subject_raw(const u8string_t& mail_subject)
+{
+    _subject.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
+    _subject.charset = mail_subject.charset;
+}
+
 #endif
 
 
 string message::subject() const
+{
+    return _subject.buffer;
+}
+
+string_t message::subject_raw() const
 {
     return _subject;
 }
@@ -583,7 +608,7 @@ string message::format_header() const
         header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + _version + codec::END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
+    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject().buffer + codec::END_OF_LINE;
 
     return header;
 }
@@ -659,7 +684,7 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, REFERENCES_HEADER))
         _references = parse_many_ids(header_value);
     else if (iequals(header_name, SUBJECT_HEADER))
-        _subject = parse_subject(header_value);
+        std::tie(_subject.buffer, _subject.charset) = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
         _date_time = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
@@ -742,7 +767,7 @@ string message::format_address(const string& name, const string& address) const
         else
         {
             q_codec qc(_line_policy, _decoder_line_policy);
-            vector<string> n = qc.encode(name, cast_q_codec(_header_codec));
+            vector<string> n = qc.encode(name, "UTF-8", cast_q_codec(_header_codec));
             // mail has to be formatted into a single line, otherwise it's an error
             if (n.size() > 1)
                 throw message_error("Formatting failure of name, line policy overflow.");
@@ -1424,30 +1449,30 @@ vector<string> message::parse_many_ids(const string& ids) const
 }
 
 
-string message::format_subject() const
+string_t message::format_subject() const
 {
-    string subject;
+    string_t subject;
 
-    if (codec::is_utf8_string(_subject) && _header_codec != header_codec_t::UTF8)
+    if (_subject.charset != "ASCII" && _header_codec != header_codec_t::UTF8)
     {
         q_codec qc(_line_policy, _decoder_line_policy);
-        vector<string> hdr = qc.encode(_subject, cast_q_codec(_header_codec));
-        subject += hdr.at(0) + codec::END_OF_LINE;
+        vector<string> hdr = qc.encode(_subject.buffer, _subject.charset, cast_q_codec(_header_codec));
+        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
-                subject += codec::SPACE_STR + *h + codec::END_OF_LINE;
+                subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject += _subject + codec::END_OF_LINE;
+        subject.buffer += _subject.buffer + codec::END_OF_LINE;
 
     return subject;
 }
 
 
-string message::parse_subject(const string& subject) const
+tuple<string, string> message::parse_subject(const string& subject) const
 {
     if (codec::is_utf8_string(subject))
-        return subject;
+        return make_tuple(subject, "UTF-8");
     else
     {
         q_codec qc(_line_policy, _decoder_line_policy);
@@ -1465,7 +1490,7 @@ string message::parse_address_name(const string& address_name) const
         address_name.at(1) == codec::QUESTION_MARK_CHAR && address_name.at(addr_len - 1) == codec::EQUAL_CHAR &&
         address_name.at(addr_len - 2) == codec::QUESTION_MARK_CHAR;
     if (is_q_encoded)
-        return qc.decode(address_name.substr(1, addr_len - 3));
+        return get<0>(qc.decode(address_name.substr(1, addr_len - 3)));
 
     return address_name;
 }

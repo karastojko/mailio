@@ -20,6 +20,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 using boost::iequals;
 using std::string;
 using std::vector;
+using std::tuple;
+using std::make_tuple;
+using std::get;
 using boost::to_upper_copy;
 
 
@@ -37,7 +40,7 @@ q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_p
 }
 
 
-vector<string> q_codec::encode(const string& text, codec_method_t method) const
+vector<string> q_codec::encode(const string& text, const string& charset, codec_method_t method) const
 {
     const string::size_type Q_FLAGS_LEN = 12;
     vector<string> enc_text, text_c;
@@ -57,14 +60,14 @@ vector<string> q_codec::encode(const string& text, codec_method_t method) const
     }
 
     for (auto s = text_c.begin(); s != text_c.end(); s++)
-        enc_text.push_back("=?UTF-8?" + codec_flag + "?" + *s + "?=");
+        enc_text.push_back("=?" + charset + "?" + codec_flag + "?" + *s + "?=");
 
     return enc_text;
 }
 
 
 // TODO: returning charset info?
-string q_codec::decode(const string& text) const
+tuple<string, string> q_codec::decode(const string& text) const
 {
     string::size_type charset_pos = text.find(QUESTION_MARK_CHAR);
     if (charset_pos == string::npos)
@@ -94,16 +97,17 @@ string q_codec::decode(const string& text) const
     else
         throw codec_error("Bad encoding method.");
 
-    return dec_text;
+    return make_tuple(dec_text, charset);
 }
 
 
-string q_codec::check_decode(const string& text) const
+tuple<string, string> q_codec::check_decode(const string& text) const
 {
     string::size_type question_mark_counter = 0;
     const string::size_type QUESTION_MARKS_NO = 4;
     bool is_encoded = false;
     string dec_text, encoded_part;
+    string charset = "ASCII";
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
@@ -116,7 +120,9 @@ string q_codec::check_decode(const string& text) const
         {
             is_encoded = false;
             question_mark_counter = 0;
-            dec_text += decode(encoded_part);
+            auto text_charset = decode(encoded_part);
+            dec_text += get<0>(text_charset);
+            charset = get<1>(text_charset);
             encoded_part.clear();
             ch++;
         }
@@ -129,7 +135,7 @@ string q_codec::check_decode(const string& text) const
     if (is_encoded && question_mark_counter < QUESTION_MARKS_NO)
         throw codec_error("Bad Q codec format.");
 
-    return dec_text;
+    return make_tuple(dec_text, charset);
 }
 
 

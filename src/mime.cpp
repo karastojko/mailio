@@ -38,6 +38,7 @@ using std::pair;
 using std::multimap;
 using std::vector;
 using std::map;
+using std::get;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
@@ -587,7 +588,7 @@ string mime::format_mime_name(const string& name) const
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
         q_codec qc(codec::line_len_policy_t::MANDATORY, _decoder_line_policy);
-        vector<string> hdr = qc.encode(name, cast_q_codec(_header_codec));
+        vector<string> hdr = qc.encode(name, "UTF-8", cast_q_codec(_header_codec));
         return hdr.at(0);
     }
 
@@ -703,7 +704,7 @@ void mime::parse_header_line(const string& header_line)
         if (name_it != attributes.end() && _name.empty())
         {
             q_codec qc(_line_policy, _decoder_line_policy);
-            _name = qc.check_decode(name_it->second);
+            _name = get<0>(qc.check_decode(name_it->second));
         }
     }
     else if (iequals(header_name, CONTENT_TRANSFER_ENCODING_HEADER))
@@ -720,7 +721,7 @@ void mime::parse_header_line(const string& header_line)
         if (filename_it != attributes.end())
         {
             q_codec qc(_line_policy, _decoder_line_policy);
-            _name = qc.check_decode(filename_it->second);
+            _name = get<0>(qc.check_decode(filename_it->second));
         }
     }
 }

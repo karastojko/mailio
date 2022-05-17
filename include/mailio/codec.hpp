@@ -24,6 +24,33 @@ namespace mailio
 
 
 /**
+String which contains charset together with the representation.
+**/
+template<typename Buf>
+struct String
+{
+    Buf buffer;
+
+    std::string charset;
+
+    String() : buffer(), charset("ASCII")
+    {
+    }
+
+    String(const String&) = default;
+
+    String(const Buf& buffer_s, const std::string& charset_s) : buffer(buffer_s), charset(charset_s)
+    {
+    }
+};
+
+using string_t = String<std::string>;
+#if defined(__cpp_char8_t)
+    using u8string_t = String<std::u8string>;
+#endif
+
+
+/**
 Base class for codecs, contains various constants and miscellaneous functions for encoding/decoding purposes.
 
 @todo `encode()` and `decode()` as abstract methods?
@@ -252,7 +279,7 @@ public:
     Greater than character as string.
     **/
     static const std::string GREATER_THAN_STR;
-    
+
     /**
     Underscore character.
     **/

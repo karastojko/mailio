@@ -15,6 +15,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <vector>
+#include <tuple>
 #include "codec.hpp"
 #include "export.hpp"
 
@@ -62,32 +63,33 @@ public:
     /**
     Encoding a text by applying the given method.
 
-    @param text String to encode.
-    @return     Encoded string.
+    @param text    String to encode.
+    @param charset Charset used by the string.
+    @return        Encoded string.
     **/
-    std::vector<std::string> encode(const std::string& text, codec_method_t method) const;
+    std::vector<std::string> encode(const std::string& text, const std::string& charset, codec_method_t method) const;
 
     /**
     Decoding a string.
 
     @param text        String to decode.
-    @return            Decoded string.
+    @return            Decoded string and its charset.
     @throw codec_error Missing Q codec separator for charset.
     @throw codec_error Missing Q codec separator for codec type.
     @throw codec_error Missing last Q codec separator.
     @throw codec_error Bad encoding method.
     @throw *           `decode_qp(const string&)`, `base64::decode(const string&)`.
     **/
-    std::string decode(const std::string& text) const;
+    std::tuple<std::string, std::string> decode(const std::string& text) const;
 
     /**
     Checking if a string is Q encoded and decodes it.
 
     @param text        String to decode.
-    @return            Decoded string.
+    @return            Decoded string and its charset.
     @throw codec_error Bad Q codec format.
     **/
-    std::string check_decode(const std::string& text) const;
+    std::tuple<std::string, std::string> check_decode(const std::string& text) const;
 
 private:
 

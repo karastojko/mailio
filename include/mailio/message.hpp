@@ -390,8 +390,17 @@ public:
     */
     void subject(const std::string& mail_subject);
 
+    /**
+    Setting the raw subject.
+
+    @param mail_subject Subject to set.
+    */
+    void subject_raw(const string_t& mail_subject);
+
 #if defined(__cpp_char8_t)
     void subject(const std::u8string& mail_subject);
+
+    void subject_raw(const u8string_t& mail_subject);
 #endif
 
     /**
@@ -400,6 +409,13 @@ public:
     @return Subject value.
     **/
     std::string subject() const;
+
+    /**
+    Getting the raw subject.
+
+    @return Subject value.
+    **/
+    string_t subject_raw() const;
 
     /**
     Getting the date, time and zone.
@@ -673,7 +689,7 @@ protected:
 
     @return Formatted subject.
     **/
-    std::string format_subject() const;
+    string_t format_subject() const;
 
     /**
     Parsing a subject which can be ASCII or UTF-8.
@@ -681,11 +697,11 @@ protected:
     The result is string either ASCII or UTF-8 encoded. If another encoding is used like ISO-8859-X, then the result is undefined.
 
     @param subject       Subject to parse.
-    @return              Parsed subject.
+    @return              Parsed subject and charset.
     @throw message_error Parsing failure of Q encoding.
     @throw *             `q_codec::decode(const string&)`.
     **/
-    std::string parse_subject(const std::string& subject) const;
+    std::tuple<std::string, std::string> parse_subject(const std::string& subject) const;
 
     /**
     Parsing a name part of a mail ASCII or UTF-8 encoded.
@@ -751,7 +767,7 @@ protected:
     /**
     Message subject.
     **/
-    std::string _subject;
+    string_t _subject;
 
     /**
     Message date and time with time zone.
