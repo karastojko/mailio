@@ -398,8 +398,19 @@ public:
     void subject_raw(const string_t& mail_subject);
 
 #if defined(__cpp_char8_t)
+
+    /**
+    Setting the subject.
+
+    @param mail_subject Subject to set.
+    */
     void subject(const std::u8string& mail_subject);
 
+    /**
+    Setting the raw subject.
+
+    @param mail_subject Subject to set.
+    */
     void subject_raw(const u8string_t& mail_subject);
 #endif
 
