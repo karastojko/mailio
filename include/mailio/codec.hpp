@@ -39,7 +39,7 @@ struct String
 
     String(const String&) = default;
 
-    String(const Buf& buffer_s, const std::string& charset_s) : buffer(buffer_s), charset(charset_s)
+    String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(charset_s)
     {
     }
 };
