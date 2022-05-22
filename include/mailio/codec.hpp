@@ -50,6 +50,130 @@ using string_t = String<std::string>;
 #endif
 
 
+// Comparing String objects.
+
+
+template<typename Buf>
+bool operator==(const String<Buf>& lhs, const String<Buf>& rhs)
+{
+    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset;
+}
+
+template<typename Buf>
+bool operator!=(const String<Buf>& lhs, const String<Buf>& rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+template<typename Buf>
+bool operator<(const String<Buf>& lhs, const String<Buf>& rhs)
+{
+    return lhs.buffer < rhs.buffer;
+}
+
+template<typename Buf>
+bool operator>(const String<Buf>& lhs, const String<Buf>& rhs)
+{
+    return operator<(rhs, lhs);
+}
+
+template<typename Buf>
+bool operator<=(const String<Buf>& lhs, const String<Buf>& rhs)
+{
+    return !operator>(rhs, lhs);
+}
+
+template<typename Buf>
+bool operator>=(const String<Buf>& lhs, const String<Buf>& rhs)
+{
+    return !operator<(rhs, lhs);
+}
+
+
+// Comparing String and string objects.
+
+
+template<typename Buf>
+bool operator==(const String<Buf>& lhs, const std::string& rhs)
+{
+    return lhs.buffer == rhs;
+}
+
+template<typename Buf>
+bool operator!=(const String<Buf>& lhs, const std::string& rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+template<typename Buf>
+bool operator<(const String<Buf>& lhs, const std::string& rhs)
+{
+    return lhs.buffer < rhs;
+}
+
+template<typename Buf>
+bool operator>(const String<Buf>& lhs, const std::string& rhs)
+{
+    return lhs.buffer > rhs;
+}
+
+template<typename Buf>
+bool operator<=(const String<Buf>& lhs, const std::string& rhs)
+{
+    return !operator>(rhs, lhs);
+}
+
+template<typename Buf>
+bool operator>=(const String<Buf>& lhs, const std::string& rhs)
+{
+    return !operator<(rhs, lhs);
+}
+
+
+#if defined(__cpp_char8_t)
+
+// Comparing String and u8string objects.
+
+
+template<typename Buf>
+bool operator==(const String<Buf>& lhs, const std::u8string& rhs)
+{
+    return lhs.buffer == rhs;
+}
+
+template<typename Buf>
+bool operator!=(const String<Buf>& lhs, const std::u8string& rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+template<typename Buf>
+bool operator<(const String<Buf>& lhs, const std::u8string& rhs)
+{
+    return lhs.buffer < rhs;
+}
+
+template<typename Buf>
+bool operator>(const String<Buf>& lhs, const std::u8string& rhs)
+{
+    return lhs.buffer > rhs;
+}
+
+template<typename Buf>
+bool operator<=(const String<Buf>& lhs, const std::u8string& rhs)
+{
+    return !operator>(rhs, lhs);
+}
+
+template<typename Buf>
+bool operator>=(const String<Buf>& lhs, const std::u8string& rhs)
+{
+    return !operator<(rhs, lhs);
+}
+
+#endif
+
+
 /**
 Base class for codecs, contains various constants and miscellaneous functions for encoding/decoding purposes.
 
