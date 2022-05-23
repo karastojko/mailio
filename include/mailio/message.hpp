@@ -645,7 +645,7 @@ protected:
     @throw message_error Formatting failure of name.
     @throw message_error Formatting failure of address.
     **/
-    std::string format_address(const std::string& name, const std::string& address) const;
+    std::string format_address(const string_t& name, const std::string& address) const;
 
     /**
     Parsing a string into vector of names and addresses.
@@ -723,7 +723,7 @@ protected:
     @return              Parsed name part of the address.
     @todo                Not tested with charsets different than ASCII and UTF-8.
     **/
-    std::string parse_address_name(const std::string& address_name) const;
+    string_t parse_address_name(const std::string& address_name) const;
 
     /**
     From name and address.

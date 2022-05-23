@@ -16,7 +16,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <vector>
-
+#include "codec.hpp"
 #include "export.hpp"
 
 namespace mailio
@@ -31,7 +31,7 @@ struct MAILIO_EXPORT mail_address
     /**
     Name part of the mail.
     **/
-    std::string name;
+    string_t name;
 
     /**
     Address part of the mail.
@@ -42,6 +42,14 @@ struct MAILIO_EXPORT mail_address
     Default constructor.
     **/
     mail_address() = default;
+
+    /**
+    Setting a mail name and address.
+
+    @param mail_name    Name to set.
+    @param mail_address Address to set.
+    **/
+    mail_address(const string_t& mail_name, const std::string& mail_address);
 
     /**
     Setting a mail name and address.

@@ -22,20 +22,30 @@ namespace mailio
 {
 
 
-mail_address::mail_address(const string& mail_name, const string& mail_address) : name(mail_name), address(mail_address)
+mail_address::mail_address(const string_t& mail_name, const string& mail_address) : name(mail_name), address(mail_address)
 {
+}
+
+
+mail_address::mail_address(const string& mail_name, const string& mail_address)
+{
+    if (codec::is_utf8_string(mail_name))
+        name = string_t(mail_name, "UTF-8");
+    else
+        name = string_t(mail_name, "ASCII");
+    address = mail_address;
 }
 
 
 bool mail_address::empty() const
 {
-    return name.empty() && address.empty();
+    return name.buffer.empty() && address.empty();
 }
 
 
 void mail_address::clear()
 {
-    name.clear();
+    name.buffer.clear();
     address.clear();
 }
 
