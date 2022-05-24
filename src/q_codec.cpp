@@ -60,7 +60,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, codec_
     }
 
     for (auto s = text_c.begin(); s != text_c.end(); s++)
-        enc_text.push_back("=?" + charset + "?" + codec_flag + "?" + *s + "?=");
+        enc_text.push_back("=?" + to_upper_copy(charset) + "?" + codec_flag + "?" + *s + "?=");
 
     return enc_text;
 }
@@ -75,7 +75,7 @@ tuple<string, string> q_codec::decode(const string& text) const
     string::size_type method_pos = text.find(QUESTION_MARK_CHAR, charset_pos + 1);
     if (method_pos == string::npos)
         throw codec_error("Missing Q codec separator for codec type.");
-    string charset = text.substr(charset_pos + 1, method_pos - charset_pos - 1);
+    string charset = to_upper_copy(text.substr(charset_pos + 1, method_pos - charset_pos - 1));
     if (charset.empty())
         throw codec_error("Missing Q codec charset.");
     string::size_type content_pos = text.find(QUESTION_MARK_CHAR, method_pos + 1);

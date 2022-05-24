@@ -16,6 +16,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <stdexcept>
+#include <boost/algorithm/string.hpp>
 #include "export.hpp"
 
 
@@ -39,7 +40,7 @@ struct String
 
     String(const String&) = default;
 
-    String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(charset_s)
+    String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
     {
     }
 };
