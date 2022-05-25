@@ -107,7 +107,7 @@ tuple<string, string> q_codec::check_decode(const string& text) const
     const string::size_type QUESTION_MARKS_NO = 4;
     bool is_encoded = false;
     string dec_text, encoded_part;
-    string charset = "ASCII";
+    string charset = CHARSET_ASCII;
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {

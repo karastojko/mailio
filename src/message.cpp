@@ -383,9 +383,9 @@ vector<string> message::references() const
 void message::subject(const string& mail_subject)
 {
     _subject.buffer = mail_subject;
-    _subject.charset = "ASCII";
+    _subject.charset = codec::CHARSET_ASCII;
     if (codec::is_utf8_string(_subject.buffer))
-        _subject.charset = "UTF-8";
+        _subject.charset = codec::CHARSET_UTF8;
 }
 
 
@@ -400,7 +400,7 @@ void message::subject_raw(const string_t& mail_subject)
 void message::subject(const u8string& mail_subject)
 {
     _subject.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
-    _subject.charset = "UTF-8";
+    _subject.charset = codec::CHARSET_UTF8;
 }
 
 
@@ -758,7 +758,7 @@ string message::format_address(const string_t& name, const string& address) cons
 
     // Check name format.
 
-    if (name.charset == "ASCII")
+    if (name.charset == codec::CHARSET_ASCII)
     {
         if (regex_match(name.buffer, m, regex(R"([A-Za-z0-9\ \t]*)")))
             name_formatted = name.buffer;
@@ -767,7 +767,7 @@ string message::format_address(const string_t& name, const string& address) cons
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
-    else if (name.charset == "UTF-8" && _header_codec == header_codec_t::UTF8)
+    else if (name.charset == codec::CHARSET_UTF8 && _header_codec == header_codec_t::UTF8)
     {
         name_formatted = name.buffer;
     }
@@ -1451,7 +1451,7 @@ string_t message::format_subject() const
 {
     string_t subject;
 
-    if (_subject.charset != "ASCII" && _header_codec != header_codec_t::UTF8)
+    if (_subject.charset != codec::CHARSET_ASCII && _header_codec != header_codec_t::UTF8)
     {
         q_codec qc(_line_policy, _decoder_line_policy);
         vector<string> hdr = qc.encode(_subject.buffer, _subject.charset, cast_q_codec(_header_codec));
@@ -1470,7 +1470,7 @@ string_t message::format_subject() const
 tuple<string, string> message::parse_subject(const string& subject) const
 {
     if (codec::is_utf8_string(subject))
-        return make_tuple(subject, "UTF-8");
+        return make_tuple(subject, codec::CHARSET_UTF8);
     else
     {
         q_codec qc(_line_policy, _decoder_line_policy);
@@ -1494,9 +1494,9 @@ string_t message::parse_address_name(const string& address_name) const
     }
 
     if (codec::is_utf8_string(address_name))
-        return string_t(address_name, "UTF-8");
+        return string_t(address_name, codec::CHARSET_UTF8);
     else
-        return string_t(address_name, "ASCII");
+        return string_t(address_name, codec::CHARSET_ASCII);
 }
 
 

@@ -30,9 +30,9 @@ mail_address::mail_address(const string_t& mail_name, const string& mail_address
 mail_address::mail_address(const string& mail_name, const string& mail_address)
 {
     if (codec::is_utf8_string(mail_name))
-        name = string_t(mail_name, "UTF-8");
+        name = string_t(mail_name, codec::CHARSET_UTF8);
     else
-        name = string_t(mail_name, "ASCII");
+        name = string_t(mail_name, codec::CHARSET_ASCII);
     address = mail_address;
 }
 

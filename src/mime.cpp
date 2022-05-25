@@ -588,7 +588,7 @@ string mime::format_mime_name(const string& name) const
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
         q_codec qc(codec::line_len_policy_t::MANDATORY, _decoder_line_policy);
-        vector<string> hdr = qc.encode(name, "UTF-8", cast_q_codec(_header_codec));
+        vector<string> hdr = qc.encode(name, codec::CHARSET_UTF8, cast_q_codec(_header_codec));
         return hdr.at(0);
     }
 

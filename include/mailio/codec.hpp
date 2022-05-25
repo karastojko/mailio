@@ -426,6 +426,16 @@ public:
     static const std::string END_OF_MESSAGE;
 
     /**
+    ASCII charset label.
+    **/
+    static const std::string CHARSET_ASCII;
+
+    /**
+    UTF-8 charset label.
+    **/
+    static const std::string CHARSET_UTF8;
+
+    /**
     Line length policy.
 
     @todo No need for `SUBJECT` line policy.

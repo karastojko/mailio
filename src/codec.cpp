@@ -34,6 +34,8 @@ const string codec::SEMICOLON_STR(1, codec::SEMICOLON_CHAR);
 const string codec::QUOTE_STR(1, codec::QUOTE_CHAR);
 const string codec::LESS_THAN_STR(1, codec::LESS_THAN_CHAR);
 const string codec::GREATER_THAN_STR(1, codec::GREATER_THAN_CHAR);
+const string codec::CHARSET_ASCII("ASCII");
+const string codec::CHARSET_UTF8("UTF-8");
 
 
 int codec::hex_digit_to_int(char digit)
