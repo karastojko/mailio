@@ -767,7 +767,7 @@ string message::format_address(const string_t& name, const string& address) cons
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
-    else if (name.charset == codec::CHARSET_UTF8 && _header_codec == header_codec_t::UTF8)
+    else if (_header_codec == header_codec_t::UTF8)
     {
         name_formatted = name.buffer;
     }
