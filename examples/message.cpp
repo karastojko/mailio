@@ -31,6 +31,34 @@ using mailio::message;
 
 int main()
 {
+    // Set the file encoding to UTF-8 to properly see the letters in this snippet.
+    {
+        message msg;
+        msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+        msg.from(mail_address("mail io", "contact@mailio.dev"));
+        msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
+        // The subject is automatically determined as UTF-8 since it contains 8bit characters. It is encoded as Quoted Printable,
+        msg.subject("Здраво, Свете!");
+        msg.content("Hello, World!");
+        string msg_str;
+        msg.format(msg_str);
+        cout << msg_str << endl;
+    }
+
+    // Set the file encoding to UTF-8 to properly see the letters in this snippet.
+    {
+        message msg;
+        msg.header_codec(message::header_codec_t::UTF8);
+        msg.from(mail_address("mail io", "contact@mailio.dev"));
+        msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
+        // The subject remains in 8bit because such header is set.
+        msg.subject("Здраво, Свете!");
+        msg.content("Hello, World!");
+        string msg_str;
+        msg.format(msg_str);
+        cout << msg_str << endl;
+    }
+
     // Set the file encoding to ISO-8859-2 to properly see the letters in this snippet.
     {
         message msg;
@@ -112,7 +140,6 @@ int main()
         cout << msg.subject() << endl;
         // The subject is printed as `Здраво, Свете!` in the UTF-8 encoding.
     }
-
 
     return EXIT_SUCCESS;
 }
