@@ -13,6 +13,10 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning(disable:4251)
+#endif
+
 #include <string>
 #include <vector>
 #include "codec.hpp"
