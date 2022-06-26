@@ -14,6 +14,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #pragma once
 
 #ifdef _MSC_VER
+#pragma warning(push)
 #pragma warning(disable:4251)
 #endif
 
@@ -527,3 +528,8 @@ public:
 
 
 } // namespace
+
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
