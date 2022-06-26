@@ -12,7 +12,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 #pragma once
-#pragma warning(disable:4251)
 
 #include <string>
 #include <stdexcept>
