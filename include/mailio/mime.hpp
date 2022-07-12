@@ -518,6 +518,11 @@ protected:
     static const std::string ATTRIBUTES_SEPARATOR_STR;
 
     /**
+    Attribute indicator for the parameter continuation.
+    **/
+    static const char ATTRIBUTE_MULTIPLE_NAME_INDICATOR{'*'};
+
+    /**
     Attribute name part.
     **/
     static const std::string ATTRIBUTE_NAME;
@@ -648,6 +653,13 @@ protected:
     @throw mime_error   Parsing failure, header name or value empty.
     **/
     void parse_header_name_value(const std::string& header_line, std::string& header_name, std::string& header_value) const;
+
+    /**
+    Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
+
+    @param attributes Attribute parameters where the merging is to be done.
+    **/
+    void merge_attributes(attributes_t& attributes) const;
 
     /**
     Parsing the content type and its attributes.

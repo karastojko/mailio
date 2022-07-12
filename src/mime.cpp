@@ -716,6 +716,7 @@ void mime::parse_header_line(const string& header_line)
     {
         attributes_t attributes;
         parse_content_disposition(header_value, _disposition, attributes);
+        merge_attributes(attributes);
         // filename is stored no matter if name is already set by content type
         attributes_t::iterator filename_it = attributes.find(ATTRIBUTE_FILENAME);
         if (filename_it != attributes.end())
@@ -1007,6 +1008,39 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
             case state_t::END:
                 return;
         }
+    }
+}
+
+
+void mime::merge_attributes(attributes_t& attributes) const
+{
+    map<string, map<unsigned, string>> attribute_parts;
+    for (auto attr = attributes.begin(); attr != attributes.end(); )
+    {
+        auto full_attr_name = attr->first;
+        auto attr_value = attr->second;
+        string::size_type asterisk_pos = full_attr_name.find(ATTRIBUTE_MULTIPLE_NAME_INDICATOR);
+        if (asterisk_pos != string::npos)
+        {
+            string attr_name = full_attr_name.substr(0, asterisk_pos);
+            unsigned attr_part = 0;
+            // TODO: Handle the conversion exception.
+            if (!full_attr_name.substr(asterisk_pos + 1).empty())
+                attr_part = (unsigned int)stoul(full_attr_name.substr(asterisk_pos + 1));
+            attribute_parts[attr_name][attr_part] = attr_value;
+            attr = attributes.erase(attr);
+        }
+        else
+            attr++;
+    }
+
+    for (auto attr = attribute_parts.begin(); attr != attribute_parts.end(); attr++)
+    {
+        string attr_name = attr->first;
+        string attr_value;
+        for (auto part = attr->second.begin(); part != attr->second.end(); part++)
+            attr_value += part->second;
+        attributes[attr_name] = attr_value;
     }
 }
 
