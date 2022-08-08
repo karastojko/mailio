@@ -114,7 +114,16 @@ if(${MAILIO_BUILD_DOCUMENTATION})
     endif(DOXYGEN_FOUND)
 endif(${MAILIO_BUILD_DOCUMENTATION})
 
-add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
+set(LIBRARY_TYPE, "")
+if (DEFINED MAILIO_BUILD_SHARED_LIBRARY)
+	message(STATUS "MAILIO_BUILD_SHARED_LIBRARY is set")
+	set(LIBRARY_TYPE "SHARED")
+else()
+	message(STATUS "MAILIO_BUILD_SHARED_LIBRARY not set")
+	set(LIBRARY_TYPE "STATIC")
+endif()
+message(STATUS "MAILIO_BUILD_SHARED_LIBRARY=" ${MAILIO_BUILD_SHARED_LIBRARY} ", LIBRARY_TYPE=" ${LIBRARY_TYPE})
+add_library(${PROJECT_NAME} ${LIBRARY_TYPE} ${project_sources} ${project_headers})
 
 
 # pkg-config support
