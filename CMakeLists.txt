@@ -47,6 +47,7 @@ endif(NOT SHARE_INSTALL_DIR)
 # options for mailio to control how the project is built.
 option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
+option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build the shared library." OFF)
 
 # add a dependent option to build latex documentation or not.
 include(CMakeDependentOption)
@@ -115,14 +116,11 @@ if(${MAILIO_BUILD_DOCUMENTATION})
 endif(${MAILIO_BUILD_DOCUMENTATION})
 
 set(LIBRARY_TYPE, "")
-if (DEFINED MAILIO_BUILD_SHARED_LIBRARY)
-	message(STATUS "MAILIO_BUILD_SHARED_LIBRARY is set")
-	set(LIBRARY_TYPE "SHARED")
+if (MAILIO_BUILD_SHARED_LIBRARY)
+    set(LIBRARY_TYPE "SHARED")
 else()
-	message(STATUS "MAILIO_BUILD_SHARED_LIBRARY not set")
-	set(LIBRARY_TYPE "STATIC")
+    set(LIBRARY_TYPE "STATIC")
 endif()
-message(STATUS "MAILIO_BUILD_SHARED_LIBRARY=" ${MAILIO_BUILD_SHARED_LIBRARY} ", LIBRARY_TYPE=" ${LIBRARY_TYPE})
 add_library(${PROJECT_NAME} ${LIBRARY_TYPE} ${project_sources} ${project_headers})
 
 

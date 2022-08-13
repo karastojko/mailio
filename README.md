@@ -106,7 +106,7 @@ Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the pat
 them. Boost must be built with the OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include` parameters of
 `b2` script (after `bootstrap` finishes). Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default
 installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INSTALL_PREFIX`. Other available options are `MAILIO_BUILD_SHARED_LIBRARY`
-(by default is on, if turned off then the static library is built), `MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on)
+(by default is off, if turned on then the shared library is built), `MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on)
 and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 
