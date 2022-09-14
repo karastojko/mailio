@@ -691,6 +691,18 @@ protected:
     **/
     static std::string format_many_ids(const std::string& id);
 
+
+    /**
+    Folding a long header.
+
+    @param header_line   Line of a header to be split into multiple lines by folding.
+    @return              Header split into multiple lines.
+    @throw message_error Header folding failure.
+
+    **/
+    std::string fold_header_line(const std::string& header_line) const;
+
+
     /**
     Parsing a string of IDs into a vector.
 

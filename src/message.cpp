@@ -571,9 +571,9 @@ string message::format_header() const
 
     string header;
     for_each(_headers.begin(), _headers.end(),
-        [&header](const auto& hdr)
+        [&header, this](const auto& hdr)
         {
-            header += hdr.first + HEADER_SEPARATOR_STR + hdr.second + codec::END_OF_LINE;
+            header += fold_header_line(hdr.first + HEADER_SEPARATOR_STR + hdr.second) + codec::END_OF_LINE;
         }
     );
 
@@ -1414,6 +1414,38 @@ string message::format_many_ids(const vector<string>& ids)
 string message::format_many_ids(const string& id)
 {
     return format_many_ids(vector<string>{id});
+}
+
+
+string message::fold_header_line(const string& header_line) const
+{
+    const string DELIMITERS = " ,;";
+    string folded_line;
+    string::size_type pos = 0, pos_len = 0;
+
+    do
+    {
+        string line = header_line.substr(pos, string::size_type(_line_policy));
+        if (line.length() < string::size_type(_line_policy))
+        {
+            folded_line += line;
+            break;
+        }
+
+        pos_len = line.find_last_of(DELIMITERS);
+        if (pos_len == string::npos)
+        {
+            if (_strict_mode)
+                throw message_error("Header folding failure.");
+            folded_line += header_line.substr(pos, string::npos);
+        }
+        else
+            folded_line += header_line.substr(pos, pos_len) + codec::END_OF_LINE + codec::SPACE_STR;
+        pos += pos_len + 1;
+    }
+    while (pos_len != string::npos);
+
+    return folded_line;
 }
 
 
