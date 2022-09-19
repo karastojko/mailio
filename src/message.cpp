@@ -634,9 +634,6 @@ void message::parse_header_line(const string& header_line)
 {
     mime::parse_header_line(header_line);
 
-    if (header_line.length() > string::size_type(_decoder_line_policy))
-        throw message_error("Line policy overflow in a header.");
-
     // TODO: header name and header value already parsed in `mime::parse_header_line`, so this is not the optimal way to do it
     string header_name, header_value;
     parse_header_name_value(header_line, header_name, header_value);
