@@ -663,6 +663,7 @@ protected:
     Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
 
     @param attributes Attribute parameters where the merging is to be done.
+    @throw mime_error Parsing attribute failure.
     **/
     void merge_attributes(attributes_t& attributes) const;
 

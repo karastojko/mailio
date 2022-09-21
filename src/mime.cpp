@@ -1027,9 +1027,19 @@ void mime::merge_attributes(attributes_t& attributes) const
         {
             string attr_name = full_attr_name.substr(0, asterisk_pos);
             unsigned attr_part = 0;
-            // TODO: Handle the conversion exception.
-            if (!full_attr_name.substr(asterisk_pos + 1).empty())
-                attr_part = (unsigned int)stoul(full_attr_name.substr(asterisk_pos + 1));
+            try
+            {
+                if (!full_attr_name.substr(asterisk_pos + 1).empty())
+                    attr_part = (unsigned int)stoul(full_attr_name.substr(asterisk_pos + 1));
+            }
+            catch (const std::invalid_argument& exc)
+            {
+                throw mime_error("Parsing attribute failure at `" + attr_name + "`.");
+            }
+            catch (const std::out_of_range& exc)
+            {
+                throw mime_error("Parsing attribute failure at `" + attr_name + "`.");
+            }
             attribute_parts[attr_name][attr_part] = attr_value;
             attr = attributes.erase(attr);
         }
