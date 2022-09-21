@@ -1017,7 +1017,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
 
 void mime::merge_attributes(attributes_t& attributes) const
 {
-    map<string, map<unsigned, string>> attribute_parts;
+    map<string, map<int, string>> attribute_parts;
     for (auto attr = attributes.begin(); attr != attributes.end(); )
     {
         auto full_attr_name = attr->first;
@@ -1026,11 +1026,14 @@ void mime::merge_attributes(attributes_t& attributes) const
         if (asterisk_pos != string::npos)
         {
             string attr_name = full_attr_name.substr(0, asterisk_pos);
-            unsigned attr_part = 0;
             try
             {
                 if (!full_attr_name.substr(asterisk_pos + 1).empty())
-                    attr_part = (unsigned int)stoul(full_attr_name.substr(asterisk_pos + 1));
+                {
+                    int attr_part = stoi(full_attr_name.substr(asterisk_pos + 1));
+                    attribute_parts[attr_name][attr_part] = attr_value;
+                    attr = attributes.erase(attr);
+                }
             }
             catch (const std::invalid_argument& exc)
             {
@@ -1040,8 +1043,6 @@ void mime::merge_attributes(attributes_t& attributes) const
             {
                 throw mime_error("Parsing attribute failure at `" + attr_name + "`.");
             }
-            attribute_parts[attr_name][attr_part] = attr_value;
-            attr = attributes.erase(attr);
         }
         else
             attr++;
