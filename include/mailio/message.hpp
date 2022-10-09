@@ -716,6 +716,7 @@ protected:
     Formatting the subject which can be ASCII or UTF-8.
 
     @return Formatted subject.
+    @todo   Folding to be moved into `format_header()`?
     **/
     string_t format_subject() const;
 

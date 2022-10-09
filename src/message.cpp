@@ -577,7 +577,6 @@ string message::format_header() const
         }
     );
 
-
     header += FROM_HEADER + HEADER_SEPARATOR_STR + from_to_string() + codec::END_OF_LINE;
     header += _sender.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + codec::END_OF_LINE;
     header += _reply_address.name.buffer.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + codec::END_OF_LINE;
@@ -1490,7 +1489,7 @@ string_t message::format_subject() const
                 subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject.buffer += _subject.buffer + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(_subject.buffer) + codec::END_OF_LINE;
 
     return subject;
 }
