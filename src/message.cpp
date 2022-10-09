@@ -1157,10 +1157,12 @@ mailboxes message::parse_address_list(const string& address_list) const
 
                 // not allowed to end address list in this state in the strict mode
                 if (ch == address_list.end() - 1)
+                {
                     if (_strict_mode)
                         throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
                     else
                         mail_list.push_back(cur_address);
+                }
 
                 break;
             }

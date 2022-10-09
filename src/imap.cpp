@@ -374,6 +374,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                     if (part->token_type == response_token_t::token_type_t::LIST)
                         for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
                             if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+                            {
                                 if (iequals((*token)->atom, "UID"))
                                 {
                                     token++;
@@ -389,6 +390,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                                     literal_token = *token;
                                     break;
                                 }
+                            }
 
                 if (literal_token != nullptr)
                 {
