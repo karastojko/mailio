@@ -646,9 +646,9 @@ protected:
     @param name          Mail name.
     @param address       Mail address.
     @return              The mail name and address formatted.
-    @throw message_error Formatting failure of name, line policy overflow.
     @throw message_error Formatting failure of name.
     @throw message_error Formatting failure of address.
+    @todo                Deal with the line policy.
     **/
     std::string format_address(const string_t& name, const std::string& address) const;
 

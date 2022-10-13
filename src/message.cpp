@@ -770,11 +770,13 @@ string message::format_address(const string_t& name, const string& address) cons
     else
     {
         q_codec qc(_line_policy, _decoder_line_policy);
-        vector<string> n = qc.encode(name.buffer, name.charset, cast_q_codec(_header_codec));
-        // mail has to be formatted into a single line, otherwise it's an error
-        if (n.size() > 1)
-            throw message_error("Formatting failure of name, line policy overflow.");
-        name_formatted = n[0];
+        vector<string> enc_name = qc.encode(name.buffer, name.charset, cast_q_codec(_header_codec));
+        for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
+        {
+            name_formatted += *sit;
+            if (sit != enc_name.end() - 1)
+                name_formatted += codec::SPACE_STR;
+        }
     }
 
     // Check address format.
@@ -795,10 +797,7 @@ string message::format_address(const string_t& name, const string& address) cons
     }
 
     string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : " " + addr));
-    if (addr_name.length() > string::size_type(_line_policy))
-        throw message_error("Formatting failure of address, line policy overflow.");
-
-    return addr_name;
+    return fold_header_line(addr_name);
 }
 
 
