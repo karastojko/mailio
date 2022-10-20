@@ -48,6 +48,7 @@ endif(NOT SHARE_INSTALL_DIR)
 option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
 option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build the shared library." OFF)
+option(MAILIO_MAKE_TESTS "Make and run tests." ON)
 
 # add a dependent option to build latex documentation or not.
 include(CMakeDependentOption)
@@ -196,3 +197,9 @@ if(${MAILIO_BUILD_EXAMPLES})
     file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
     install(FILES ${PNGS} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/examples/")
 endif(${MAILIO_BUILD_EXAMPLES})
+
+# optionally make tests
+if(${MAILIO_MAKE_TESTS})
+    add_subdirectory(tests)
+endif(${MAILIO_MAKE_TESTS})
+
