@@ -1513,19 +1513,50 @@ string_t message::parse_address_name(const string& address_name) const
     q_codec qc(_line_policy, _decoder_line_policy);
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
-    bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&
-        address_name.at(1) == codec::QUESTION_MARK_CHAR && address_name.at(addr_len - 1) == codec::EQUAL_CHAR &&
-        address_name.at(addr_len - 2) == codec::QUESTION_MARK_CHAR;
-    if (is_q_encoded)
-    {
-        auto an = qc.decode(address_name.substr(1, addr_len - 3));
-        return string_t(get<0>(an), get<1>(an));
-    }
+		size_t start = 0, pos = 0;
+		string decoded;
+		string encoding;
+		while (start < addr_len) {
+			size_t pos = address_name.find(codec::ENCODING_START, start);
+			if (pos != string::npos) {
+				if (pos > start) {
+					decoded += address_name.substr(start, pos - start);
+				}	
+				size_t end = address_name.find(codec::ENCODING_END, pos);
+				if (end != string::npos) {
+        	auto an = qc.decode(address_name.substr(pos, end - pos));
+					if (!encoding.empty() && (encoding != std::get<1>(an))) {
+							stringstream ss;
+            	ss << "Encoding does not match `" << address_name[start] << "` in \"" << address_name << "\" (pos=" << start << ").";
+							string err = ss.str();	
+            	throw message_error(err);
+					} else {
+						encoding = std::get<1>(an);
+					}
+					decoded += std::get<0>(an);
+					start = end + codec::ENCODING_END.length();
+					while (start < addr_len && (address_name[start] == ' ' || address_name[start] == '\r' || address_name[start] == '\n')) {
+						start++;
+					}
+					continue;
+				} else {
+					//do nothing, fall through
+				}
+			} 
+			decoded += address_name.substr(start);
+			if (pos == string::npos) {
+				break;
+			}
+		}
+			if (encoding.empty()) {
+				 	if (codec::is_utf8_string(decoded))
+     				return string_t(decoded, codec::CHARSET_UTF8);
+ 					else
+        		return string_t(decoded, codec::CHARSET_ASCII);
+			} else {
+					return string_t(decoded, encoding);
+			}
 
-    if (codec::is_utf8_string(address_name))
-        return string_t(address_name, codec::CHARSET_UTF8);
-    else
-        return string_t(address_name, codec::CHARSET_ASCII);
 }
 
 

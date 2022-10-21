@@ -439,6 +439,16 @@ public:
     **/
     static const std::string CHARSET_UTF8;
 
+		/**
+		Start of encoding.
+		**/
+		static const std::string ENCODING_START;
+
+		/**
+		End of encoding.
+		**/
+		static const std::string ENCODING_END;
+
     /**
     Line length policy.
 
