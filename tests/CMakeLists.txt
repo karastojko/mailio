@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.16.3)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -24,7 +24,6 @@ target_link_libraries(
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/ PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../ PUBLIC ${Boost_INCLUDE_DIRS} PUBLIC ${OPENSSL_INCLUDE_DIR})
-message("MESSAGE DONE ${CMAKE_CURRENT_SOURCE_DIR} ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 
 
