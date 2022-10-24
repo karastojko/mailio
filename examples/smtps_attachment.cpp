@@ -46,8 +46,8 @@ int main()
         msg.subject("smtps message with attachment");
         msg.content("Here are Aleph0 and Infinity pictures.");
 
-        ifstream ifs1("aleph0.png");
-        ifstream ifs2("infinity.png");
+        ifstream ifs1("aleph0.png", std::ios::binary);
+        ifstream ifs2("infinity.png", std::ios::binary);
         list<tuple<std::istream&, string, message::content_type_t>> atts;
         atts.push_back(make_tuple(std::ref(ifs1), string("aleph0.png"), message::content_type_t(message::media_type_t::IMAGE, "png")));
         atts.push_back(make_tuple(std::ref(ifs2), "infinity.png", message::content_type_t(message::media_type_t::IMAGE, "png")));
