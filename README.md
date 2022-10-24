@@ -192,6 +192,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [lifof](mailto:youssef.beddad[at]gmail.com): Support for the MinGW compilation.
 * [Canyon E](https://github.com/canyone2015): IMAP folder delimiter static variable issue.
 * [ostermal](https://github.com/ostermal): Bug with the horizontal tab in MIME headers.
+* [MRsoymilk](mailto:313958485[at]qq.com): Bug in the sending attachment example.
 
 
 # Contact #
