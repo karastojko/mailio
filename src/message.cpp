@@ -1516,16 +1516,49 @@ string_t message::parse_address_name(const string& address_name) const
     bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&
         address_name.at(1) == codec::QUESTION_MARK_CHAR && address_name.at(addr_len - 1) == codec::EQUAL_CHAR &&
         address_name.at(addr_len - 2) == codec::QUESTION_MARK_CHAR;
+
+    // TODO: What if the address name starts with `?=` but does not end with `=?` Is it an error or just a raw string?
+
     if (is_q_encoded)
     {
-        auto an = qc.decode(address_name.substr(1, addr_len - 3));
-        return string_t(get<0>(an), get<1>(an));
+        auto parts = split_qc_string(address_name);
+        string parts_str, charset;
+        for (const auto& p : parts)
+        {
+            string::size_type p_len = p.length();
+            auto an = qc.decode(p.substr(0, p_len - 2));
+            parts_str += get<0>(an);
+            if (charset.empty())
+                charset = get<1>(an);
+            if (charset != get<1>(an))
+                throw message_error("Inconsistent Q encodings.");
+        }
+        return string_t(parts_str, charset);
     }
 
     if (codec::is_utf8_string(address_name))
         return string_t(address_name, codec::CHARSET_UTF8);
     else
         return string_t(address_name, codec::CHARSET_ASCII);
+}
+
+
+vector<string> message::split_qc_string(const string& text)
+{
+    const string Q_ENCODING_BEGIN = "?=";
+    const string Q_ENCODING_END = "=?";
+    vector<string> parts;
+    string::size_type begin_pos = text.find(Q_ENCODING_END);
+    while (begin_pos != string::npos)
+    {
+        string::size_type charset_pos = text.find(codec::QUESTION_MARK_CHAR, begin_pos + 1);
+        string::size_type method_pos = text.find(codec::QUESTION_MARK_CHAR, charset_pos + 1);
+        string::size_type content_begin = text.find(codec::QUESTION_MARK_CHAR, method_pos + 1);
+        string::size_type content_end = text.find(Q_ENCODING_BEGIN, content_begin + 1);
+        parts.push_back(text.substr(begin_pos, content_end + 2 - begin_pos));
+        begin_pos = text.find(Q_ENCODING_END, content_end + 2);
+    }
+    return parts;
 }
 
 

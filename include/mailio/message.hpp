@@ -693,6 +693,14 @@ protected:
 
 
     /**
+    Splitting string with Q encoded fragments into separate strings.
+
+    @param text  String with Q encoded fragments.
+    @return      Q encoded fragments as separate strings.
+    **/
+    static std::vector<std::string> split_qc_string(const std::string& text);
+
+    /**
     Folding a long header.
 
     @param header_line   Line of a header to be split into multiple lines by folding.
@@ -739,7 +747,9 @@ protected:
 
     @param address_name  Name part of mail.
     @return              Parsed name part of the address.
+    @throw message_error Inconsistent Q encodings.
     @todo                Not tested with charsets different than ASCII and UTF-8.
+    @todo                Throwing errors when Q codec is invalid?
     **/
     string_t parse_address_name(const std::string& address_name) const;
 
