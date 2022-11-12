@@ -796,7 +796,7 @@ string message::format_address(const string_t& name, const string& address) cons
         }
     }
 
-    string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : " " + addr));
+    string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
     return fold_header_line(addr_name);
 }
 
@@ -1437,7 +1437,7 @@ string message::fold_header_line(const string& header_line) const
             folded_line += header_line.substr(pos, string::npos);
         }
         else
-            folded_line += header_line.substr(pos, pos_len) + codec::END_OF_LINE + codec::SPACE_STR;
+            folded_line += header_line.substr(pos, pos_len) + codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR;
         pos += pos_len + 1;
     }
     while (pos_len != string::npos);
