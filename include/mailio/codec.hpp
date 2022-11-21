@@ -49,6 +49,12 @@ struct String
     }
 };
 
+template<typename Buf>
+std::ostream& operator<<(std::ostream& os, const String<Buf>& str)
+{
+    return os << str.buffer;
+}
+
 using string_t = String<std::string>;
 #if defined(__cpp_char8_t)
     using u8string_t = String<std::u8string>;
