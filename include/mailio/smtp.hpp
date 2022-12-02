@@ -207,12 +207,12 @@ protected:
     /**
     Name of the host which client is connecting from.
     **/
-    std::string _src_host;
+    std::string src_host_;
 
     /**
     Dialog to use for send/receive operations.
     **/
-    std::shared_ptr<dialog> _dlg;
+    std::shared_ptr<dialog> dlg_;
 };
 
 
