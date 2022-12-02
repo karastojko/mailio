@@ -48,7 +48,7 @@ namespace mailio
 
 
 pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) :
-    _dlg(make_shared<dialog>(hostname, port, timeout))
+    dlg_(make_shared<dialog>(hostname, port, timeout))
 {
 }
 
@@ -57,7 +57,7 @@ pop3::~pop3()
 {
     try
     {
-        _dlg->send("QUIT");
+        dlg_->send("QUIT");
     }
     catch (...)
     {
@@ -83,8 +83,8 @@ auto pop3::list(unsigned message_no) -> message_list_t
     {
         if (message_no > 0)
         {
-            _dlg->send("LIST " + to_string(message_no));
-            string line = _dlg->receive();
+            dlg_->send("LIST " + to_string(message_no));
+            string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
                 throw pop3_error("Listing message failure.");
@@ -99,8 +99,8 @@ auto pop3::list(unsigned message_no) -> message_list_t
         }
         else
         {
-            _dlg->send("LIST");
-            string line = _dlg->receive();
+            dlg_->send("LIST");
+            string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
                 throw pop3_error("Listing all messages failure.");
@@ -109,7 +109,7 @@ auto pop3::list(unsigned message_no) -> message_list_t
             bool end_of_msg = false;
             while (!end_of_msg)
             {
-                line = _dlg->receive();
+                line = dlg_->receive();
                 if (line == codec::END_OF_MESSAGE)
                     end_of_msg = true;
                 else
@@ -144,8 +144,8 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
     {
         if (message_no > 0)
         {
-            _dlg->send("UIDL " + to_string(message_no));
-            string line = _dlg->receive();
+            dlg_->send("UIDL " + to_string(message_no));
+            string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
                 throw pop3_error("UIDL command not supported.");
@@ -160,8 +160,8 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
         }
         else
         {
-            _dlg->send("UIDL");
-            string line = _dlg->receive();
+            dlg_->send("UIDL");
+            string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
                 throw pop3_error("Listing all messages failure.");
@@ -170,7 +170,7 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
             bool end_of_msg = false;
             while (!end_of_msg)
             {
-                line = _dlg->receive();
+                line = dlg_->receive();
                 if (line == codec::END_OF_MESSAGE)
                     end_of_msg = true;
                 else
@@ -200,8 +200,8 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
 
 auto pop3::statistics() -> mailbox_stat_t
 {
-    _dlg->send("STAT");
-    string line = _dlg->receive();
+    dlg_->send("STAT");
+    string line = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
         throw pop3_error("Reading statistics failure.");
@@ -234,16 +234,16 @@ void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
     string line;
     if (header_only)
     {
-        _dlg->send("TOP " + to_string(message_no) + " 0");
-        line = _dlg->receive();
+        dlg_->send("TOP " + to_string(message_no) + " 0");
+        line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
             return;
     }
     else
     {
-        _dlg->send("RETR " + to_string(message_no));
-        line = _dlg->receive();
+        dlg_->send("RETR " + to_string(message_no));
+        line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
             throw pop3_error("Fetching message failure.");
@@ -254,7 +254,7 @@ void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
     bool empty_line = false;
     while (true)
     {
-        line = _dlg->receive();
+        line = dlg_->receive();
         // reading line by line ensures that crlf are the last characters read; so, reaching single dot in the line means that it's end of message
         if (line == codec::END_OF_MESSAGE)
         {
@@ -286,8 +286,8 @@ void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
 
 void pop3::remove(unsigned long message_no)
 {
-    _dlg->send("DELE " + to_string(message_no));
-    string line = _dlg->receive();
+    dlg_->send("DELE " + to_string(message_no));
+    string line = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
         throw pop3_error("Removing message failure.");
@@ -296,7 +296,7 @@ void pop3::remove(unsigned long message_no)
 
 string pop3::connect()
 {
-    string line = _dlg->receive();
+    string line = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
         throw pop3_error("Connection to server failure.");
@@ -307,16 +307,16 @@ string pop3::connect()
 void pop3::auth_login(const string& username, const string& password)
 {
     {
-        _dlg->send("USER " + username);
-        string line = _dlg->receive();
+        dlg_->send("USER " + username);
+        string line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
             throw pop3_error("Username rejection.");
     }
 
     {
-        _dlg->send("PASS " + password);
-        string line = _dlg->receive();
+        dlg_->send("PASS " + password);
+        string line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
             throw pop3_error("Password rejection.");
@@ -366,8 +366,8 @@ For details see [rfc 2595/4616].
 */
 void pop3s::start_tls()
 {
-    _dlg->send("STLS");
-    string response = _dlg->receive();
+    dlg_->send("STLS");
+    string response = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(response);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
         throw pop3_error("Start TLS failure.");
@@ -378,7 +378,7 @@ void pop3s::start_tls()
 
 void pop3s::switch_to_ssl()
 {
-    _dlg = make_shared<dialog_ssl>(*_dlg);
+    dlg_ = make_shared<dialog_ssl>(*dlg_);
 }
 
 
