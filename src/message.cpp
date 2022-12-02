@@ -104,7 +104,7 @@ const string message::MESSAGE_ID_REGEX = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?
 const string message::MESSAGE_ID_REGEX_NS = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~\\@\\\\ \\t<\\>]*)";
 
 
-message::message() : mime(), _date_time(second_clock::universal_time(), time_zone_ptr(new posix_time_zone("00:00")))
+message::message() : mime(), date_time_(second_clock::universal_time(), time_zone_ptr(new posix_time_zone("00:00")))
 {
 }
 
@@ -113,33 +113,33 @@ void message::format(string& message_str, bool dot_escape) const
 {
     message_str += format_header();
 
-    if (!_parts.empty())
+    if (!parts_.empty())
     {
-        if (!_content.empty())
+        if (!content_.empty())
         {
             mime content_part;
-            content_part.content(_content);
+            content_part.content(content_);
             content_type_t ct(media_type_t::TEXT, "plain");
-            ct.charset = _content_type.charset;
+            ct.charset = content_type_.charset;
             content_part.content_type(ct);
-            content_part.content_transfer_encoding(_encoding);
-            content_part.line_policy(_line_policy, _decoder_line_policy);
-            content_part.strict_mode(_strict_mode);
-            content_part.strict_codec_mode(_strict_codec_mode);
-            content_part.header_codec(_header_codec);
+            content_part.content_transfer_encoding(encoding_);
+            content_part.line_policy(line_policy_, decoder_line_policy_);
+            content_part.strict_mode(strict_mode_);
+            content_part.strict_codec_mode(strict_codec_mode_);
+            content_part.header_codec(header_codec_);
             string cps;
             content_part.format(cps, dot_escape);
-            message_str += BOUNDARY_DELIMITER + _boundary + codec::END_OF_LINE + cps + codec::END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
         // recursively format mime parts
-        for (const auto& p: _parts)
+        for (const auto& p: parts_)
         {
             string p_str;
             p.format(p_str, dot_escape);
-            message_str += BOUNDARY_DELIMITER + _boundary + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
-        message_str += BOUNDARY_DELIMITER + _boundary + BOUNDARY_DELIMITER + codec::END_OF_LINE;
+        message_str += BOUNDARY_DELIMITER + boundary_ + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
     else
         message_str += format_content(dot_escape);
@@ -159,7 +159,7 @@ void message::parse(const string& message_str, bool dot_escape)
 {
     mime::parse(message_str, dot_escape);
 
-    if (_from.addresses.size() == 0)
+    if (from_.addresses.size() == 0)
         throw message_error("No author address.");
 
     // There is no check if there is a sender in case of multiple authors, not sure if that logic is needed.
@@ -176,167 +176,167 @@ void message::parse(const u8string& message_str, bool dot_escape)
 
 bool message::empty() const
 {
-    return _content.empty();
+    return content_.empty();
 }
 
 
 void message::from(const mail_address& mail)
 {
-    _from.clear();
-    _from.addresses.push_back(mail);
+    from_.clear();
+    from_.addresses.push_back(mail);
 }
 
 
 mailboxes message::from() const
 {
-    return _from;
+    return from_;
 }
 
 
 void message::add_from(const mail_address& mail)
 {
-    _from.addresses.push_back(mail);
+    from_.addresses.push_back(mail);
 }
 
 
 string message::from_to_string() const
 {
-    return format_address_list(_from);
+    return format_address_list(from_);
 }
 
 
 void message::sender(const mail_address& mail)
 {
-    _sender = mail;
+    sender_ = mail;
 }
 
 
 mail_address message::sender() const
 {
-    return _sender;
+    return sender_;
 }
 
 
 string message::sender_to_string() const
 {
-    return format_address(_sender.name, _sender.address);
+    return format_address(sender_.name, sender_.address);
 }
 
 void message::reply_address(const mail_address& mail)
 {
-    _reply_address = mail;
+    reply_address_ = mail;
 }
 
 
 mail_address message::reply_address() const
 {
-    return _reply_address;
+    return reply_address_;
 }
 
 
 string message::reply_address_to_string() const
 {
-    return format_address(_reply_address.name, _reply_address.address);
+    return format_address(reply_address_.name, reply_address_.address);
 }
 
 
 void message::add_recipient(const mail_address& mail)
 {
-    _recipients.addresses.push_back(mail);
+    recipients_.addresses.push_back(mail);
 }
 
 
 void message::add_recipient(const mail_group& group)
 {
-    _recipients.groups.push_back(group);
+    recipients_.groups.push_back(group);
 }
 
 
 mailboxes message::recipients() const
 {
-    return _recipients;
+    return recipients_;
 }
 
 
 string message::recipients_to_string() const
 {
-    return format_address_list(_recipients);
+    return format_address_list(recipients_);
 }
 
 
 void message::add_cc_recipient(const mail_address& mail)
 {
-    _cc_recipients.addresses.push_back(mail);
+    cc_recipients_.addresses.push_back(mail);
 }
 
 
 void message::add_cc_recipient(const mail_group& group)
 {
-    _cc_recipients.groups.push_back(group);
+    cc_recipients_.groups.push_back(group);
 }
 
 
 mailboxes message::cc_recipients() const
 {
-    return _cc_recipients;
+    return cc_recipients_;
 }
 
 
 string message::cc_recipients_to_string() const
 {
-    return format_address_list(_cc_recipients);
+    return format_address_list(cc_recipients_);
 }
 
 
 void message::add_bcc_recipient(const mail_address& mail)
 {
-    _bcc_recipients.addresses.push_back(mail);
+    bcc_recipients_.addresses.push_back(mail);
 }
 
 
 void message::add_bcc_recipient(const mail_group& group)
 {
-    _bcc_recipients.groups.push_back(group);
+    bcc_recipients_.groups.push_back(group);
 }
 
 
 mailboxes message::bcc_recipients() const
 {
-    return _bcc_recipients;
+    return bcc_recipients_;
 }
 
 
 string message::bcc_recipients_to_string() const
 {
-    return format_address_list(_bcc_recipients);
+    return format_address_list(bcc_recipients_);
 }
 
 
 void message::disposition_notification(const mail_address& address)
 {
-    _disposition_notification = address;
+    disposition_notification_ = address;
 }
 
 
 mail_address message::disposition_notification() const
 {
-    return _disposition_notification;
+    return disposition_notification_;
 }
 
 
 string message::disposition_notification_to_string() const
 {
-    return format_address(_disposition_notification.name, _disposition_notification.address);
+    return format_address(disposition_notification_.name, disposition_notification_.address);
 }
 
 
 void message::message_id(string id)
 {
-    const regex r(_strict_mode ? MESSAGE_ID_REGEX : MESSAGE_ID_REGEX_NS);
+    const regex r(strict_mode_ ? MESSAGE_ID_REGEX : MESSAGE_ID_REGEX_NS);
     smatch m;
 
     if (regex_match(id, m, r))
-        _message_id = id;
+        message_id_ = id;
     else
         throw message_error("Invalid message ID.");
 }
@@ -344,7 +344,7 @@ void message::message_id(string id)
 
 string message::message_id() const
 {
-    return _message_id;
+    return message_id_;
 }
 
 
@@ -354,13 +354,13 @@ void message::add_in_reply_to(const string& in_reply)
     smatch m;
     if (!regex_match(in_reply, m, r))
         throw message_error("Invalid In Reply To ID.");
-    _in_reply_to.push_back(in_reply);
+    in_reply_to_.push_back(in_reply);
 }
 
 
 vector<string> message::in_reply_to() const
 {
-    return _in_reply_to;
+    return in_reply_to_;
 }
 
 
@@ -370,28 +370,28 @@ void message::add_references(const string& reference_id)
     smatch m;
     if (!regex_match(reference_id, m, r))
         throw message_error("Invalid Reference ID.");
-    _references.push_back(reference_id);
+    references_.push_back(reference_id);
 }
 
 
 vector<string> message::references() const
 {
-    return _references;
+    return references_;
 }
 
 
 void message::subject(const string& mail_subject)
 {
-    _subject.buffer = mail_subject;
-    _subject.charset = codec::CHARSET_ASCII;
-    if (codec::is_utf8_string(_subject.buffer))
-        _subject.charset = codec::CHARSET_UTF8;
+    subject_.buffer = mail_subject;
+    subject_.charset = codec::CHARSET_ASCII;
+    if (codec::is_utf8_string(subject_.buffer))
+        subject_.charset = codec::CHARSET_UTF8;
 }
 
 
 void message::subject_raw(const string_t& mail_subject)
 {
-    _subject = mail_subject;
+    subject_ = mail_subject;
 }
 
 
@@ -399,15 +399,15 @@ void message::subject_raw(const string_t& mail_subject)
 
 void message::subject(const u8string& mail_subject)
 {
-    _subject.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
-    _subject.charset = codec::CHARSET_UTF8;
+    subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
+    subject_.charset = codec::CHARSET_UTF8;
 }
 
 
 void message::subject_raw(const u8string_t& mail_subject)
 {
-    _subject.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
-    _subject.charset = mail_subject.charset;
+    subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
+    subject_.charset = mail_subject.charset;
 }
 
 #endif
@@ -415,33 +415,33 @@ void message::subject_raw(const u8string_t& mail_subject)
 
 string message::subject() const
 {
-    return _subject.buffer;
+    return subject_.buffer;
 }
 
 string_t message::subject_raw() const
 {
-    return _subject;
+    return subject_;
 }
 
 
 local_date_time message::date_time() const
 {
-    return _date_time;
+    return date_time_;
 }
 
 
 void message::date_time(const boost::local_time::local_date_time& mail_dt)
 {
-    _date_time = mail_dt;
+    date_time_ = mail_dt;
 }
 
 
 void message::attach(const istream& att_strm, const string& att_name, media_type_t type, const string& subtype)
 {
-    if (_boundary.empty())
-        _boundary = make_boundary();
-    _content_type.type = media_type_t::MULTIPART;
-    _content_type.subtype = "mixed";
+    if (boundary_.empty())
+        boundary_ = make_boundary();
+    content_type_.type = media_type_t::MULTIPART;
+    content_type_.subtype = "mixed";
 
     stringstream ss;
     ss << att_strm.rdbuf();
@@ -455,35 +455,35 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
     m.content_disposition(content_disposition_t::ATTACHMENT);
     m.name(att_name);
     m.content(content);
-    _parts.push_back(m);
+    parts_.push_back(m);
 }
 
 
 void message::attach(const list<tuple<istream&, string, content_type_t>>& attachments)
 {
-    if (_boundary.empty())
-        _boundary = make_boundary();
+    if (boundary_.empty())
+        boundary_ = make_boundary();
 
     // the content goes to the first mime part, and then it's deleted
-    if (!_content.empty())
+    if (!content_.empty())
     {
-        if (_content_type.type == media_type_t::NONE)
-            _content_type = content_type_t(media_type_t::TEXT, "plain");
+        if (content_type_.type == media_type_t::NONE)
+            content_type_ = content_type_t(media_type_t::TEXT, "plain");
 
         mime content_part;
-        content_part.content(_content);
-        content_part.content_type(_content_type);
-        content_part.content_transfer_encoding(_encoding);
-        content_part.line_policy(_line_policy, _decoder_line_policy);
-        content_part.strict_mode(_strict_mode);
-        content_part.strict_codec_mode(_strict_codec_mode);
-        content_part.header_codec(_header_codec);
-        _parts.push_back(content_part);
-        _content.clear();
+        content_part.content(content_);
+        content_part.content_type(content_type_);
+        content_part.content_transfer_encoding(encoding_);
+        content_part.line_policy(line_policy_, decoder_line_policy_);
+        content_part.strict_mode(strict_mode_);
+        content_part.strict_codec_mode(strict_codec_mode_);
+        content_part.header_codec(header_codec_);
+        parts_.push_back(content_part);
+        content_.clear();
     }
 
-    _content_type.type = media_type_t::MULTIPART;
-    _content_type.subtype = "mixed";
+    content_type_.type = media_type_t::MULTIPART;
+    content_type_.subtype = "mixed";
     for (const auto& att : attachments)
     {
         stringstream ss;
@@ -497,7 +497,7 @@ void message::attach(const list<tuple<istream&, string, content_type_t>>& attach
         m.content_disposition(content_disposition_t::ATTACHMENT);
         m.name(std::get<1>(att));
         m.content(ss.str());
-        _parts.push_back(m);
+        parts_.push_back(m);
     }
 }
 
@@ -505,7 +505,7 @@ void message::attach(const list<tuple<istream&, string, content_type_t>>& attach
 size_t message::attachments_size() const
 {
     size_t no = 0;
-    for (auto& m : _parts)
+    for (auto& m : parts_)
         if (m.content_disposition() == content_disposition_t::ATTACHMENT)
             no++;
     return no;
@@ -518,7 +518,7 @@ void message::attachment(size_t index, ostream& att_strm, string& att_name) cons
         throw message_error("Bad attachment index.");
 
     size_t no = 0;
-    for (auto& m : _parts)
+    for (auto& m : parts_)
         if (m.content_disposition() == content_disposition_t::ATTACHMENT)
         {
             if (++no == index)
@@ -530,7 +530,7 @@ void message::attachment(size_t index, ostream& att_strm, string& att_name) cons
             }
         }
 
-    if (no > _parts.size())
+    if (no > parts_.size())
         throw message_error("Bad attachment index.");
 }
 
@@ -542,35 +542,35 @@ void message::add_header(const string& name, const string& value)
         throw message_error("Format failure of the header name `" + name + "`.");
     if (!regex_match(value, m, mime::HEADER_VALUE_REGEX))
         throw message_error("Format failure of the header value `" + value + "`.");
-    _headers.insert(make_pair(name, value));
+    headers_.insert(make_pair(name, value));
 }
 
 
 void message::remove_header(const std::string& name)
 {
-    _headers.erase(name);
+    headers_.erase(name);
 }
 
 
 multimap<string, string> message::headers() const
 {
-    return _headers;
+    return headers_;
 }
 
 
 string message::format_header() const
 {
-    if (!_boundary.empty() && _content_type.type != media_type_t::MULTIPART)
+    if (!boundary_.empty() && content_type_.type != media_type_t::MULTIPART)
         throw message_error("No boundary for multipart message.");
 
-    if (_from.addresses.size() == 0)
+    if (from_.addresses.size() == 0)
         throw message_error("No author.");
 
-    if (_from.addresses.size() > 1 && _sender.empty())
+    if (from_.addresses.size() > 1 && sender_.empty())
         throw message_error("No sender for multiple authors.");
 
     string header;
-    for_each(_headers.begin(), _headers.end(),
+    for_each(headers_.begin(), headers_.end(),
         [&header, this](const auto& hdr)
         {
             header += fold_header_line(hdr.first + HEADER_SEPARATOR_STR + hdr.second) + codec::END_OF_LINE;
@@ -578,33 +578,33 @@ string message::format_header() const
     );
 
     header += FROM_HEADER + HEADER_SEPARATOR_STR + from_to_string() + codec::END_OF_LINE;
-    header += _sender.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + codec::END_OF_LINE;
-    header += _reply_address.name.buffer.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + codec::END_OF_LINE;
+    header += sender_.address.empty() ? "" : SENDER_HEADER + HEADER_SEPARATOR_STR + sender_to_string() + codec::END_OF_LINE;
+    header += reply_address_.name.buffer.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + codec::END_OF_LINE;
     header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + codec::END_OF_LINE;
-    header += _cc_recipients.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
-    header += _bcc_recipients.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
-    header += _disposition_notification.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
-        format_address(_disposition_notification.name,_disposition_notification.address) + codec::END_OF_LINE;
-    string msg_id = format_many_ids(_message_id);
-    header += _message_id.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
-    string in_reply = format_many_ids(_in_reply_to);
-    header += _in_reply_to.empty() ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + in_reply + codec::END_OF_LINE;
-    string references = format_many_ids(_references);
-    header += _references.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
+    header += cc_recipients_.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
+    header += bcc_recipients_.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
+    header += disposition_notification_.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
+        format_address(disposition_notification_.name,disposition_notification_.address) + codec::END_OF_LINE;
+    string msg_id = format_many_ids(message_id_);
+    header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
+    string in_reply = format_many_ids(in_reply_to_);
+    header += in_reply_to_.empty() ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + in_reply + codec::END_OF_LINE;
+    string references = format_many_ids(references_);
+    header += references_.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
 
     // TODO: move formatting datetime to a separate method
-    if (!_date_time.is_not_a_date_time())
+    if (!date_time_.is_not_a_date_time())
     {
         stringstream ss;
         ss.exceptions(std::ios_base::failbit);
         local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
         ss.imbue(locale(ss.getloc(), facet));
-        ss << _date_time;
+        ss << date_time_;
         header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + codec::END_OF_LINE;
     }
 
-    if (!_parts.empty())
-        header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + _version + codec::END_OF_LINE;
+    if (!parts_.empty())
+        header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + version_ + codec::END_OF_LINE;
     header += mime::format_header();
 
     header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject().buffer + codec::END_OF_LINE;
@@ -639,58 +639,58 @@ void message::parse_header_line(const string& header_line)
 
     if (iequals(header_name, FROM_HEADER))
     {
-        _from = parse_address_list(header_value);
-        if (_from.addresses.empty())
+        from_ = parse_address_list(header_value);
+        if (from_.addresses.empty())
             throw message_error("Empty author header.");
     }
     else if (iequals(header_name, SENDER_HEADER))
     {
         mailboxes mbx = parse_address_list(header_value);
         if (!mbx.addresses.empty())
-            _sender = mbx.addresses[0];
+            sender_ = mbx.addresses[0];
     }
     else if (iequals(header_name, REPLY_TO_HEADER))
     {
         mailboxes mbx = parse_address_list(header_value);
         if (!mbx.addresses.empty())
-            _reply_address = mbx.addresses[0];
+            reply_address_ = mbx.addresses[0];
     }
     else if (iequals(header_name, TO_HEADER))
     {
-        _recipients = parse_address_list(header_value);
+        recipients_ = parse_address_list(header_value);
     }
     else if (iequals(header_name, CC_HEADER))
     {
-        _cc_recipients = parse_address_list(header_value);
+        cc_recipients_ = parse_address_list(header_value);
     }
     else if (iequals(header_name, DISPOSITION_NOTIFICATION_HEADER))
     {
         mailboxes mbx = parse_address_list(header_value);
         if (!mbx.addresses.empty())
-            _disposition_notification = mbx.addresses[0];
+            disposition_notification_ = mbx.addresses[0];
     }
     else if (iequals(header_name, MESSAGE_ID_HEADER))
     {
         auto ids = parse_many_ids(header_value);
         if (!ids.empty())
-            _message_id = ids[0];
+            message_id_ = ids[0];
     }
     else if (iequals(header_name, IN_REPLY_TO_HEADER))
-        _in_reply_to = parse_many_ids(header_value);
+        in_reply_to_ = parse_many_ids(header_value);
     else if (iequals(header_name, REFERENCES_HEADER))
-        _references = parse_many_ids(header_value);
+        references_ = parse_many_ids(header_value);
     else if (iequals(header_name, SUBJECT_HEADER))
-        std::tie(_subject.buffer, _subject.charset) = parse_subject(header_value);
+        std::tie(subject_.buffer, subject_.charset) = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
-        _date_time = parse_date(trim_copy(header_value));
+        date_time_ = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
-        _version = trim_copy(header_value);
+        version_ = trim_copy(header_value);
     else
     {
         if (!iequals(header_name, CONTENT_TYPE_HEADER) && !iequals(header_name, CONTENT_TRANSFER_ENCODING_HEADER) &&
             !iequals(header_name, CONTENT_DISPOSITION_HEADER))
         {
-            _headers.insert(make_pair(header_name, header_value));
+            headers_.insert(make_pair(header_name, header_value));
         }
     }
 }
@@ -763,14 +763,14 @@ string message::format_address(const string_t& name, const string& address) cons
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
-    else if (_header_codec == header_codec_t::UTF8)
+    else if (header_codec_ == header_codec_t::UTF8)
     {
         name_formatted = name.buffer;
     }
     else
     {
-        q_codec qc(_line_policy, _decoder_line_policy);
-        vector<string> enc_name = qc.encode(name.buffer, name.charset, cast_q_codec(_header_codec));
+        q_codec qc(line_policy_, decoder_line_policy_);
+        vector<string> enc_name = qc.encode(name.buffer, name.charset, cast_q_codec(header_codec_));
         for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
         {
             name_formatted += *sit;
@@ -941,7 +941,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     state = state_t::ADDR;
                     monkey_found = true;
                 }
-                else if (*ch == codec::QUOTE_CHAR && !_strict_mode)
+                else if (*ch == codec::QUOTE_CHAR && !strict_mode_)
                     state = state_t::QNAMEADDRBEG;
                 else if (isspace(*ch))
                 {
@@ -1018,7 +1018,7 @@ mailboxes message::parse_address_list(const string& address_list) const
             {
                 if (isalpha(*ch) || isdigit(*ch) || ATEXT.find(*ch) != string::npos || isspace(*ch) || codec::is_8bit_char(*ch))
                     token += *ch;
-                else if (*ch == codec::QUOTE_CHAR && !_strict_mode)
+                else if (*ch == codec::QUOTE_CHAR && !strict_mode_)
                     state = state_t::QNAMEADDRBEG;
                 else if (*ch == ADDRESS_BEGIN_CHAR)
                 {
@@ -1047,7 +1047,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                     token += *ch;
                     monkey_found = true;
                 }
-                else if (*ch == ADDRESS_BEGIN_CHAR && !_strict_mode)
+                else if (*ch == ADDRESS_BEGIN_CHAR && !strict_mode_)
                 {
                     cur_address.name = token;
                     trim(cur_address.name.buffer);
@@ -1157,7 +1157,7 @@ mailboxes message::parse_address_list(const string& address_list) const
                 // not allowed to end address list in this state in the strict mode
                 if (ch == address_list.end() - 1)
                 {
-                    if (_strict_mode)
+                    if (strict_mode_)
                         throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
                     else
                         mail_list.push_back(cur_address);
@@ -1422,8 +1422,8 @@ string message::fold_header_line(const string& header_line) const
 
     do
     {
-        string line = header_line.substr(pos, string::size_type(_line_policy));
-        if (line.length() < string::size_type(_line_policy))
+        string line = header_line.substr(pos, string::size_type(line_policy_));
+        if (line.length() < string::size_type(line_policy_))
         {
             folded_line += line;
             break;
@@ -1432,7 +1432,7 @@ string message::fold_header_line(const string& header_line) const
         pos_len = line.find_last_of(DELIMITERS);
         if (pos_len == string::npos)
         {
-            if (_strict_mode)
+            if (strict_mode_)
                 throw message_error("Header folding failure.");
             folded_line += header_line.substr(pos, string::npos);
         }
@@ -1448,7 +1448,7 @@ string message::fold_header_line(const string& header_line) const
 
 vector<string> message::parse_many_ids(const string& ids) const
 {
-    if (!_strict_mode)
+    if (!strict_mode_)
         return vector<string>{ids};
 
     vector<string> idv;
@@ -1480,17 +1480,17 @@ string_t message::format_subject() const
 {
     string_t subject;
 
-    if (_subject.charset != codec::CHARSET_ASCII && _header_codec != header_codec_t::UTF8)
+    if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
     {
-        q_codec qc(_line_policy, _decoder_line_policy);
-        vector<string> hdr = qc.encode(_subject.buffer, _subject.charset, cast_q_codec(_header_codec));
+        q_codec qc(line_policy_, decoder_line_policy_);
+        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, cast_q_codec(header_codec_));
         subject.buffer += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
                 subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject.buffer += fold_header_line(_subject.buffer) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(subject_.buffer) + codec::END_OF_LINE;
 
     return subject;
 }
@@ -1502,7 +1502,7 @@ tuple<string, string> message::parse_subject(const string& subject) const
         return make_tuple(subject, codec::CHARSET_UTF8);
     else
     {
-        q_codec qc(_line_policy, _decoder_line_policy);
+        q_codec qc(line_policy_, decoder_line_policy_);
         return qc.check_decode(subject);
     }
 }
@@ -1510,7 +1510,7 @@ tuple<string, string> message::parse_subject(const string& subject) const
 
 string_t message::parse_address_name(const string& address_name) const
 {
-    q_codec qc(_line_policy, _decoder_line_policy);
+    q_codec qc(line_policy_, decoder_line_policy_);
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
     bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&

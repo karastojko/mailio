@@ -746,59 +746,59 @@ protected:
     /**
     Boundary for the mime part.
     **/
-    std::string _boundary;
+    std::string boundary_;
 
     /**
     Mime version, should always be 1.0.
     **/
-    std::string _version;
+    std::string version_;
 
     /**
     Encoder line policy to be applied for the mime part.
     **/
-    codec::line_len_policy_t _line_policy;
+    codec::line_len_policy_t line_policy_;
 
     /**
     Decoder line policy to be applied for the mime part.
     **/
-    codec::line_len_policy_t _decoder_line_policy;
+    codec::line_len_policy_t decoder_line_policy_;
 
     /**
     Strict mode for mime part.
     **/
-    bool _strict_mode;
+    bool strict_mode_;
 
     /**
     Strict mode for encoding/decoding.
     **/
-    bool _strict_codec_mode;
+    bool strict_codec_mode_;
 
     /**
     Codec used for headers.
     **/
-    header_codec_t _header_codec;
+    header_codec_t header_codec_;
 
     /**
     Content type as a pair of top level media type and media subtype.
     **/
-    content_type_t _content_type;
+    content_type_t content_type_;
 
     /**
     Name of mime.
 
     @todo Should it contain filename of the attachment?
     **/
-    std::string _name;
+    std::string name_;
 
     /**
     Content transfer encoding of the mime part.
     **/
-    content_transfer_encoding_t _encoding;
+    content_transfer_encoding_t encoding_;
 
     /**
     Content disposition of the mime part.
     **/
-    content_disposition_t _disposition;
+    content_disposition_t disposition_;
 
     /**
     Raw representation of the content.
@@ -806,32 +806,32 @@ protected:
     The content is in the form as presented to the user, thus no limits such as line policy are applied here. For such purpose, the format method
     is used,
     **/
-    std::string _content;
+    std::string content_;
 
     /**
     Keeps containing mime parts, if any; otherwise, it's empty vector.
     **/
-    std::vector<mime> _parts;
+    std::vector<mime> parts_;
 
     /**
     Flag if the header is being parsed.
     **/
-    bool _parsing_header;
+    bool parsing_header_;
 
     /**
     Representation of the header in lines.
     **/
-    std::vector<std::string> _parsed_headers;
+    std::vector<std::string> parsed_headers_;
 
     /**
     Representation of the body in lines.
     **/
-    std::vector<std::string> _parsed_body;
+    std::vector<std::string> parsed_body_;
 
     /**
     Status of mime parsing - is parsing of the mime part started or stopped.
     **/
-    enum class mime_parsing_status_t {NONE, BEGIN, END} _mime_status;
+    enum class mime_parsing_status_t {NONE, BEGIN, END} mime_status_;
 };
 
 

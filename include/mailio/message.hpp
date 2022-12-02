@@ -756,67 +756,67 @@ protected:
     /**
     From name and address.
     **/
-    mailboxes _from;
+    mailboxes from_;
 
     /**
     Sender name and address.
     **/
-    mail_address _sender;
+    mail_address sender_;
 
     /**
     Reply address.
     **/
-    mail_address _reply_address;
+    mail_address reply_address_;
 
     /**
     List of recipients.
     **/
-    mailboxes _recipients;
+    mailboxes recipients_;
 
     /**
     List of CC recipients.
     **/
-    mailboxes _cc_recipients;
+    mailboxes cc_recipients_;
 
     /**
     List of BCC recipients.
     **/
-    mailboxes _bcc_recipients;
+    mailboxes bcc_recipients_;
 
     /**
     Disposition notification address.
     **/
-    mail_address _disposition_notification;
+    mail_address disposition_notification_;
 
     /**
     Message ID.
     **/
-    std::string _message_id;
+    std::string message_id_;
 
     /**
     In reply to list of IDs.
     **/
-    std::vector<std::string> _in_reply_to;
+    std::vector<std::string> in_reply_to_;
 
     /**
     References list of IDs.
     **/
-    std::vector<std::string> _references;
+    std::vector<std::string> references_;
 
     /**
     Message subject.
     **/
-    string_t _subject;
+    string_t subject_;
 
     /**
     Message date and time with time zone.
     **/
-    boost::local_time::local_date_time _date_time;
+    boost::local_time::local_date_time date_time_;
 
     /**
     Other headers not included into the known ones.
     **/
-    std::multimap<std::string, std::string> _headers;
+    std::multimap<std::string, std::string> headers_;
 };
 
 
