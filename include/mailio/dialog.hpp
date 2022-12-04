@@ -152,47 +152,47 @@ protected:
     /**
     Server hostname.
     **/
-    const std::string _hostname;
+    const std::string hostname_;
 
     /**
     Server port.
     **/
-    const unsigned int _port;
+    const unsigned int port_;
 
     /**
     Asio input/output service.
     **/
-    static boost::asio::io_context _ios;
+    static boost::asio::io_context ios_;
 
     /**
     Socket connection.
     **/
-    std::shared_ptr<boost::asio::ip::tcp::socket> _socket;
+    std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
 
     /**
     Timer to check the timeout.
     **/
-    std::shared_ptr<boost::asio::deadline_timer> _timer;
+    std::shared_ptr<boost::asio::deadline_timer> timer_;
 
     /**
     Timeout on I/O operations in milliseconds.
     **/
-    std::chrono::milliseconds _timeout;
+    std::chrono::milliseconds timeout_;
 
     /**
     Flag to show whether the timeout has expired.
     **/
-    bool _timer_expired;
+    bool timer_expired_;
 
     /**
     Stream buffer associated to the socket.
     **/
-    std::shared_ptr<boost::asio::streambuf> _strmbuf;
+    std::shared_ptr<boost::asio::streambuf> strmbuf_;
 
     /**
     Input stream associated to the buffer.
     **/
-    std::shared_ptr<std::istream> _istrm;
+    std::shared_ptr<std::istream> istrm_;
 };
 
 
@@ -256,17 +256,17 @@ protected:
     /**
     Flag if SSL is chosen or not.
     **/
-    bool _ssl;
+    bool ssl_;
 
     /**
     SSL context (when used).
     **/
-    std::shared_ptr<boost::asio::ssl::context> _context;
+    std::shared_ptr<boost::asio::ssl::context> context_;
 
     /**
     SSL socket (when used).
     **/
-    std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> _ssl_socket;
+    std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> ssl_socket_;
 };
 
 

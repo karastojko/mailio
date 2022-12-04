@@ -40,21 +40,21 @@ namespace mailio
 {
 
 
-boost::asio::io_context dialog::_ios;
+boost::asio::io_context dialog::ios_;
 
 
 dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
-    _hostname(hostname), _port(port), _socket(make_shared<tcp::socket>(_ios)), _timer(make_shared<deadline_timer>(_ios)),
-    _timeout(timeout), _timer_expired(false), _strmbuf(make_shared<streambuf>())
+    hostname_(hostname), port_(port), socket_(make_shared<tcp::socket>(ios_)), timer_(make_shared<deadline_timer>(ios_)),
+    timeout_(timeout), timer_expired_(false), strmbuf_(make_shared<streambuf>())
 {
-    _istrm = make_shared<istream>(_strmbuf.get());
+    istrm_ = make_shared<istream>(strmbuf_.get());
 
     try
     {
-        if (_timeout.count() == 0)
+        if (timeout_.count() == 0)
         {
-            tcp::resolver res(_ios);
-            boost::asio::connect(*_socket, res.resolve(_hostname, to_string(_port)));
+            tcp::resolver res(ios_);
+            boost::asio::connect(*socket_, res.resolve(hostname_, to_string(port_)));
         }
         else
             connect_async();
@@ -66,29 +66,29 @@ dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
 }
 
 
-dialog::dialog(const dialog& other) : _hostname(move(other._hostname)), _port(other._port), _socket(other._socket), _timer(other._timer),
-    _timeout(other._timeout), _timer_expired(other._timer_expired), _strmbuf(other._strmbuf)
+dialog::dialog(const dialog& other) : hostname_(move(other.hostname_)), port_(other.port_), socket_(other.socket_), timer_(other.timer_),
+    timeout_(other.timeout_), timer_expired_(other.timer_expired_), strmbuf_(other.strmbuf_)
 {
-    _istrm = other._istrm;
+    istrm_ = other.istrm_;
 }
 
 
 void dialog::send(const string& line)
 {
-    if (_timeout.count() == 0)
-        send_sync(*_socket, line);
+    if (timeout_.count() == 0)
+        send_sync(*socket_, line);
     else
-        send_async(*_socket, line);
+        send_async(*socket_, line);
 }
 
 
 // TODO: perhaps the implementation should be common with `receive_raw()`
 string dialog::receive(bool raw)
 {
-    if (_timeout.count() == 0)
-        return receive_sync(*_socket, raw);
+    if (timeout_.count() == 0)
+        return receive_sync(*socket_, raw);
     else
-        return receive_async(*_socket, raw);
+        return receive_async(*socket_, raw);
 }
 
 
@@ -112,9 +112,9 @@ string dialog::receive_sync(Socket& socket, bool raw)
 {
     try
     {
-        read_until(socket, *_strmbuf, "\n");
+        read_until(socket, *strmbuf_, "\n");
         string line;
-        getline(*_istrm, line, '\n');
+        getline(*istrm_, line, '\n');
         if (!raw)
             trim_if(line, is_any_of("\r\n"));
         return line;
@@ -128,15 +128,15 @@ string dialog::receive_sync(Socket& socket, bool raw)
 
 void dialog::connect_async()
 {
-    tcp::resolver res(_ios);
+    tcp::resolver res(ios_);
 
-    _timer->expires_at(boost::posix_time::pos_infin);
-    _timer->expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
+    timer_->expires_at(boost::posix_time::pos_infin);
+    timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
     boost::system::error_code ignored_ec;
-    check_timeout(ignored_ec, _socket, _timer, _timer_expired);
+    check_timeout(ignored_ec, socket_, timer_, timer_expired_);
 
     bool has_connected{false}, connect_error{false};
-    async_connect(*_socket, res.resolve(_hostname, to_string(_port)),
+    async_connect(*socket_, res.resolve(hostname_, to_string(port_)),
         [&has_connected, &connect_error](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint&)
         {
             if (!error)
@@ -146,11 +146,11 @@ void dialog::connect_async()
         });
     do
     {
-        if (_timer_expired)
+        if (timer_expired_)
             throw dialog_error("Server connecting timed out.");
         if (connect_error)
             throw dialog_error("Server connecting failed.");
-        _ios.run_one();
+        ios_.run_one();
     }
     while (!has_connected);
 }
@@ -159,7 +159,7 @@ void dialog::connect_async()
 template<typename Socket>
 void dialog::send_async(Socket& socket, string line)
 {
-    _timer->expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
+    timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
     string l = line + "\r\n";
     bool has_written{false}, send_error{false};
     async_write(socket, buffer(l, l.size()), [&has_written, &send_error](const boost::system::error_code& error, size_t)
@@ -171,11 +171,11 @@ void dialog::send_async(Socket& socket, string line)
         });
     do
     {
-        if (_timer_expired)
+        if (timer_expired_)
             throw dialog_error("Network sending timed out.");
         if (send_error)
             throw dialog_error("Network sending failed.");
-        _ios.run_one();
+        ios_.run_one();
     }
     while (!has_written);
 }
@@ -184,14 +184,14 @@ void dialog::send_async(Socket& socket, string line)
 template<typename Socket>
 string dialog::receive_async(Socket& socket, bool raw)
 {
-    _timer->expires_from_now(boost::posix_time::milliseconds(_timeout.count()));
+    timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
     bool has_read{false}, receive_error{false};
     string line;
-    async_read_until(socket, *_strmbuf, "\n", [&has_read, &receive_error, this, &line, raw](const boost::system::error_code& error, size_t)
+    async_read_until(socket, *strmbuf_, "\n", [&has_read, &receive_error, this, &line, raw](const boost::system::error_code& error, size_t)
         {
             if (!error)
             {
-                getline(*_istrm, line, '\n');
+                getline(*istrm_, line, '\n');
                 if (!raw)
                     trim_if(line, is_any_of("\r\n"));
                 has_read = true;
@@ -201,11 +201,11 @@ string dialog::receive_async(Socket& socket, bool raw)
         });
     do
     {
-        if (_timer_expired)
+        if (timer_expired_)
             throw dialog_error("Network receiving timed out.");
         if (receive_error)
             throw dialog_error("Network receiving failed.");
-        _ios.run_one();
+        ios_.run_one();
     }
     while (!has_read);
 
@@ -227,20 +227,20 @@ void dialog::check_timeout(const boost::system::error_code& error, shared_ptr<tc
 
 
 dialog_ssl::dialog_ssl(const string& hostname, unsigned port, milliseconds timeout) :
-    dialog(hostname, port, timeout), _ssl(false), _context(make_shared<context>(context::sslv23)),
-    _ssl_socket(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*_socket, *_context))
+    dialog(hostname, port, timeout), ssl_(false), context_(make_shared<context>(context::sslv23)),
+    ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*socket_, *context_))
 {
 }
 
 
-dialog_ssl::dialog_ssl(const dialog& other) : dialog(other), _context(make_shared<context>(context::sslv23)),
-    _ssl_socket(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*(dialog::_socket), *_context))
+dialog_ssl::dialog_ssl(const dialog& other) : dialog(other), context_(make_shared<context>(context::sslv23)),
+    ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*(dialog::socket_), *context_))
 {
     try
     {
-        _ssl_socket->set_verify_mode(boost::asio::ssl::verify_none);
-        _ssl_socket->handshake(boost::asio::ssl::stream_base::client);
-        _ssl = true;
+        ssl_socket_->set_verify_mode(boost::asio::ssl::verify_none);
+        ssl_socket_->handshake(boost::asio::ssl::stream_base::client);
+        ssl_ = true;
     }
     catch (system_error&)
     {
@@ -252,30 +252,30 @@ dialog_ssl::dialog_ssl(const dialog& other) : dialog(other), _context(make_share
 
 void dialog_ssl::send(const string& line)
 {
-    if (!_ssl)
+    if (!ssl_)
     {
         dialog::send(line);
         return;
     }
 
-    if (_timeout.count() == 0)
-        send_sync(*_ssl_socket, line);
+    if (timeout_.count() == 0)
+        send_sync(*ssl_socket_, line);
     else
-        send_async(*_ssl_socket, line);
+        send_async(*ssl_socket_, line);
 }
 
 
 string dialog_ssl::receive(bool raw)
 {
-    if (!_ssl)
+    if (!ssl_)
         return dialog::receive(raw);
 
     try
     {
-        if (_timeout.count() == 0)
-            return receive_sync(*_ssl_socket, raw);
+        if (timeout_.count() == 0)
+            return receive_sync(*ssl_socket_, raw);
         else
-            return receive_async(*_ssl_socket, raw);
+            return receive_async(*ssl_socket_, raw);
     }
     catch (system_error&)
     {
