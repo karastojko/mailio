@@ -56,7 +56,7 @@ vector<string> bit7::encode(const string& text) const
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
         
-        if (line_len == string::size_type(_line_policy))
+        if (line_len == string::size_type(line_policy_))
         {
             enc_text.push_back(line);
             line.clear();
@@ -77,7 +77,7 @@ string bit7::decode(const vector<string>& text) const
     string dec_text;
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(_decoder_line_policy))
+        if (line.length() > string::size_type(decoder_line_policy_))
             throw codec_error("Line policy overflow.");
         
         for (auto ch : line)
@@ -100,7 +100,7 @@ For details see [rfc 2045, section 2.7].
 */
 bool bit7::is_allowed(char ch) const
 {
-    if (_strict_mode)
+    if (strict_mode_)
         return (ch > NIL_CHAR && ch <= TILDE_CHAR && ch != CR_CHAR && ch != LF_CHAR);
     else
         return (ch != NIL_CHAR && ch != CR_CHAR && ch != LF_CHAR);

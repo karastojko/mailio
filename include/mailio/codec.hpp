@@ -492,17 +492,17 @@ protected:
     /**
     Encoder line length policy.
     **/
-    line_len_policy_t _line_policy;
+    line_len_policy_t line_policy_;
 
     /**
     Decoder line length policy.
     **/
-    line_len_policy_t _decoder_line_policy;
+    line_len_policy_t decoder_line_policy_;
 
     /**
     Strict mode for encoding/decoding.
     **/
-    bool _strict_mode;
+    bool strict_mode_;
 };
 
 

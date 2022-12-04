@@ -55,7 +55,7 @@ vector<string> bit8::encode(const string& text) const
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
         
-        if (line_len == string::size_type(_line_policy))
+        if (line_len == string::size_type(line_policy_))
         {
             enc_text.push_back(line);
             line.clear();
@@ -76,7 +76,7 @@ string bit8::decode(const vector<string>& text) const
     string dec_text;
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(_decoder_line_policy))
+        if (line.length() > string::size_type(decoder_line_policy_))
             throw codec_error("Line policy overflow.");
         
         for (auto ch : line)

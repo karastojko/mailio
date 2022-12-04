@@ -60,20 +60,20 @@ bool codec::is_utf8_string(const string& txt)
 
 
 codec::codec(line_len_policy_t encoder_line_policy, line_len_policy_t decoder_line_policy)
-  : _line_policy(encoder_line_policy), _decoder_line_policy(decoder_line_policy), _strict_mode(false)
+  : line_policy_(encoder_line_policy), decoder_line_policy_(decoder_line_policy), strict_mode_(false)
 {
 }
 
 
 void codec::strict_mode(bool mode)
 {
-    _strict_mode = mode;
+    strict_mode_ = mode;
 }
 
 
 bool codec::strict_mode() const
 {
-    return _strict_mode;
+    return strict_mode_;
 }
 
 

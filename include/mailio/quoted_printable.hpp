@@ -94,7 +94,7 @@ private:
     /**
     Flag for Q codec mode.
     **/
-    bool _q_codec_mode;
+    bool q_codec_mode_;
 };
 
 

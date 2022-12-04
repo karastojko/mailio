@@ -59,7 +59,7 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             line_len += 4;
         }
         
-        if (line_len >= string::size_type(_line_policy) - reserved - 2)
+        if (line_len >= string::size_type(line_policy_) - reserved - 2)
         {
             enc_text.push_back(line);
             line.clear();
@@ -81,7 +81,7 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         for (int i = 0; i < count_3_chars + 1; i++)
         {
-            if (line_len >= string::size_type(_line_policy) - reserved - 2)
+            if (line_len >= string::size_type(line_policy_) - reserved - 2)
             {
                 enc_text.push_back(line);
                 line.clear();
@@ -93,7 +93,7 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         while (count_3_chars++ < 3)
         {
-            if (line_len >= string::size_type(_line_policy) - reserved - 2)
+            if (line_len >= string::size_type(line_policy_) - reserved - 2)
             {
                 enc_text.push_back(line);
                 line.clear();
@@ -120,7 +120,7 @@ string base64::decode(const vector<string>& text) const
 
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(_decoder_line_policy) - 2)
+        if (line.length() > string::size_type(decoder_line_policy_) - 2)
             throw codec_error("Bad line policy.");
 
         for (string::size_type ch = 0; ch < line.length() && line[ch] != EQUAL_CHAR; ch++)
