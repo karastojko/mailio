@@ -622,7 +622,7 @@ protected:
     /**
     Folder delimiter string determined by the IMAP server.
     **/
-    std::string _folder_delimiter;
+    std::string folder_delimiter_;
 
     /**
     Parsed elements of IMAP response line.
@@ -739,12 +739,12 @@ protected:
     /**
     Dialog to use for send/receive operations.
     **/
-    std::shared_ptr<dialog> _dlg;
+    std::shared_ptr<dialog> dlg_;
 
     /**
     Tag used to identify requests and responses.
     **/
-    unsigned _tag;
+    unsigned tag_;
 
     /**
     Token of the response defined by the grammar.
@@ -792,37 +792,37 @@ protected:
     /**
     Optional part of the response, determined by the square brackets.
     **/
-    std::list<std::shared_ptr<response_token_t>> _optional_part;
+    std::list<std::shared_ptr<response_token_t>> optional_part_;
 
     /**
     Mandatory part of the response, which is any text outside of the square brackets.
     **/
-    std::list<std::shared_ptr<response_token_t>> _mandatory_part;
+    std::list<std::shared_ptr<response_token_t>> mandatory_part_;
 
     /**
     Parser state if an optional part is reached.
     **/
-    bool _optional_part_state;
+    bool optional_part_state_;
 
     /**
     Parser state if an atom is reached.
     **/
-    enum class atom_state_t {NONE, PLAIN, QUOTED} _atom_state;
+    enum class atom_state_t {NONE, PLAIN, QUOTED} atom_state_;
 
     /**
     Counting open parenthesis of a parenthized list, thus it also keeps parser state if a parenthesized list is reached.
     **/
-    unsigned int _parenthesis_list_counter;
+    unsigned int parenthesis_list_counter_;
 
     /**
     Parser state if a string literal is reached.
     **/
-    enum class string_literal_state_t {NONE, SIZE, WAITING, READING, DONE} _literal_state;
+    enum class string_literal_state_t {NONE, SIZE, WAITING, READING, DONE} literal_state_;
 
     /**
     Keeping the number of bytes read so far while parsing a string literal.
     **/
-    std::string::size_type _literal_bytes_read;
+    std::string::size_type literal_bytes_read_;
 
     /**
     Finding last token of the list at the given depth in terms of parenthesis count.
@@ -845,7 +845,7 @@ protected:
 
     @todo Check if this is breaking protocol, so it has to be added to a strict mode.
     **/
-    std::string::size_type _eols_no;
+    std::string::size_type eols_no_;
 };
 
 
