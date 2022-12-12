@@ -752,10 +752,12 @@ string message::format_address(const string_t& name, const string& address) cons
     string addr;
     smatch m;
 
-    // Check name format.
+    // The charset has precedence over the header codec. Only for the non-ascii characters, consider the header encoding.
 
     if (name.charset == codec::CHARSET_ASCII)
     {
+        // Check the name format.
+
         if (regex_match(name.buffer, m, regex(R"([A-Za-z0-9\ \t]*)")))
             name_formatted = name.buffer;
         else if (regex_match(name.buffer, m, QTEXT_REGEX))

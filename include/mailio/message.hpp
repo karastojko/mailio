@@ -641,7 +641,7 @@ protected:
     /**
     Formatting a name and an address.
 
-    If UTF-8 is detected in the name, the given header codec is used.
+    If the name is in ASCII or the header codec set to UTF8, then it is written in raw format. Otherwise, the encoding is performed.
 
     @param name          Mail name.
     @param address       Mail address.
