@@ -78,23 +78,23 @@ public:
     Decoding a string.
 
     @param text        String to decode.
-    @return            Decoded string and its charset.
+    @return            Decoded string, its charset and its codec method.
     @throw codec_error Missing Q codec separator for charset.
     @throw codec_error Missing Q codec separator for codec type.
     @throw codec_error Missing last Q codec separator.
     @throw codec_error Bad encoding method.
     @throw *           `decode_qp(const string&)`, `base64::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string> decode(const std::string& text) const;
+    std::tuple<std::string, std::string, codec_method_t> decode(const std::string& text) const;
 
     /**
     Checking if a string is Q encoded and decodes it.
 
     @param text        String to decode.
-    @return            Decoded string and its charset.
+    @return            Decoded string, its charset and its codec method.
     @throw codec_error Bad Q codec format.
     **/
-    std::tuple<std::string, std::string> check_decode(const std::string& text) const;
+    std::tuple<std::string, std::string, codec_method_t> check_decode(const std::string& text) const;
 
 private:
 

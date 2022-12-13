@@ -1498,14 +1498,19 @@ string_t message::format_subject() const
 }
 
 
-tuple<string, string> message::parse_subject(const string& subject) const
+tuple<string, string> message::parse_subject(const string& subject)
 {
     if (codec::is_utf8_string(subject))
+    {
+        header_codec_ = header_codec_t::UTF8;
         return make_tuple(subject, codec::CHARSET_UTF8);
+    }
     else
     {
         q_codec qc(line_policy_, decoder_line_policy_);
-        return qc.check_decode(subject);
+        auto subject_dec = qc.check_decode(subject);
+        header_codec_ = cast_q_codec(get<2>(subject_dec));
+        return make_tuple(get<0>(subject_dec), get<1>(subject_dec));
     }
 }
 

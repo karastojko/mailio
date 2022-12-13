@@ -738,7 +738,7 @@ protected:
     @throw message_error Parsing failure of Q encoding.
     @throw *             `q_codec::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string> parse_subject(const std::string& subject) const;
+    std::tuple<std::string, std::string> parse_subject(const std::string& subject);
 
     /**
     Parsing a name part of a mail ASCII or UTF-8 encoded.

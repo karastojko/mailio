@@ -67,7 +67,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, codec_
 
 
 // TODO: returning charset info?
-tuple<string, string> q_codec::decode(const string& text) const
+tuple<string, string, q_codec::codec_method_t> q_codec::decode(const string& text) const
 {
     string::size_type charset_pos = text.find(QUESTION_MARK_CHAR);
     if (charset_pos == string::npos)
@@ -82,6 +82,7 @@ tuple<string, string> q_codec::decode(const string& text) const
     if (content_pos == string::npos)
         throw codec_error("Missing last Q codec separator.");
     string method = text.substr(method_pos + 1, content_pos - method_pos - 1);
+    codec_method_t method_type;
     string text_c = text.substr(content_pos + 1);
 
     string dec_text;
@@ -89,25 +90,28 @@ tuple<string, string> q_codec::decode(const string& text) const
     {
         base64 b64(line_policy_, decoder_line_policy_);
         dec_text = b64.decode(text_c);
+        method_type = codec_method_t::BASE64;
     }
     else if (iequals(method, QP_CODEC_STR))
     {
         dec_text = decode_qp(text_c);
+        method_type = codec_method_t::QUOTED_PRINTABLE;
     }
     else
         throw codec_error("Bad encoding method.");
 
-    return make_tuple(dec_text, charset);
+    return make_tuple(dec_text, charset, method_type);
 }
 
 
-tuple<string, string> q_codec::check_decode(const string& text) const
+tuple<string, string, q_codec::codec_method_t> q_codec::check_decode(const string& text) const
 {
     string::size_type question_mark_counter = 0;
     const string::size_type QUESTION_MARKS_NO = 4;
     bool is_encoded = false;
     string dec_text, encoded_part;
     string charset = CHARSET_ASCII;
+    codec_method_t method_type;
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
@@ -123,6 +127,8 @@ tuple<string, string> q_codec::check_decode(const string& text) const
             auto text_charset = decode(encoded_part);
             dec_text += get<0>(text_charset);
             charset = get<1>(text_charset);
+            method_type = get<2>(text_charset);
+
             encoded_part.clear();
             ch++;
         }
@@ -135,7 +141,7 @@ tuple<string, string> q_codec::check_decode(const string& text) const
     if (is_encoded && question_mark_counter < QUESTION_MARKS_NO)
         throw codec_error("Bad Q codec format.");
 
-    return make_tuple(dec_text, charset);
+    return make_tuple(dec_text, charset, method_type);
 }
 
 

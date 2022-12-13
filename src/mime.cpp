@@ -118,6 +118,15 @@ q_codec::codec_method_t mime::cast_q_codec(mime::header_codec_t method)
 }
 
 
+mime::header_codec_t mime::cast_q_codec(q_codec::codec_method_t method)
+{
+    if (method == q_codec::codec_method_t::BASE64)
+        return mime::header_codec_t::BASE64;
+    else if (method == q_codec::codec_method_t::QUOTED_PRINTABLE)
+        return mime::header_codec_t::QUOTED_PRINTABLE;
+}
+
+
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
     decoder_line_policy_(codec::line_len_policy_t::RECOMMENDED), strict_mode_(false), strict_codec_mode_(false),
     header_codec_(header_codec_t::QUOTED_PRINTABLE), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),

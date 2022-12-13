@@ -570,10 +570,18 @@ protected:
     /**
     Transforms the header codec to the Q codec enum.
 
-    @param method Header coded to transform.
+    @param method Header codec to transform.
     @return       Q codec to get.
     **/
     static q_codec::codec_method_t cast_q_codec(mime::header_codec_t method);
+
+    /**
+    Transforms the Q codec to the header codec enum.
+
+    @param method Q codec to transform.
+    @return       Header codec to get.
+    **/
+    static mime::header_codec_t cast_q_codec(q_codec::codec_method_t method);
 
     /**
     Formatting header.
