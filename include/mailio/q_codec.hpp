@@ -41,7 +41,7 @@ public:
     /**
     Method used for encoding/decoding.
     **/
-    enum class codec_method_t {BASE64, QUOTED_PRINTABLE};
+    enum class codec_method_t {BASE64, QUOTED_PRINTABLE, UTF8};
 
     /**
     Setting the encoder and decoder line policy to recommended one.

@@ -124,12 +124,15 @@ mime::header_codec_t mime::cast_q_codec(q_codec::codec_method_t method)
         return mime::header_codec_t::BASE64;
     else if (method == q_codec::codec_method_t::QUOTED_PRINTABLE)
         return mime::header_codec_t::QUOTED_PRINTABLE;
+    else if (method == q_codec::codec_method_t::UTF8)
+        return mime::header_codec_t::UTF8;
+    throw mime_error("Wrong header codec.");
 }
 
 
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
     decoder_line_policy_(codec::line_len_policy_t::RECOMMENDED), strict_mode_(false), strict_codec_mode_(false),
-    header_codec_(header_codec_t::QUOTED_PRINTABLE), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
+    header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
     disposition_(content_disposition_t::NONE), parsing_header_(true), mime_status_(mime_parsing_status_t::NONE)
 {
 }

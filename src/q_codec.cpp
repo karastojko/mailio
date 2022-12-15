@@ -111,7 +111,8 @@ tuple<string, string, q_codec::codec_method_t> q_codec::check_decode(const strin
     bool is_encoded = false;
     string dec_text, encoded_part;
     string charset = CHARSET_ASCII;
-    codec_method_t method_type;
+    // if there is no q encoding, then it's ascii or utf8
+    codec_method_t method_type = codec_method_t::UTF8;
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {

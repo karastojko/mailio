@@ -868,7 +868,7 @@ Meanings of the labels:
 - commbeg: begin of a comment
 - commend: end of a comment
 */
-mailboxes message::parse_address_list(const string& address_list) const
+mailboxes message::parse_address_list(const string& address_list)
 {
     enum class state_t {BEGIN, NAMEADDRGRP, QNAMEADDRBEG, ADDR, NAME, QNAMEADDREND, ADDRBRBEG, ADDRBREND, GROUPBEG, GROUPEND, COMMBEG, COMMEND, EOL};
 
@@ -1501,21 +1501,20 @@ string_t message::format_subject() const
 tuple<string, string> message::parse_subject(const string& subject)
 {
     if (codec::is_utf8_string(subject))
-    {
-        header_codec_ = header_codec_t::UTF8;
         return make_tuple(subject, codec::CHARSET_UTF8);
-    }
     else
     {
         q_codec qc(line_policy_, decoder_line_policy_);
         auto subject_dec = qc.check_decode(subject);
-        header_codec_ = cast_q_codec(get<2>(subject_dec));
+        mime::header_codec_t subject_encoding = cast_q_codec(get<2>(subject_dec));
+        if (subject_encoding != mime::header_codec_t::UTF8)
+            header_codec_ = subject_encoding;
         return make_tuple(get<0>(subject_dec), get<1>(subject_dec));
     }
 }
 
 
-string_t message::parse_address_name(const string& address_name) const
+string_t message::parse_address_name(const string& address_name)
 {
     q_codec qc(line_policy_, decoder_line_policy_);
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
@@ -1539,6 +1538,7 @@ string_t message::parse_address_name(const string& address_name) const
                 charset = get<1>(an);
             if (charset != get<1>(an))
                 throw message_error("Inconsistent Q encodings.");
+            header_codec_ = cast_q_codec(get<2>(an));
         }
         return string_t(parts_str, charset);
     }

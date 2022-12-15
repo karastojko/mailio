@@ -664,7 +664,7 @@ protected:
     @throw message_error Parsing failure of name at.
     @throw message_error Parsing failure of comment at.
     **/
-    mailboxes parse_address_list(const std::string& address_list) const;
+    mailboxes parse_address_list(const std::string& address_list);
 
     /**
     Parsing a string into date and time.
@@ -751,7 +751,7 @@ protected:
     @todo                Not tested with charsets different than ASCII and UTF-8.
     @todo                Throwing errors when Q codec is invalid?
     **/
-    string_t parse_address_name(const std::string& address_name) const;
+    string_t parse_address_name(const std::string& address_name);
 
     /**
     From name and address.

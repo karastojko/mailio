@@ -397,6 +397,8 @@ public:
 
     /**
     Codec used for header fields.
+
+    @todo Same as `q_codec::codec_method_t`, one of these should be removed.
     **/
     enum class header_codec_t {BASE64, QUOTED_PRINTABLE, UTF8};
 
@@ -572,6 +574,7 @@ protected:
 
     @param method Header codec to transform.
     @return       Q codec to get.
+    @todo         To be removed.
     **/
     static q_codec::codec_method_t cast_q_codec(mime::header_codec_t method);
 
@@ -580,6 +583,7 @@ protected:
 
     @param method Q codec to transform.
     @return       Header codec to get.
+    @todo         To be removed.
     **/
     static mime::header_codec_t cast_q_codec(q_codec::codec_method_t method);
 
