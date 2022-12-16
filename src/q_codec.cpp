@@ -40,12 +40,12 @@ q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_p
 }
 
 
-vector<string> q_codec::encode(const string& text, const string& charset, codec_method_t method) const
+vector<string> q_codec::encode(const string& text, const string& charset, header_codec_t method) const
 {
     const string::size_type Q_FLAGS_LEN = 12;
     vector<string> enc_text, text_c;
     string codec_flag;
-    if (method == codec_method_t::BASE64)
+    if (method == header_codec_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
         base64 b64(line_policy_, decoder_line_policy_);
@@ -67,7 +67,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, codec_
 
 
 // TODO: returning charset info?
-tuple<string, string, q_codec::codec_method_t> q_codec::decode(const string& text) const
+tuple<string, string, codec::header_codec_t> q_codec::decode(const string& text) const
 {
     string::size_type charset_pos = text.find(QUESTION_MARK_CHAR);
     if (charset_pos == string::npos)
@@ -82,7 +82,7 @@ tuple<string, string, q_codec::codec_method_t> q_codec::decode(const string& tex
     if (content_pos == string::npos)
         throw codec_error("Missing last Q codec separator.");
     string method = text.substr(method_pos + 1, content_pos - method_pos - 1);
-    codec_method_t method_type;
+    header_codec_t method_type;
     string text_c = text.substr(content_pos + 1);
 
     string dec_text;
@@ -90,12 +90,12 @@ tuple<string, string, q_codec::codec_method_t> q_codec::decode(const string& tex
     {
         base64 b64(line_policy_, decoder_line_policy_);
         dec_text = b64.decode(text_c);
-        method_type = codec_method_t::BASE64;
+        method_type = header_codec_t::BASE64;
     }
     else if (iequals(method, QP_CODEC_STR))
     {
         dec_text = decode_qp(text_c);
-        method_type = codec_method_t::QUOTED_PRINTABLE;
+        method_type = header_codec_t::QUOTED_PRINTABLE;
     }
     else
         throw codec_error("Bad encoding method.");
@@ -104,7 +104,7 @@ tuple<string, string, q_codec::codec_method_t> q_codec::decode(const string& tex
 }
 
 
-tuple<string, string, q_codec::codec_method_t> q_codec::check_decode(const string& text) const
+tuple<string, string, codec::header_codec_t> q_codec::check_decode(const string& text) const
 {
     string::size_type question_mark_counter = 0;
     const string::size_type QUESTION_MARKS_NO = 4;
@@ -112,7 +112,7 @@ tuple<string, string, q_codec::codec_method_t> q_codec::check_decode(const strin
     string dec_text, encoded_part;
     string charset = CHARSET_ASCII;
     // if there is no q encoding, then it's ascii or utf8
-    codec_method_t method_type = codec_method_t::UTF8;
+    header_codec_t method_type = header_codec_t::UTF8;
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {

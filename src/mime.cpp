@@ -107,29 +107,6 @@ const string mime::CONTENT_ATTR_ALPHABET{"!#$%&*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
-
-q_codec::codec_method_t mime::cast_q_codec(mime::header_codec_t method)
-{
-    if (method == mime::header_codec_t::BASE64)
-        return q_codec::codec_method_t::BASE64;
-    else if (method == mime::header_codec_t::QUOTED_PRINTABLE)
-        return q_codec::codec_method_t::QUOTED_PRINTABLE;
-    throw mime_error("Wrong header codec.");
-}
-
-
-mime::header_codec_t mime::cast_q_codec(q_codec::codec_method_t method)
-{
-    if (method == q_codec::codec_method_t::BASE64)
-        return mime::header_codec_t::BASE64;
-    else if (method == q_codec::codec_method_t::QUOTED_PRINTABLE)
-        return mime::header_codec_t::QUOTED_PRINTABLE;
-    else if (method == q_codec::codec_method_t::UTF8)
-        return mime::header_codec_t::UTF8;
-    throw mime_error("Wrong header codec.");
-}
-
-
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
     decoder_line_policy_(codec::line_len_policy_t::RECOMMENDED), strict_mode_(false), strict_codec_mode_(false),
     header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
@@ -603,7 +580,7 @@ string mime::format_mime_name(const string& name) const
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
         q_codec qc(codec::line_len_policy_t::MANDATORY, decoder_line_policy_);
-        vector<string> hdr = qc.encode(name, codec::CHARSET_UTF8, cast_q_codec(header_codec_));
+        vector<string> hdr = qc.encode(name, codec::CHARSET_UTF8, header_codec_);
         return hdr.at(0);
     }
 

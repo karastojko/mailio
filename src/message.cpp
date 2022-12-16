@@ -772,7 +772,7 @@ string message::format_address(const string_t& name, const string& address) cons
     else
     {
         q_codec qc(line_policy_, decoder_line_policy_);
-        vector<string> enc_name = qc.encode(name.buffer, name.charset, cast_q_codec(header_codec_));
+        vector<string> enc_name = qc.encode(name.buffer, name.charset, header_codec_);
         for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
         {
             name_formatted += *sit;
@@ -1485,7 +1485,7 @@ string_t message::format_subject() const
     if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
     {
         q_codec qc(line_policy_, decoder_line_policy_);
-        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, cast_q_codec(header_codec_));
+        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
         subject.buffer += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
             for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
@@ -1506,8 +1506,8 @@ tuple<string, string> message::parse_subject(const string& subject)
     {
         q_codec qc(line_policy_, decoder_line_policy_);
         auto subject_dec = qc.check_decode(subject);
-        mime::header_codec_t subject_encoding = cast_q_codec(get<2>(subject_dec));
-        if (subject_encoding != mime::header_codec_t::UTF8)
+        header_codec_t subject_encoding = get<2>(subject_dec);
+        if (subject_encoding != header_codec_t::UTF8)
             header_codec_ = subject_encoding;
         return make_tuple(get<0>(subject_dec), get<1>(subject_dec));
     }
@@ -1538,7 +1538,7 @@ string_t message::parse_address_name(const string& address_name)
                 charset = get<1>(an);
             if (charset != get<1>(an))
                 throw message_error("Inconsistent Q encodings.");
-            header_codec_ = cast_q_codec(get<2>(an));
+            header_codec_ = get<2>(an);
         }
         return string_t(parts_str, charset);
     }

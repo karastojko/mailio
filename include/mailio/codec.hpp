@@ -453,6 +453,11 @@ public:
     enum class line_len_policy_t : std::string::size_type {NONE = 2048, RECOMMENDED = 78, MANDATORY = 998, VERYLARGE = 16384};
 
     /**
+    Methods used for MIME header encoding/decoding.
+    **/
+    enum class header_codec_t {BASE64, QUOTED_PRINTABLE, UTF8};
+
+    /**
     Setting the encoder and decoder line policy of the codec.
 
     @param encoder_line_policy Encoder line policy to set.

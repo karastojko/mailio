@@ -395,12 +395,7 @@ public:
     **/
     bool strict_codec_mode() const;
 
-    /**
-    Codec used for header fields.
-
-    @todo Same as `q_codec::codec_method_t`, one of these should be removed.
-    **/
-    enum class header_codec_t {BASE64, QUOTED_PRINTABLE, UTF8};
+    using header_codec_t = codec::header_codec_t;
 
     /**
     Setting the headers codec.
@@ -568,24 +563,6 @@ protected:
     Content header value allowed characters.
     */
     static const std::string CONTENT_HEADER_VALUE_ALPHABET;
-
-    /**
-    Transforms the header codec to the Q codec enum.
-
-    @param method Header codec to transform.
-    @return       Q codec to get.
-    @todo         To be removed.
-    **/
-    static q_codec::codec_method_t cast_q_codec(mime::header_codec_t method);
-
-    /**
-    Transforms the Q codec to the header codec enum.
-
-    @param method Q codec to transform.
-    @return       Header codec to get.
-    @todo         To be removed.
-    **/
-    static mime::header_codec_t cast_q_codec(q_codec::codec_method_t method);
 
     /**
     Formatting header.

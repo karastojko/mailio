@@ -39,11 +39,6 @@ class MAILIO_EXPORT q_codec : public codec
 public:
 
     /**
-    Method used for encoding/decoding.
-    **/
-    enum class codec_method_t {BASE64, QUOTED_PRINTABLE, UTF8};
-
-    /**
     Setting the encoder and decoder line policy to recommended one.
 
     @param encoder_line_policy  Line policy to apply.
@@ -72,7 +67,7 @@ public:
     @param charset Charset used by the string.
     @return        Encoded string.
     **/
-    std::vector<std::string> encode(const std::string& text, const std::string& charset, codec_method_t method) const;
+    std::vector<std::string> encode(const std::string& text, const std::string& charset, header_codec_t method) const;
 
     /**
     Decoding a string.
@@ -85,7 +80,7 @@ public:
     @throw codec_error Bad encoding method.
     @throw *           `decode_qp(const string&)`, `base64::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string, codec_method_t> decode(const std::string& text) const;
+    std::tuple<std::string, std::string, header_codec_t> decode(const std::string& text) const;
 
     /**
     Checking if a string is Q encoded and decodes it.
@@ -94,7 +89,7 @@ public:
     @return            Decoded string, its charset and its codec method.
     @throw codec_error Bad Q codec format.
     **/
-    std::tuple<std::string, std::string, codec_method_t> check_decode(const std::string& text) const;
+    std::tuple<std::string, std::string, header_codec_t> check_decode(const std::string& text) const;
 
 private:
 
