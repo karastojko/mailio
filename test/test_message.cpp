@@ -93,3 +93,49 @@ BOOST_AUTO_TEST_CASE(format_addresses)
     BOOST_CHECK(msg.content_transfer_encoding() == mime::content_transfer_encoding_t::NONE);
     BOOST_CHECK(msg.content() == "Hello, World!");
 }
+
+
+/**
+Formatting other headers.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_other_headers)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("Hello, World!");
+    msg.content("Hello, World!");
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.add_header("User-Agent", "mailio");
+    msg.add_header("Content-Language", "en-US");
+    string msg_str;
+    msg.format(msg_str);
+
+    BOOST_CHECK(msg_str == "Content-Language: en-US\r\n"
+        "User-Agent: mailio\r\n"
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: Hello, World!\r\n"
+        "\r\n"
+        "Hello, World!\r\n");
+    BOOST_CHECK(msg.headers().size() == 2);
+
+    msg.remove_header("User-Agent");
+    msg_str.clear();
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "Content-Language: en-US\r\n"
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: Hello, World!\r\n"
+        "\r\n"
+        "Hello, World!\r\n");
+    BOOST_CHECK(msg.headers().size() == 1);
+}
