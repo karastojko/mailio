@@ -196,3 +196,5 @@ if(${MAILIO_BUILD_EXAMPLES})
     file(GLOB PNGS "${PROJECT_SOURCE_DIR}/examples/*.png")
     install(FILES ${PNGS} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/examples/")
 endif(${MAILIO_BUILD_EXAMPLES})
+
+add_subdirectory(test)
