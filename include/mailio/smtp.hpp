@@ -44,6 +44,11 @@ public:
 
     /**
     Available authentication methods.
+
+    The following mechanisms are allowed:
+    - NONE: No username or password are required, so just use the empty strings when authenticating. Nowadays, it's not probably that such authentication
+      mechanism is allowed.
+    - LOGIN: The username and password are sent in Base64 format.
     **/
     enum class auth_method_t {NONE, LOGIN};
 
@@ -224,7 +229,13 @@ class MAILIO_EXPORT smtps : public smtp
 public:
 
     /**
-    Available authentication methods.
+    Available authentication methods over the TLS connection.
+
+    The following mechanisms are allowed:
+    - NONE: No username or password are required, so just use the empty strings when authenticating. Nowadays, it's not probably that such authentication
+      mechanism is allowed.
+    - LOGIN: The username and password are sent in Base64 format.
+    - START_TLS: For the TCP connection, a TLS negotiation is asked before sending the login parameters.
     **/
     enum class auth_method_t {NONE, LOGIN, START_TLS};
 

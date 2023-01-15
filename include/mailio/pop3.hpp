@@ -45,6 +45,9 @@ public:
 
     /**
     Available authentication methods.
+
+    The following mechanisms are allowed:
+    - LOGIN: The username and password are sent in plain format.
     **/
     enum class auth_method_t {LOGIN};
 
@@ -226,7 +229,11 @@ class MAILIO_EXPORT pop3s : public pop3
 public:
 
     /**
-    Available authentication methods.
+    Available authentication methods over the TLS connection.
+
+    The following mechanisms are allowed:
+    - LOGIN: The username and password are sent in plain format.
+    - START_TLS: For the TCP connection, a TLS negotiation is asked before sending the login parameters.
     **/
     enum class auth_method_t {LOGIN, START_TLS};
 
