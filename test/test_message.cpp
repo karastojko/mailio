@@ -139,3 +139,50 @@ BOOST_AUTO_TEST_CASE(format_other_headers)
         "Hello, World!\r\n");
     BOOST_CHECK(msg.headers().size() == 1);
 }
+
+
+/**
+Formatting multiline content with lines containing leading dots, with the escaping dot flag off.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_dotted_no_escape)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format dotted no escape");
+    msg.content(".Hello, World!\r\n"
+        "opa bato\r\n"
+        "..proba\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "yaba.daba.doo.\r\n"
+        "\r\n"
+        "..\r\n"
+        "\r\n");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: format dotted no escape\r\n"
+        "\r\n"
+        ".Hello, World!\r\n"
+        "opa bato\r\n"
+        "..proba\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "yaba.daba.doo.\r\n"
+        "\r\n"
+        "..\r\n");
+}
