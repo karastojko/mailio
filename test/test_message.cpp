@@ -29,6 +29,7 @@ using boost::local_time::time_zone_ptr;
 using boost::local_time::local_date_time;
 using boost::local_time::posix_time_zone;
 using mailio::string_t;
+using mailio::codec;
 using mailio::mail_address;
 using mailio::mail_group;
 using mailio::mime;
@@ -263,4 +264,29 @@ BOOST_AUTO_TEST_CASE(parse_simple)
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "parse simple" &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+}
+
+
+/**
+Parsing custom headers.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_custom_header)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
+        "To: mailio <adre.sa@mailio.dev>\r\n"
+        "Subject: parse custom header\r\n"
+        "User-Agent: mailio\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-Language: en-US\r\n"
+        "\r\n"
+        "Hello, world!\r\n";
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.headers().size() == 2 && msg.headers().find("User-Agent")->second == "mailio");
+    msg.remove_header("User-Agent");
+    BOOST_CHECK(msg.headers().size() == 1);
 }
