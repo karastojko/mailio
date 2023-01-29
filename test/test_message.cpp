@@ -233,3 +233,34 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
         "\r\n"
         "...\r\n");
 }
+
+
+/**
+Parsing simple message.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_simple)
+{
+    string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: parse simple\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello\r\n"
+        "\r\n"
+        "world\r\n"
+        "\r\n"
+        "\r\n"
+        "opa bato\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "parse simple" &&
+        msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+}
