@@ -238,6 +238,68 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
 
 
 /**
+Formatting long default content (which is text with ASCII charset) default encoded (which is Seven Bit) to lines with the recommended length.
+
+Since content type and transfer encoding are default, no such headers are created.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_text_default_default)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format long text default default");
+    msg.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karaktera odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: format long text default default\r\n"
+        "\r\n"
+        "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. N\r\n"
+        "ije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, je\r\n"
+        "r libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karakte\r\n"
+        "ra odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je\r\n"
+        " nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. O\r\n"
+        "vaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
