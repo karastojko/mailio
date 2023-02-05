@@ -34,6 +34,7 @@ using mailio::mail_address;
 using mailio::mail_group;
 using mailio::mime;
 using mailio::message;
+using mailio::mime_error;
 
 
 #ifdef __cpp_char8_t
@@ -289,4 +290,26 @@ BOOST_AUTO_TEST_CASE(parse_custom_header)
     BOOST_CHECK(msg.headers().size() == 2 && msg.headers().find("User-Agent")->second == "mailio");
     msg.remove_header("User-Agent");
     BOOST_CHECK(msg.headers().size() == 1);
+}
+
+
+/**
+Parsing a header with a non-allowed character in it's name.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_bad_header_name)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
+        "To: mailio <adre.sa@mailio.dev>\r\n"
+        "Subject: parse bad header name\r\n"
+        "User-Ag€nt: mailio\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-Language: en-US\r\n"
+        "\r\n"
+        "Hello, world!\r\n";
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
