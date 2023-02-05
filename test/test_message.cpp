@@ -313,3 +313,26 @@ BOOST_AUTO_TEST_CASE(parse_bad_header_name)
         "Hello, world!\r\n";
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
+
+
+/**
+Parsing simple message with lines matching the recommended length.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_line_len)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    string msg_str = "From: adre.sa@mailio.dev\r\n"
+        "To: adre.sa@mailio.dev\r\n"
+        "Subject: parse line len\r\n"
+        "\r\n"
+        "01234567890123456789012345678901234567890123456789012345678901234567890123456789\r\n"
+        "01234567890123456789012345678901234567890123456789012345678901234567890123456789\r\n"
+        "01234567890123456789012345678901234567890123456789012345678901234567890123456789\r\n";
+
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.content().size() == 244);
+}
