@@ -300,6 +300,69 @@ BOOST_AUTO_TEST_CASE(format_long_text_default_default)
 
 
 /**
+Formatting long text default charset (which is ASCII) Base64 encoded to lines with the recommended length.
+
+Since charset is default, it is not set in the content type header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_text_default_base64)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format long text default base64");
+    msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    msg.content_type(message::media_type_t::TEXT, "plain");
+    msg.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karaktera odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Subject: format long text default base64\r\n"
+        "\r\n"
+        "T3ZvIGplIGpha28gZHVnYWNoa2EgcG9ydWthIGtvamEgaW1hIGkgcHJhem5paCBsaW5pamEgaSBw\r\n"
+        "cmVkdWdhY2hraWggbGluaWphLiBOaWplIGphc25vIGtha28gY2Ugc2UgdGVrc3QgcHJlbG9taXRp\r\n"
+        "DQpwYSBzZSBuYWRhbSBkYSBjY2UgdG8gb3ZhaiB0ZXN0IHBva2F6YXRpLg0KDQpUcmViYSB2aWRl\r\n"
+        "dGkga2FrbyBwb3puYXRpIG1lamwga2xpamVudGkgbG9tZSB0ZWtzdCwgcGEgbmENCm9zbm92dSB0\r\n"
+        "b2dhIGRvcmFkaXRpIGZvcm1hdGlyYW5qZSBzYWRyenphamEgbWVqbGEuIEEgbW96emRhIGkgbmVt\r\n"
+        "YSBwb3RyZWJlLCBqZXIgbGlibWFpbGlvIG5pamUgemFtaXNobGplbiBkYSBzZQ0KYmF2aSBmb3Jt\r\n"
+        "YXRpcmFuamVtIHRla3N0YS4NCg0KDQpVIHN2YWtvbSBzbHVjaGFqdSwgcG9zbGUgcHJvdmVyZSBs\r\n"
+        "YXRpbmljZSB0cmViYSB1cmFkaXRpIGkgcHJvdmVydSB1dGY4IGthcmFrdGVyYSBvZG4uIGNjaXJp\r\n"
+        "bGljZQ0KaSB2aWRldGkga2FrbyBzZSBwcmVsYW1hIHRla3N0IGthZGEgc3Uga2FyYWt0ZXJpIHZp\r\n"
+        "c2hlYmFqdG5pLiBUcmViYWxvIGJpIGRhIGplIG5lYml0bm8gZGEgbGkgamUgZW5rb2RpbmcNCmJh\r\n"
+        "c2U2NCBpbGkgcXVvdGVkIHByaW50YWJsZSwgamVyIHNlIGFzY2lpIGthcmFrdGVyaSBwcmVsYW1h\r\n"
+        "anUgdSBub3ZlIGxpbmlqZS4gT3ZhaiB0ZXN0IGJpIHRyZWJhbG8gZGENCnBva2F6emUgaW1hIGxp\r\n"
+        "IGJhZ292YSB1IGxvZ2ljaSBmb3JtYXRpcmFuamEsDQogYSBpc3RvIHRvIHRyZWJhIHByb3Zlcml0\r\n"
+        "aSBzYSBwYXJzaXJhbmplbS4NCg0KDQoNCg0KT3ZkZSBqZSBpIHByb3ZlcmEgemEgbml6IHByYXpu\r\n"
+        "aWggbGluaWphLg0KDQoNCg==\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
