@@ -545,3 +545,47 @@ BOOST_AUTO_TEST_CASE(parse_wrong_line_len)
 
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
+
+
+/**
+Parsing addresses and groups from the header.
+
+Multiple addresses in a header are in separated lines, some of them are contain additional spaces.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_addresses)
+{
+    string msg_str = "From: mail io <adresa@mailio.dev>\r\n"
+        "To: info,\r\n"
+        "  kontakt@mailio.dev,\r\n"
+        "  all, \r\n"
+        "  mail io <adresa@mailio.dev>\r\n"
+        "Cc: all: Tomislav <qwerty@mailio.dev>, \r\n"
+        "  \"Tomislav Karastojkovic\" <asdfgh@mailio.dev>; \r\n"
+        "  adresa@mailio.dev,\r\n"
+        "  undisclosed-recipients:;\r\n"
+        "  qwerty@gmail.com,\r\n"
+        "  \"Tomislav\" <qwerty@hotmail.com>,\r\n"
+        "  <qwerty@zoho.com>, \r\n"
+        "  mailio: qwerty@outlook.com;\r\n"
+        "Subject: parse addresses\r\n"
+        "\r\n"
+        "Hello, World!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
+        msg.recipients().addresses.size() == 4 &&
+        msg.recipients_to_string() == "info,\r\n  <kontakt@mailio.dev>,\r\n  all,\r\n  mail io <adresa@mailio.dev>" &&
+        msg.recipients().addresses.at(0).name == "info" && msg.recipients().addresses.at(1).address == "kontakt@mailio.dev" &&
+        msg.recipients().addresses.at(2).name == "all" &&
+        msg.recipients().addresses.at(3).name == "mail io" && msg.recipients().addresses.at(3).address == "adresa@mailio.dev" &&
+        msg.cc_recipients().addresses.size() == 4 && msg.cc_recipients().groups.size() == 3 &&
+        msg.cc_recipients().groups.at(0).name == "all" && msg.cc_recipients().addresses.at(0).address == "adresa@mailio.dev" &&
+        msg.cc_recipients().groups.at(1).name == "undisclosed-recipients" &&
+        msg.cc_recipients().addresses.at(2).name == "Tomislav" && msg.cc_recipients().addresses.at(2).address == "qwerty@hotmail.com" &&
+        msg.cc_recipients().groups.at(2).name == "mailio" && msg.cc_recipients().groups.at(2).members.size() == 1 &&
+        msg.subject() == "parse addresses" && msg.content() == "Hello, World!");
+}
