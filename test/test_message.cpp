@@ -425,6 +425,77 @@ BOOST_AUTO_TEST_CASE(format_long_text_ascii_qp)
 
 
 /**
+Formatting long text UTF-8 charset Base64 encoded to lines with the recommended length.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_text_utf8_base64)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format long text utf8 base64");
+    msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
+        "па се надам да ће то овај текст показати.\r\n"
+        "\r\n"
+        "Треба видети како познати мејл клијенти ломе текст, па на\r\n"
+        "основу тога дорадити форматирање мејла. А можда и нема потребе, јер libmailio није замишљен да се\r\n"
+        "бави форматирањем текста.\r\n"
+        "\r\n\r\n"
+        "У сваком случају, после провере латинице треба урадити и проверу utf8 карактера одн. ћирилице\r\n"
+        "и видети како се прелама текст када су карактери вишебајтни. Требало би да је небитно да ли је енкодинг\r\n"
+        "base64 или quoted printable, јер се ascii карактери преламају у нове линије. Овај тест би требало да\r\n"
+        "покаже има ли багова у логици форматирања,\r\n"
+        " а исто то треба проверити са парсирањем.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Subject: format long text utf8 base64\r\n"
+        "\r\n"
+        "0J7QstC+INGY0LUg0ZjQsNC60L4g0LTRg9Cz0LDRh9C60LAg0L/QvtGA0YPQutCwINC60L7RmNCw\r\n"
+        "INC40LzQsCDQuCDQv9GA0LDQt9C90LjRhSDQu9C40L3QuNGY0LAg0Lgg0L/RgNC10LTRg9Cz0LDR\r\n"
+        "h9C60LjRhSDQu9C40L3QuNGY0LAuINCd0LjRmNC1INGY0LDRgdC90L4g0LrQsNC60L4g0ZvQtSDR\r\n"
+        "gdC1INGC0LXQutGB0YIg0L/RgNC10LvQvtC80LjRgtC4DQrQv9CwINGB0LUg0L3QsNC00LDQvCDQ\r\n"
+        "tNCwINGb0LUg0YLQviDQvtCy0LDRmCDRgtC10LrRgdGCINC/0L7QutCw0LfQsNGC0LguDQoNCtCi\r\n"
+        "0YDQtdCx0LAg0LLQuNC00LXRgtC4INC60LDQutC+INC/0L7Qt9C90LDRgtC4INC80LXRmNC7INC6\r\n"
+        "0LvQuNGY0LXQvdGC0Lgg0LvQvtC80LUg0YLQtdC60YHRgiwg0L/QsCDQvdCwDQrQvtGB0L3QvtCy\r\n"
+        "0YMg0YLQvtCz0LAg0LTQvtGA0LDQtNC40YLQuCDRhNC+0YDQvNCw0YLQuNGA0LDRmtC1INC80LXR\r\n"
+        "mNC70LAuINCQINC80L7QttC00LAg0Lgg0L3QtdC80LAg0L/QvtGC0YDQtdCx0LUsINGY0LXRgCBs\r\n"
+        "aWJtYWlsaW8g0L3QuNGY0LUg0LfQsNC80LjRiNGZ0LXQvSDQtNCwINGB0LUNCtCx0LDQstC4INGE\r\n"
+        "0L7RgNC80LDRgtC40YDQsNGa0LXQvCDRgtC10LrRgdGC0LAuDQoNCg0K0KMg0YHQstCw0LrQvtC8\r\n"
+        "INGB0LvRg9GH0LDRmNGDLCDQv9C+0YHQu9C1INC/0YDQvtCy0LXRgNC1INC70LDRgtC40L3QuNGG\r\n"
+        "0LUg0YLRgNC10LHQsCDRg9GA0LDQtNC40YLQuCDQuCDQv9GA0L7QstC10YDRgyB1dGY4INC60LDR\r\n"
+        "gNCw0LrRgtC10YDQsCDQvtC00L0uINGb0LjRgNC40LvQuNGG0LUNCtC4INCy0LjQtNC10YLQuCDQ\r\n"
+        "utCw0LrQviDRgdC1INC/0YDQtdC70LDQvNCwINGC0LXQutGB0YIg0LrQsNC00LAg0YHRgyDQutCw\r\n"
+        "0YDQsNC60YLQtdGA0Lgg0LLQuNGI0LXQsdCw0ZjRgtC90LguINCi0YDQtdCx0LDQu9C+INCx0Lgg\r\n"
+        "0LTQsCDRmNC1INC90LXQsdC40YLQvdC+INC00LAg0LvQuCDRmNC1INC10L3QutC+0LTQuNC90LMN\r\n"
+        "CmJhc2U2NCDQuNC70LggcXVvdGVkIHByaW50YWJsZSwg0ZjQtdGAINGB0LUgYXNjaWkg0LrQsNGA\r\n"
+        "0LDQutGC0LXRgNC4INC/0YDQtdC70LDQvNCw0ZjRgyDRgyDQvdC+0LLQtSDQu9C40L3QuNGY0LUu\r\n"
+        "INCe0LLQsNGYINGC0LXRgdGCINCx0Lgg0YLRgNC10LHQsNC70L4g0LTQsA0K0L/QvtC60LDQttC1\r\n"
+        "INC40LzQsCDQu9C4INCx0LDQs9C+0LLQsCDRgyDQu9C+0LPQuNGG0Lgg0YTQvtGA0LzQsNGC0LjR\r\n"
+        "gNCw0ZrQsCwNCiDQsCDQuNGB0YLQviDRgtC+INGC0YDQtdCx0LAg0L/RgNC+0LLQtdGA0LjRgtC4\r\n"
+        "INGB0LAg0L/QsNGA0YHQuNGA0LDRmtC10LwuDQoNCg0KDQoNCtCe0LLQtNC1INGY0LUg0Lgg0L/R\r\n"
+        "gNC+0LLQtdGA0LAg0LfQsCDQvdC40Lcg0L/RgNCw0LfQvdC40YUg0LvQuNC90LjRmNCwLg0KDQoN\r\n"
+        "Cg==\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
