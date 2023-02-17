@@ -836,3 +836,25 @@ BOOST_AUTO_TEST_CASE(parse_addresses)
         msg.cc_recipients().groups.at(2).name == "mailio" && msg.cc_recipients().groups.at(2).members.size() == 1 &&
         msg.subject() == "parse addresses" && msg.content() == "Hello, World!");
 }
+
+
+/**
+Parsing address not separated by space from name.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_address_no_space)
+{
+    string msg_str = "From: mail io<adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: proba\r\n"
+        "\r\n"
+        "test\r\n";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
+}
