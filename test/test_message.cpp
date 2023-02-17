@@ -880,3 +880,25 @@ BOOST_AUTO_TEST_CASE(parse_quoted_address_no_space)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
+
+
+/**
+Parsing addresses in a single line which contains trailing comment.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_address_comment)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev> (Mail Delivery System)\r\n"
+        "To: adresa@mailio.dev, all: qwerty@gmail.com, Karas <asdfgh@mailio.dev>; Tomislav <qwerty@hotmail.com> (The comment)\r\n"
+        "Subject: parse address comment\r\n"
+        "\r\n"
+        "Hello, World!";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
+        msg.recipients().addresses.size() == 2 && msg.recipients().groups.size() == 1 && msg.recipients().groups.at(0).members.size() == 2);
+}
