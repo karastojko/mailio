@@ -946,3 +946,28 @@ BOOST_AUTO_TEST_CASE(parse_double_address_non_strict)
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "aaa@mailio.dev" && msg.recipients().addresses.at(0).address == "bbb@mailio.dev");
 }
+
+
+/**
+Parsing the address without the monkey.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_address_without_monkey)
+{
+    string msg_str =
+        "From: recipients \"undisclosed recipients: ;\"\r\n"
+        "To: recipients \"undisclosed recipients: ;\"\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: parse address without monkey\r\n"
+        "\r\n"
+        "test\r\n";
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    auto from = msg.from().addresses.at(0);
+    auto rcpt = msg.recipients().addresses.at(0);
+    BOOST_CHECK(from.name == "recipients undisclosed recipients: ;" && rcpt.name == "recipients undisclosed recipients: ;");
+}
