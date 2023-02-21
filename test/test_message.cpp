@@ -924,3 +924,25 @@ BOOST_AUTO_TEST_CASE(parse_double_address_strict)
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
 }
+
+
+/**
+Parsing address as name in the non-strict mode.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_double_address_non_strict)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: aaa@mailio.dev <bbb@mailio.dev>\r\n"
+        "Subject: parse double address non strict\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.recipients().addresses.at(0).name == "aaa@mailio.dev" && msg.recipients().addresses.at(0).address == "bbb@mailio.dev");
+}
