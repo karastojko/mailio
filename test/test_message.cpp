@@ -35,6 +35,7 @@ using mailio::mail_group;
 using mailio::mime;
 using mailio::message;
 using mailio::mime_error;
+using mailio::message_error;
 
 
 #ifdef __cpp_char8_t
@@ -901,4 +902,25 @@ BOOST_AUTO_TEST_CASE(parse_address_comment)
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.size() == 2 && msg.recipients().groups.size() == 1 && msg.recipients().groups.at(0).members.size() == 2);
+}
+
+
+/**
+Parsing address as name in the strict mode.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_double_address_strict)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: aaa@mailio.dev <bbb@mailio.dev>\r\n"
+        "Subject: parse double address strict\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(true);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
 }
