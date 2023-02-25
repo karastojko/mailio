@@ -1083,3 +1083,28 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_strict)
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
+
+
+/**
+Parsing the content disposition with an attribute with the quoted value containing the backslash.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"C:\\Windows\\mailio.ini\"\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse quoted attribute backslash\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain");
+}
