@@ -1061,3 +1061,25 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_non_strict)
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::APPLICATION && msg.content_type().subtype == "octet-stream");
 }
+
+
+/**
+Parsing the content type with an attribute containing the backslash in the strict mode.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_attribute_backslash_strict)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: application/octet-stream; name=217093469\\container_0_LOGO\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse attribute backslash strict\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(true);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+}
