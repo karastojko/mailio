@@ -793,6 +793,67 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_ascii_qp_text_ascii_bit8)
 
 
 /**
+Formatting an alternative multipart with the first part HTML default charset Base64 encoded, the second part text UTF-8 charset Quoted Printable encoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_multipart_html_default_base64_text_utf8_qp)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format multipart html default base64 text utf8 qp");
+    msg.boundary("my_bound");
+    msg.content_type(message::media_type_t::MULTIPART, "related");
+
+    mime m1;
+    m1.content_type(message::media_type_t::TEXT, "html");
+    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
+
+    mime m2;
+    m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    m2.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    m2.content("Здраво, Свете!");
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+        "Subject: format multipart html default base64 text utf8 qp\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "PGh0bWw+PGhlYWQ+PC9oZWFkPjxib2R5PjxoMT5IZWxsbywgV29ybGQhPC9oMT48L2JvZHk+PC9o\r\n"
+        "dG1sPg==\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+        "\r\n"
+        "--my_bound--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
