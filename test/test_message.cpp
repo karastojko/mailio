@@ -673,6 +673,66 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_lat_qp)
 
 
 /**
+Formatting a related multipart message with the first part HTML ASCII charset Bit7 encoded, the second part text ASCII charset Base64 encoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_multipart_html_ascii_bit7_text_ascii_base64)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format multipart html ascii bit7 text ascii base64");
+    msg.boundary("my_bound");
+    msg.content_type(message::media_type_t::MULTIPART, "related");
+
+    mime m1;
+    m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
+    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
+
+    mime m2;
+    m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m2.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    m2.content("Zdravo, Svete!");
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+        "Subject: format multipart html ascii bit7 text ascii base64\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 7bit\r\n"
+        "\r\n"
+        "<html><head></head><body><h1>Hello, World!</h1></body></html>\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "WmRyYXZvLCBTdmV0ZSE=\r\n"
+        "\r\n"
+        "--my_bound--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
