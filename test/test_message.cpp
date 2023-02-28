@@ -1349,47 +1349,34 @@ BOOST_AUTO_TEST_CASE(parse_content_type)
 
 
 /**
-Parsing the content type in the strict mode which does not follow the specification, so the exception is thrown.
+Parsing the content type which does not follow the specification, in both strict and non-strict modes.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_strict_content_type)
+BOOST_AUTO_TEST_CASE(parse_malformed_content_type)
 {
-    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+    const string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: text/plain; charset       =   \"UTF-8\"\r\n"
         "To: adresa@mailio.dev\r\n"
         "Subject: parse strict content type\r\n"
         "\r\n"
         "Hello, World!";
 
-    message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.strict_mode(true);
-    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
-}
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.strict_mode(true);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 
-
-/**
-Parsing the content type in the non-strict mode which does not follow the specification, so the exception is not thrown.
-
-@pre  None.
-@post None.
-**/
-BOOST_AUTO_TEST_CASE(parse_non_strict_content_type)
-{
-    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
-        "Content-Type: text/plain; charset       =   \"UTF-8\"\r\n"
-        "To: adresa@mailio.dev\r\n"
-        "Subject: parse strict content type\r\n"
-        "\r\n"
-        "Hello, World!";
-
-    message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.strict_mode(false);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.strict_mode(false);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
+    }
 }
 
 
