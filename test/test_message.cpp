@@ -854,7 +854,7 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_default_base64_text_utf8_qp)
 
 
 /**
-Formatting a multipart message with leading dots and the escaping flag turned off.
+Formatting a multipart message with leading dots and the escaping flag turned off and on.
 
 The first part is HTML ASCII charset Seven Bit encoded, the second part is text UTF-8 charset Quoted Printable encoded, the third part is text UTF-8
 charset Quoted Printable encoded, the fourth part is HTML ASCII charset Base64 encoded.
@@ -862,7 +862,7 @@ charset Quoted Printable encoded, the fourth part is HTML ASCII charset Base64 e
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_dotted_multipart_no_esc)
+BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 {
     message msg;
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
@@ -875,7 +875,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart_no_esc)
     time_zone_ptr tz(new posix_time_zone("-00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format dotted multipart no escape");
+    msg.subject("format dotted multipart");
     msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "related");
 
@@ -950,253 +950,157 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart_no_esc)
     msg.add_part(m3);
     msg.add_part(m4);
 
-    string msg_str;
-    msg.format(msg_str, false);
-    BOOST_CHECK(msg_str ==
-        "From: mailio <adresa@mailio.dev>\r\n"
-        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>,\r\n"
-        "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
-        "  Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
-        "  Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
-        "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
-        "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
-        "Subject: format dotted multipart no escape\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/html; charset=us-ascii\r\n"
-        "Content-Transfer-Encoding: 7bit\r\n"
-        "\r\n"
-        "<html>\r\n"
-        "\t<head>\r\n"
-        "\t\t<title>.naslov</title>\r\n"
-        "\t</head>\r\n"
-        "..\r\n"
-        "\t<body>\r\n"
-        "\t\t<h1>\r\n"
-        "\t\t\t..Zdravo, Sveteeeee!\r\n"
-        "\t\t</h1>\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n\r\n"
-        "\t.<p>Ima li koga?</p>\r\n"
-        "\t</body>\r\n"
-        "</html>\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/plain; charset=utf-8\r\n"
-        "Content-Transfer-Encoding: Quoted-Printable\r\n"
-        "\r\n"
-        ".Zdravo svete!\r\n"
-        "..\r\n"
-        "Ima li koga?\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n"
-        "\r\n"
-        "..yabadabadoo...\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/plain; charset=utf-8\r\n"
-        "Content-Transfer-Encoding: Quoted-Printable\r\n"
-        "\r\n"
-        ".=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
-        "..\r\n"
-        "=D0=98=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=BA=D0=BE=D0=B3=D0=B0?\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n"
-        "\r\n"
-        "..=D1=98=D0=B0=D0=B1=D0=B0=D0=B4=D0=B0=D0=B1=D0=B0=D0=B4=D1=83=D1=83...\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/html; charset=us-ascii\r\n"
-        "Content-Transfer-Encoding: Base64\r\n"
-        "\r\n"
-        "PGh0bWw+DQoJPGhlYWQ+DQoJCTx0aXRsZT4ubmFzbG92PC90aXRsZT4NCgk8L2hlYWQ+DQouLg0K\r\n"
-        "CTxib2R5Pg0KCQk8aDE+DQoJCQkuLlpkcmF2bywgU3ZldGVlZWVlIQ0KCQk8L2gxPg0KDQoNCi4N\r\n"
-        "Cg0KDQoJLjxwPkltYSBsaSBrb2dhPzwvcD4NCgk8L2JvZHk+DQo8L2h0bWw+\r\n"
-        "\r\n"
-        "--my_bound--\r\n");
-}
+    {
+        string msg_str;
+        msg.format(msg_str, false);
+        BOOST_CHECK(msg_str ==
+            "From: mailio <adresa@mailio.dev>\r\n"
+            "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+            "To: mailio <adresa@mailio.dev>,\r\n"
+            "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
+            "  Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
+            "  Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
+            "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
+            "MIME-Version: 1.0\r\n"
+            "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+            "Subject: format dotted multipart\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/html; charset=us-ascii\r\n"
+            "Content-Transfer-Encoding: 7bit\r\n"
+            "\r\n"
+            "<html>\r\n"
+            "\t<head>\r\n"
+            "\t\t<title>.naslov</title>\r\n"
+            "\t</head>\r\n"
+            "..\r\n"
+            "\t<body>\r\n"
+            "\t\t<h1>\r\n"
+            "\t\t\t..Zdravo, Sveteeeee!\r\n"
+            "\t\t</h1>\r\n"
+            "\r\n"
+            "\r\n"
+            ".\r\n"
+            "\r\n\r\n"
+            "\t.<p>Ima li koga?</p>\r\n"
+            "\t</body>\r\n"
+            "</html>\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "\r\n"
+            ".Zdravo svete!\r\n"
+            "..\r\n"
+            "Ima li koga?\r\n"
+            "\r\n"
+            "\r\n"
+            ".\r\n"
+            "\r\n"
+            "\r\n"
+            "..yabadabadoo...\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "\r\n"
+            ".=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+            "..\r\n"
+            "=D0=98=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=BA=D0=BE=D0=B3=D0=B0?\r\n"
+            "\r\n"
+            "\r\n"
+            ".\r\n"
+            "\r\n"
+            "\r\n"
+            "..=D1=98=D0=B0=D0=B1=D0=B0=D0=B4=D0=B0=D0=B1=D0=B0=D0=B4=D1=83=D1=83...\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/html; charset=us-ascii\r\n"
+            "Content-Transfer-Encoding: Base64\r\n"
+            "\r\n"
+            "PGh0bWw+DQoJPGhlYWQ+DQoJCTx0aXRsZT4ubmFzbG92PC90aXRsZT4NCgk8L2hlYWQ+DQouLg0K\r\n"
+            "CTxib2R5Pg0KCQk8aDE+DQoJCQkuLlpkcmF2bywgU3ZldGVlZWVlIQ0KCQk8L2gxPg0KDQoNCi4N\r\n"
+            "Cg0KDQoJLjxwPkltYSBsaSBrb2dhPzwvcD4NCgk8L2JvZHk+DQo8L2h0bWw+\r\n"
+            "\r\n"
+            "--my_bound--\r\n");
+    }
 
+    {
+        string msg_str;
+        msg.format(msg_str, true);
 
-/**
-Formatting multipart with leading dots and the escaping flag turned on.
-
-The first part is HTML ASCII charset Seven Bit encoded, the second part is text UTF-8 charset Quoted Printable encoded, the third part is text UTF-8
-charset Quoted Printable encoded, the fourth part is HTML ASCII charset Base64 encoded.
-
-@pre  None.
-@post None.
-**/
-BOOST_AUTO_TEST_CASE(format_dotted_multipart_esc)
-{
-    message msg;
-    msg.from(mail_address("mailio", "adresa@mailio.dev"));
-    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("Tomislav Karastojkovic", "qwerty@gmail.com"));
-    msg.add_recipient(mail_address("Tomislav Karastojkovic", "asdfgh@zoho.com"));
-    msg.add_recipient(mail_address("Tomislav Karastojkovic", "zxcvbn@hotmail.com"));
-    ptime t = time_from_string("2016-03-15 13:13:32");
-    time_zone_ptr tz(new posix_time_zone("-00:00"));
-    local_date_time ldt(t, tz);
-    msg.date_time(ldt);
-    msg.subject("format dotted multipart esc");
-    msg.boundary("my_bound");
-    msg.content_type(message::media_type_t::MULTIPART, "related");
-
-    mime m1;
-    m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
-    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
-    m1.content("<html>\r\n"
-        "\t<head>\r\n"
-        "\t\t<title>.naslov</title>\r\n"
-        "\t</head>\r\n"
-        "..\r\n"
-        "\t<body>\r\n"
-        "\t\t<h1>\r\n"
-        "\t\t\t..Zdravo, Sveteeeee!\r\n"
-        "\t\t</h1>\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n"
-        "\r\n"
-        "\t.<p>Ima li koga?</p>\r\n"
-        "\t</body>\r\n"
-        "</html>");
-
-    mime m2;
-    m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
-    m2.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
-    m2.content(".Zdravo svete!\r\n"
-        "..\r\n"
-        "Ima li koga?\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n"
-        "\r\n"
-        "..yabadabadoo...\r\n");
-
-    mime m3;
-    m3.content_type(message::media_type_t::TEXT, "plain", "utf-8");
-    m3.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
-    m3.content(".Здраво, Свете!\r\n"
-        "..\r\n"
-        "Има ли кога?\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n"
-        "\r\n"
-        "..јабадабадуу...\r\n");
-
-    mime m4;
-    m4.content_type(message::media_type_t::TEXT, "html", "us-ascii");
-    m4.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
-    m4.content("<html>\r\n"
-        "\t<head>\r\n"
-        "\t\t<title>.naslov</title>\r\n"
-        "\t</head>\r\n"
-        "..\r\n"
-        "\t<body>\r\n"
-        "\t\t<h1>\r\n"
-        "\t\t\t..Zdravo, Sveteeeee!\r\n"
-        "\t\t</h1>\r\n"
-        "\r\n"
-        "\r\n"
-        ".\r\n"
-        "\r\n"
-        "\r\n"
-        "\t.<p>Ima li koga?</p>\r\n"
-        "\t</body>\r\n"
-        "</html>");
-
-    msg.add_part(m1);
-    msg.add_part(m2);
-    msg.add_part(m3);
-    msg.add_part(m4);
-
-    string msg_str;
-    msg.format(msg_str, true);
-    BOOST_CHECK(msg_str ==
-        "From: mailio <adresa@mailio.dev>\r\n"
-        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>,\r\n"
-        "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
-        "  Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
-        "  Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
-        "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
-        "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
-        "Subject: format dotted multipart esc\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/html; charset=us-ascii\r\n"
-        "Content-Transfer-Encoding: 7bit\r\n"
-        "\r\n"
-        "<html>\r\n"
-        "\t<head>\r\n"
-        "\t\t<title>.naslov</title>\r\n"
-        "\t</head>\r\n"
-        "...\r\n"
-        "\t<body>\r\n"
-        "\t\t<h1>\r\n"
-        "\t\t\t..Zdravo, Sveteeeee!\r\n"
-        "\t\t</h1>\r\n"
-        "\r\n"
-        "\r\n"
-        "..\r\n"
-        "\r\n"
-        "\r\n"
-        "\t.<p>Ima li koga?</p>\r\n"
-        "\t</body>\r\n"
-        "</html>\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/plain; charset=utf-8\r\n"
-        "Content-Transfer-Encoding: Quoted-Printable\r\n"
-        "\r\n"
-        "..Zdravo svete!\r\n"
-        "...\r\n"
-        "Ima li koga?\r\n"
-        "\r\n"
-        "\r\n"
-        "..\r\n"
-        "\r\n"
-        "\r\n"
-        "...yabadabadoo...\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/plain; charset=utf-8\r\n"
-        "Content-Transfer-Encoding: Quoted-Printable\r\n"
-        "\r\n"
-        "..=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
-        "...\r\n"
-        "=D0=98=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=BA=D0=BE=D0=B3=D0=B0?\r\n"
-        "\r\n"
-        "\r\n"
-        "..\r\n"
-        "\r\n"
-        "\r\n"
-        "...=D1=98=D0=B0=D0=B1=D0=B0=D0=B4=D0=B0=D0=B1=D0=B0=D0=B4=D1=83=D1=83...\r\n"
-        "\r\n"
-        "--my_bound\r\n"
-        "Content-Type: text/html; charset=us-ascii\r\n"
-        "Content-Transfer-Encoding: Base64\r\n"
-        "\r\n"
-        "PGh0bWw+DQoJPGhlYWQ+DQoJCTx0aXRsZT4ubmFzbG92PC90aXRsZT4NCgk8L2hlYWQ+DQouLg0K\r\n"
-        "CTxib2R5Pg0KCQk8aDE+DQoJCQkuLlpkcmF2bywgU3ZldGVlZWVlIQ0KCQk8L2gxPg0KDQoNCi4N\r\n"
-        "Cg0KDQoJLjxwPkltYSBsaSBrb2dhPzwvcD4NCgk8L2JvZHk+DQo8L2h0bWw+\r\n"
-        "\r\n"
-        "--my_bound--\r\n");
+        BOOST_CHECK(msg_str ==
+            "From: mailio <adresa@mailio.dev>\r\n"
+            "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+            "To: mailio <adresa@mailio.dev>,\r\n"
+            "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
+            "  Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
+            "  Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
+            "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
+            "MIME-Version: 1.0\r\n"
+            "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+            "Subject: format dotted multipart\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/html; charset=us-ascii\r\n"
+            "Content-Transfer-Encoding: 7bit\r\n"
+            "\r\n"
+            "<html>\r\n"
+            "\t<head>\r\n"
+            "\t\t<title>.naslov</title>\r\n"
+            "\t</head>\r\n"
+            "...\r\n"
+            "\t<body>\r\n"
+            "\t\t<h1>\r\n"
+            "\t\t\t..Zdravo, Sveteeeee!\r\n"
+            "\t\t</h1>\r\n"
+            "\r\n"
+            "\r\n"
+            "..\r\n"
+            "\r\n"
+            "\r\n"
+            "\t.<p>Ima li koga?</p>\r\n"
+            "\t</body>\r\n"
+            "</html>\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "\r\n"
+            "..Zdravo svete!\r\n"
+            "...\r\n"
+            "Ima li koga?\r\n"
+            "\r\n"
+            "\r\n"
+            "..\r\n"
+            "\r\n"
+            "\r\n"
+            "...yabadabadoo...\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "\r\n"
+            "..=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+            "...\r\n"
+            "=D0=98=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=BA=D0=BE=D0=B3=D0=B0?\r\n"
+            "\r\n"
+            "\r\n"
+            "..\r\n"
+            "\r\n"
+            "\r\n"
+            "...=D1=98=D0=B0=D0=B1=D0=B0=D0=B4=D0=B0=D0=B1=D0=B0=D0=B4=D1=83=D1=83...\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/html; charset=us-ascii\r\n"
+            "Content-Transfer-Encoding: Base64\r\n"
+            "\r\n"
+            "PGh0bWw+DQoJPGhlYWQ+DQoJCTx0aXRsZT4ubmFzbG92PC90aXRsZT4NCgk8L2hlYWQ+DQouLg0K\r\n"
+            "CTxib2R5Pg0KCQk8aDE+DQoJCQkuLlpkcmF2bywgU3ZldGVlZWVlIQ0KCQk8L2gxPg0KDQoNCi4N\r\n"
+            "Cg0KDQoJLjxwPkltYSBsaSBrb2dhPzwvcD4NCgk8L2JvZHk+DQo8L2h0bWw+\r\n"
+            "\r\n"
+            "--my_bound--\r\n");
+    }
 }
 
 
