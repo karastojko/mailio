@@ -1397,6 +1397,71 @@ BOOST_AUTO_TEST_CASE(format_parse_nested_multipart)
 
 
 /**
+Formatting multipart message with both content and parts.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_multipart_content)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format multipart content");
+    msg.boundary("my_bound");
+    msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.content("This is a multipart message.");
+
+    mime m1;
+    m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
+    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
+
+    mime m2;
+    m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m2.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m2.content("Zdravo, Svete!");
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+        "Subject: format multipart content\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain\r\n"
+        "\r\n"
+        "This is a multipart message.\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 7bit\r\n"
+        "\r\n"
+        "<html><head></head><body><h1>Hello, World!</h1></body></html>\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 7bit\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n"
+        "\r\n"
+        "--my_bound--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
