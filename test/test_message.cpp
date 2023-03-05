@@ -1105,6 +1105,222 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
 
 /**
+Formatting multipart with a long content in various combinations.
+
+The message has four parts: the first is long HTML ASCII charset Seven Bit encoded, the second is long text ASCII charset Base64 encoded, the third is long
+text ASCII charset Quoted Printable encoded, the fourth is long text UTF-8 charset Quoted Printable encoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_multipart)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format long multipart");
+    msg.boundary("my_bound");
+    msg.content_type(message::media_type_t::MULTIPART, "related");
+
+    mime m1;
+    m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
+    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m1.content("<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa Bato!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>");
+
+    mime m2;
+    m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m2.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    m2.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karaktera odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+
+    mime m3;
+    m3.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m3.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    m3.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karaktera odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+
+    mime m4;
+    m4.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    m4.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    m4.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
+        "па се надам да ће то овај текст показати.\r\n"
+        "\r\n"
+        "Треба видети како познати мејл клијенти ломе текст, па на\r\n"
+        "основу тога дорадити форматирање мејла. А можда и нема потребе, јер libmailio није замишљен да се\r\n"
+        "бави форматирањем текста.\r\n"
+        "\r\n\r\n"
+        "У сваком случају, после провере латинице треба урадити и проверу utf8 карактера одн. ћирилице\r\n"
+        "и видети како се прелама текст када су карактери вишебајтни. Требало би да је небитно да ли је енкодинг\r\n"
+        "base64 или quoted printable, јер се ascii карактери преламају у нове линије. Овај тест би требало да\r\n"
+        "покаже има ли багова у логици форматирања,\r\n"
+        "а исто то треба проверити са парсирањем.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+    msg.add_part(m3);
+    msg.add_part(m4);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+        "Subject: format long multipart\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 7bit\r\n"
+        "\r\n"
+        "<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa Bato\r\n"
+        "!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "T3ZvIGplIGpha28gZHVnYWNoa2EgcG9ydWthIGtvamEgaW1hIGkgcHJhem5paCBsaW5pamEgaSBw\r\n"
+        "cmVkdWdhY2hraWggbGluaWphLiBOaWplIGphc25vIGtha28gY2Ugc2UgdGVrc3QgcHJlbG9taXRp\r\n"
+        "DQpwYSBzZSBuYWRhbSBkYSBjY2UgdG8gb3ZhaiB0ZXN0IHBva2F6YXRpLg0KDQpUcmViYSB2aWRl\r\n"
+        "dGkga2FrbyBwb3puYXRpIG1lamwga2xpamVudGkgbG9tZSB0ZWtzdCwgcGEgbmENCm9zbm92dSB0\r\n"
+        "b2dhIGRvcmFkaXRpIGZvcm1hdGlyYW5qZSBzYWRyenphamEgbWVqbGEuIEEgbW96emRhIGkgbmVt\r\n"
+        "YSBwb3RyZWJlLCBqZXIgbGlibWFpbGlvIG5pamUgemFtaXNobGplbiBkYSBzZQ0KYmF2aSBmb3Jt\r\n"
+        "YXRpcmFuamVtIHRla3N0YS4NCg0KDQpVIHN2YWtvbSBzbHVjaGFqdSwgcG9zbGUgcHJvdmVyZSBs\r\n"
+        "YXRpbmljZSB0cmViYSB1cmFkaXRpIGkgcHJvdmVydSB1dGY4IGthcmFrdGVyYSBvZG4uIGNjaXJp\r\n"
+        "bGljZQ0KaSB2aWRldGkga2FrbyBzZSBwcmVsYW1hIHRla3N0IGthZGEgc3Uga2FyYWt0ZXJpIHZp\r\n"
+        "c2hlYmFqdG5pLiBUcmViYWxvIGJpIGRhIGplIG5lYml0bm8gZGEgbGkgamUgZW5rb2RpbmcNCmJh\r\n"
+        "c2U2NCBpbGkgcXVvdGVkIHByaW50YWJsZSwgamVyIHNlIGFzY2lpIGthcmFrdGVyaSBwcmVsYW1h\r\n"
+        "anUgdSBub3ZlIGxpbmlqZS4gT3ZhaiB0ZXN0IGJpIHRyZWJhbG8gZGENCnBva2F6emUgaW1hIGxp\r\n"
+        "IGJhZ292YSB1IGxvZ2ljaSBmb3JtYXRpcmFuamEsDQogYSBpc3RvIHRvIHRyZWJhIHByb3Zlcml0\r\n"
+        "aSBzYSBwYXJzaXJhbmplbS4NCg0KDQoNCg0KT3ZkZSBqZSBpIHByb3ZlcmEgemEgbml6IHByYXpu\r\n"
+        "aWggbGluaWphLg0KDQoNCg==\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija=\r\n"
+        ". Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, =\r\n"
+        "jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 kara=\r\n"
+        "ktera odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da =\r\n"
+        "je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije=\r\n"
+        ". Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "=D0=9E=D0=B2=D0=BE =D1=98=D0=B5 =D1=98=D0=B0=D0=BA=D0=BE =D0=B4=D1=83=D0=B3=\r\n"
+        "=D0=B0=D1=87=D0=BA=D0=B0 =D0=BF=D0=BE=D1=80=D1=83=D0=BA=D0=B0 =D0=BA=D0=BE=\r\n"
+        "=D1=98=D0=B0 =D0=B8=D0=BC=D0=B0 =D0=B8 =D0=BF=D1=80=D0=B0=D0=B7=D0=BD=D0=B8=\r\n"
+        "=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B0 =D0=B8 =D0=BF=D1=80=D0=B5=D0=B4=\r\n"
+        "=D1=83=D0=B3=D0=B0=D1=87=D0=BA=D0=B8=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=\r\n"
+        "=D0=B0. =D0=9D=D0=B8=D1=98=D0=B5 =D1=98=D0=B0=D1=81=D0=BD=D0=BE =D0=BA=D0=\r\n"
+        "=B0=D0=BA=D0=BE =D1=9B=D0=B5 =D1=81=D0=B5 =D1=82=D0=B5=D0=BA=D1=81=D1=82 =\r\n"
+        "=D0=BF=D1=80=D0=B5=D0=BB=D0=BE=D0=BC=D0=B8=D1=82=D0=B8\r\n"
+        "=D0=BF=D0=B0 =D1=81=D0=B5 =D0=BD=D0=B0=D0=B4=D0=B0=D0=BC =D0=B4=D0=B0 =D1=\r\n"
+        "=9B=D0=B5 =D1=82=D0=BE =D0=BE=D0=B2=D0=B0=D1=98 =D1=82=D0=B5=D0=BA=D1=81=D1=\r\n"
+        "=82 =D0=BF=D0=BE=D0=BA=D0=B0=D0=B7=D0=B0=D1=82=D0=B8.\r\n"
+        "\r\n"
+        "=D0=A2=D1=80=D0=B5=D0=B1=D0=B0 =D0=B2=D0=B8=D0=B4=D0=B5=D1=82=D0=B8 =D0=BA=\r\n"
+        "=D0=B0=D0=BA=D0=BE =D0=BF=D0=BE=D0=B7=D0=BD=D0=B0=D1=82=D0=B8 =D0=BC=D0=B5=\r\n"
+        "=D1=98=D0=BB =D0=BA=D0=BB=D0=B8=D1=98=D0=B5=D0=BD=D1=82=D0=B8 =D0=BB=D0=BE=\r\n"
+        "=D0=BC=D0=B5 =D1=82=D0=B5=D0=BA=D1=81=D1=82, =D0=BF=D0=B0 =D0=BD=D0=B0\r\n"
+        "=D0=BE=D1=81=D0=BD=D0=BE=D0=B2=D1=83 =D1=82=D0=BE=D0=B3=D0=B0 =D0=B4=D0=BE=\r\n"
+        "=D1=80=D0=B0=D0=B4=D0=B8=D1=82=D0=B8 =D1=84=D0=BE=D1=80=D0=BC=D0=B0=D1=82=\r\n"
+        "=D0=B8=D1=80=D0=B0=D1=9A=D0=B5 =D0=BC=D0=B5=D1=98=D0=BB=D0=B0. =D0=90 =D0=\r\n"
+        "=BC=D0=BE=D0=B6=D0=B4=D0=B0 =D0=B8 =D0=BD=D0=B5=D0=BC=D0=B0 =D0=BF=D0=BE=D1=\r\n"
+        "=82=D1=80=D0=B5=D0=B1=D0=B5, =D1=98=D0=B5=D1=80 libmailio =D0=BD=D0=B8=D1=\r\n"
+        "=98=D0=B5 =D0=B7=D0=B0=D0=BC=D0=B8=D1=88=D1=99=D0=B5=D0=BD =D0=B4=D0=B0 =D1=\r\n"
+        "=81=D0=B5\r\n"
+        "=D0=B1=D0=B0=D0=B2=D0=B8 =D1=84=D0=BE=D1=80=D0=BC=D0=B0=D1=82=D0=B8=D1=80=\r\n"
+        "=D0=B0=D1=9A=D0=B5=D0=BC =D1=82=D0=B5=D0=BA=D1=81=D1=82=D0=B0.\r\n"
+        "\r\n"
+        "\r\n"
+        "=D0=A3 =D1=81=D0=B2=D0=B0=D0=BA=D0=BE=D0=BC =D1=81=D0=BB=D1=83=D1=87=D0=B0=\r\n"
+        "=D1=98=D1=83, =D0=BF=D0=BE=D1=81=D0=BB=D0=B5 =D0=BF=D1=80=D0=BE=D0=B2=D0=B5=\r\n"
+        "=D1=80=D0=B5 =D0=BB=D0=B0=D1=82=D0=B8=D0=BD=D0=B8=D1=86=D0=B5 =D1=82=D1=80=\r\n"
+        "=D0=B5=D0=B1=D0=B0 =D1=83=D1=80=D0=B0=D0=B4=D0=B8=D1=82=D0=B8 =D0=B8 =D0=BF=\r\n"
+        "=D1=80=D0=BE=D0=B2=D0=B5=D1=80=D1=83 utf8 =D0=BA=D0=B0=D1=80=D0=B0=D0=BA=D1=\r\n"
+        "=82=D0=B5=D1=80=D0=B0 =D0=BE=D0=B4=D0=BD. =D1=9B=D0=B8=D1=80=D0=B8=D0=BB=D0=\r\n"
+        "=B8=D1=86=D0=B5\r\n"
+        "=D0=B8 =D0=B2=D0=B8=D0=B4=D0=B5=D1=82=D0=B8 =D0=BA=D0=B0=D0=BA=D0=BE =D1=81=\r\n"
+        "=D0=B5 =D0=BF=D1=80=D0=B5=D0=BB=D0=B0=D0=BC=D0=B0 =D1=82=D0=B5=D0=BA=D1=81=\r\n"
+        "=D1=82 =D0=BA=D0=B0=D0=B4=D0=B0 =D1=81=D1=83 =D0=BA=D0=B0=D1=80=D0=B0=D0=BA=\r\n"
+        "=D1=82=D0=B5=D1=80=D0=B8 =D0=B2=D0=B8=D1=88=D0=B5=D0=B1=D0=B0=D1=98=D1=82=\r\n"
+        "=D0=BD=D0=B8. =D0=A2=D1=80=D0=B5=D0=B1=D0=B0=D0=BB=D0=BE =D0=B1=D0=B8 =D0=\r\n"
+        "=B4=D0=B0 =D1=98=D0=B5 =D0=BD=D0=B5=D0=B1=D0=B8=D1=82=D0=BD=D0=BE =D0=B4=D0=\r\n"
+        "=B0 =D0=BB=D0=B8 =D1=98=D0=B5 =D0=B5=D0=BD=D0=BA=D0=BE=D0=B4=D0=B8=D0=BD=D0=\r\n"
+        "=B3\r\n"
+        "base64 =D0=B8=D0=BB=D0=B8 quoted printable, =D1=98=D0=B5=D1=80 =D1=81=D0=B5 =\r\n"
+        "ascii =D0=BA=D0=B0=D1=80=D0=B0=D0=BA=D1=82=D0=B5=D1=80=D0=B8 =D0=BF=D1=80=\r\n"
+        "=D0=B5=D0=BB=D0=B0=D0=BC=D0=B0=D1=98=D1=83 =D1=83 =D0=BD=D0=BE=D0=B2=D0=B5 =\r\n"
+        "=D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B5. =D0=9E=D0=B2=D0=B0=D1=98 =D1=82=D0=B5=\r\n"
+        "=D1=81=D1=82 =D0=B1=D0=B8 =D1=82=D1=80=D0=B5=D0=B1=D0=B0=D0=BB=D0=BE =D0=B4=\r\n"
+        "=D0=B0\r\n"
+        "=D0=BF=D0=BE=D0=BA=D0=B0=D0=B6=D0=B5 =D0=B8=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=B1=\r\n"
+        "=D0=B0=D0=B3=D0=BE=D0=B2=D0=B0 =D1=83 =D0=BB=D0=BE=D0=B3=D0=B8=D1=86=D0=B8 =\r\n"
+        "=D1=84=D0=BE=D1=80=D0=BC=D0=B0=D1=82=D0=B8=D1=80=D0=B0=D1=9A=D0=B0,\r\n"
+        "=D0=B0 =D0=B8=D1=81=D1=82=D0=BE =D1=82=D0=BE =D1=82=D1=80=D0=B5=D0=B1=D0=B0 =\r\n"
+        "=D0=BF=D1=80=D0=BE=D0=B2=D0=B5=D1=80=D0=B8=D1=82=D0=B8 =D1=81=D0=B0 =D0=BF=\r\n"
+        "=D0=B0=D1=80=D1=81=D0=B8=D1=80=D0=B0=D1=9A=D0=B5=D0=BC.\r\n"
+        "\r\n"
+        "\r\n"
+        "\r\n"
+        "\r\n"
+        "=D0=9E=D0=B2=D0=B4=D0=B5 =D1=98=D0=B5 =D0=B8 =D0=BF=D1=80=D0=BE=D0=B2=D0=B5=\r\n"
+        "=D1=80=D0=B0 =D0=B7=D0=B0 =D0=BD=D0=B8=D0=B7 =D0=BF=D1=80=D0=B0=D0=B7=D0=BD=\r\n"
+        "=D0=B8=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B0.\r\n"
+        "\r\n"
+        "--my_bound--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
