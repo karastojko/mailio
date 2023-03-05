@@ -1321,6 +1321,82 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
 
 
 /**
+Formatting a multipart message which contains themselves more multipart messages.
+
+The message is created, formatted and parsed back again, so resulting strings could be compared.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_parse_nested_multipart)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format nested multipart");
+    msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.boundary("my_global_bound");
+    msg.content("global content");
+
+    mime m1;
+    m1.content_type(message::media_type_t::MULTIPART, "related");
+    m1.boundary("my_first_boundary");
+
+    mime m11;
+    m11.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    m11.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    m11.content("мимe парт 1.1");
+
+    mime m12;
+    m12.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m12.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_8);
+    m12.content("mime 1.2");
+
+    mime m13;
+    m13.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m13.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m13.content("mime 1.3");
+
+    m1.add_part(m11);
+    m1.add_part(m12);
+    m1.add_part(m13);
+
+    mime m2;
+    m2.content_type(message::media_type_t::MULTIPART, "related");
+    m2.boundary("my_second_boundary");
+
+    mime m21;
+    m21.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    m21.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    m21.content("мимe парт 2.1");
+
+    mime m22;
+    m22.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    m22.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    m22.content("mime 2.2");
+
+    m2.add_part(m21);
+    m2.add_part(m22);
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+    string msg_str;
+    msg.format(msg_str);
+
+    message msg_msg;
+    msg_msg.parse(msg_str);
+    string msg_msg_str;
+    msg_msg.format(msg_msg_str);
+    BOOST_CHECK(msg_str == msg_msg_str);
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
