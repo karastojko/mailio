@@ -1934,3 +1934,25 @@ BOOST_AUTO_TEST_CASE(parse_multiline_header)
     msg.parse(msg_str);
     BOOST_CHECK(msg.message_id() == "<123456789012345678901234567890123456789012345678901234567890@mailio.dev>");
 }
+
+
+/**
+Parsing a header exceeding the line policy.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_long_header)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <123456789012345678901234567890123456789012345678901234567890@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+}
