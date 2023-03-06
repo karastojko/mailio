@@ -1910,3 +1910,27 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
     msg.parse(msg_str);
     BOOST_CHECK(msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
 }
+
+
+/**
+Parsing a header split into two lines.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_multiline_header)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <1234567890123456789012345678901234567890\r\n"
+        " 12345678901234567890@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.message_id() == "<123456789012345678901234567890123456789012345678901234567890@mailio.dev>");
+}
