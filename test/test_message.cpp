@@ -1884,3 +1884,29 @@ BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain");
 }
+
+
+/**
+Parsing the filename as a continued attribute.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_continued_filename)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"C:\\Program Files\\AlephoLtd\"; \r\n"
+        "  filename*1=\"\\mailio\\configuration.ini\"\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse address comment\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
+}
