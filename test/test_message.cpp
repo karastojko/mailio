@@ -1956,3 +1956,41 @@ BOOST_AUTO_TEST_CASE(parse_long_header)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
+
+
+/**
+Parsing multiline content with lines containing leading dots, with the escaping dot flag on.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_dotted_esc)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: parse dotted escape\r\n"
+        "\r\n"
+        "..Hello, World!\r\n"
+        "opa bato\r\n"
+        "...proba\r\n"
+        "\r\n"
+        "..\r\n"
+        "\r\n"
+        "yaba.daba.doo.\r\n"
+        "\r\n"
+        "...\r\n"
+        "\r\n";
+
+    message msg;
+    msg.parse(msg_str, true);
+    BOOST_CHECK(msg.content() == ".Hello, World!\r\n"
+        "opa bato\r\n"
+        "..proba\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "yaba.daba.doo.\r\n"
+        "\r\n"
+        "..");
+}
