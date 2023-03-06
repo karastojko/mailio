@@ -1925,7 +1925,7 @@ BOOST_AUTO_TEST_CASE(parse_multiline_header)
         "Message-ID: <1234567890123456789012345678901234567890\r\n"
         " 12345678901234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: parse multiline header\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
@@ -1948,7 +1948,7 @@ BOOST_AUTO_TEST_CASE(parse_long_header)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <123456789012345678901234567890123456789012345678901234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: parse long header\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
