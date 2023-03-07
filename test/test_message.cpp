@@ -2334,3 +2334,54 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_bit7_plain_utf8_base64)
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
         msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
 }
+
+
+/**
+Parsing alternative multipart with the first part HTML with ASCII charset Quoted Printable encoded, the second part text with ASCII charset Bit8
+encoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_qp_plain_ascii_bit8)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/alternative; boundary=\"my_bound\"\r\n"
+        "Subject: parse multipart html ascii qp plain ascii bit8\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "<html><head></head><body><h1>Hello, World!</h1></body></html>\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 8bit\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n"
+        "\r\n"
+        "--my_bound--\r\n";
+    msg.parse(msg_str);
+
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    BOOST_CHECK(msg.subject() == "parse multipart html ascii qp plain ascii bit8" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
+        msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
+        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
+        msg.parts().at(0).content_type().charset == "us-ascii" && msg.parts().at(0).content() ==
+        "<html><head></head><body><h1>Hello, World!</h1></body></html>");
+    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_8 &&
+        msg.parts().at(1).content_type().charset == "us-ascii" && msg.parts().at(1).content() == "Zdravo, Svete!");
+}
