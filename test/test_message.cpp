@@ -2057,3 +2057,62 @@ BOOST_AUTO_TEST_CASE(parse_long_text_default_default)
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.");
 }
+
+
+/**
+Parsing long default content (plain text ASCII charset) Base64 encoded with the recommended length.
+
+The encoded text contains CRLF characters which are present when text is decoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_long_text_default_base64)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: parse long text default base64\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "T3ZvIGplIGpha28gZHVnYWNoa2EgcG9ydWthIGtvamEgaW1hIGkgcHJhem5paCBsaW5pamEgaSBw\r\n"
+        "cmVkdWdhY2hraWggbGluaWphLiBODQppamUgamFzbm8ga2FrbyBjZSBzZSB0ZWtzdCBwcmVsb21p\r\n"
+        "dGkNCnBhIHNlIG5hZGFtIGRhIGNjZSB0byBvdmFqIHRlc3QgcG9rYXphdGkuDQoNClRyZWJhIHZp\r\n"
+        "ZGV0aSBrYWtvIHBvem5hdGkgbWVqbCBrbGlqZW50aSBsb21lIHRla3N0LCBwYSBuYQ0Kb3Nub3Z1\r\n"
+        "IHRvZ2EgZG9yYWRpdGkgZm9ybWF0aXJhbmplIHNhZHJ6emFqYSBtZWpsYS4gQSBtb3p6ZGEgaSBu\r\n"
+        "ZW1hIHBvdHJlYmUsIGplDQpyIGxpYm1haWxpbyBuaWplIHphbWlzaGxqZW4gZGEgc2UNCmJhdmkg\r\n"
+        "Zm9ybWF0aXJhbmplbSB0ZWtzdGEuDQoNCg0KDQoNClUgc3Zha29tIHNsdWNoYWp1LCBwb3NsZSBw\r\n"
+        "cm92ZXJlIGxhdGluaWNlIHRyZWJhIHVyYWRpdGkgaSBwcm92ZXJ1IHV0Zjgga2FyYWt0ZQ0KcmEg\r\n"
+        "b2RuLiBjY2lyaWxpY2UNCmkgdmlkZXRpIGtha28gc2UgcHJlbGFtYSB0ZWtzdCBrYWRhIHN1IGth\r\n"
+        "cmFrdGVyaSB2aXNoZWJhanRuaS4gVHJlYmFsbyBiaSBkYSBqZQ0KIG5lYml0bm8gZGEgbGkgamUg\r\n"
+        "ZW5rb2RpbmcNCmJhc2U2NCBpbGkgcXVvdGVkIHByaW50YWJsZSwgamVyIHNlIGFzY2lpIGthcmFr\r\n"
+        "dGVyaSBwcmVsYW1hanUgdSBub3ZlIGxpbmlqZS4gTw0KdmFqIHRlc3QgYmkgdHJlYmFsbyBkYQ0K\r\n"
+        "cG9rYXp6ZSBpbWEgbGkgYmFnb3ZhIHUgbG9naWNpIHBhcnNpcmFuamEsDQogYSBpc3RvIHRvIHRy\r\n"
+        "ZWJhIHByb3Zlcml0aSBzYSBmb3JtYXRpcmFuamVtLg0KDQoNCg0KDQpPdmRlIGplIGkgcHJvdmVy\r\n"
+        "YSB6YSBuaXogcHJhem5paCBsaW5pamEuDQoNCg0K";
+
+    message msg;
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.subject() == "parse long text default base64" && msg.content_type().type == mime::media_type_t::NONE &&
+        msg.content_type().subtype.empty() && msg.content_type().charset.empty() &&
+        msg.content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64);
+    BOOST_CHECK(msg.content() ==
+        "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. N\r\n"
+        "ije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, je\r\n"
+        "r libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karakte\r\n"
+        "ra odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je\r\n"
+        " nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. O\r\n"
+        "vaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici parsiranja,\r\n"
+        " a isto to treba proveriti sa formatiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+}
