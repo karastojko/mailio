@@ -2116,3 +2116,72 @@ BOOST_AUTO_TEST_CASE(parse_long_text_default_base64)
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
 }
+
+
+/**
+Parsing long default content (plain text ASCII charset) Quoted Printable encoded with the recommended length.
+
+Soft breaks are used to concatenate lines, other CRLF characters are preserved.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_long_text_default_qp)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: parse long text default quoted printable\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija=\r\n"
+        ". Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj tes=\r\n"
+        "t pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, =\r\n"
+        "pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i ne=\r\n"
+        "ma potrebe, jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem tek=\r\n"
+        "sta.\r\n"
+        "\r\n"
+        "\r\n"
+        "U svakom sluchaju, posle provere latinice treba uradi=\r\n"
+        "ti i proveru utf8 karaktera odn. ccirilice\r\n"
+        "i videti kako se prelama te=\r\n"
+        "kst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkodi=\r\n"
+        "ng\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nov=\r\n"
+        "e linije. Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici forma=\r\n"
+        "tiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n"
+        "\r\n"
+        "\r\n"
+        "\r\n"
+        "Ovde je i provera za niz praznih linija.\r\n"
+        "\r\n"
+        "\r\n";
+
+    message msg;
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.subject() == "parse long text default quoted printable" && msg.content_type().type == mime::media_type_t::NONE &&
+        msg.content_type().subtype.empty() && msg.content_type().charset.empty() &&
+        msg.content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    BOOST_CHECK(msg.content() == "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
+        "pa se nadam da cce to ovaj test pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, jer libmailio nije zamishljen da se\r\n"
+        "bavi formatiranjem teksta.\r\n"
+        "\r\n\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karaktera odn. ccirilice\r\n"
+        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. Ovaj test bi trebalo da\r\n"
+        "pokazze ima li bagova u logici formatiranja,\r\n"
+        " a isto to treba proveriti sa parsiranjem.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Ovde je i provera za niz praznih linija.");
+}
