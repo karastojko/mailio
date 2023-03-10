@@ -2484,3 +2484,148 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_base64_plain_ascii_bit7)
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 &&
         msg.parts().at(1).content_type().charset == "us-ascii" && msg.parts().at(1).content() == "Zdravo, Svete!");
 }
+
+
+/**
+Parsing multipart with leading dots and escaping flag turned off.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    string msg_str =
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>, Tomislav Karastojkovic <qwerty@gmail.com>, Tomislav Karastojkovic <asdfgh@zoho.com>, Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
+        "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+        "Subject: parse dotted multipart no esc\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 7bit\r\n"
+        "\r\n"
+        "<html>\r\n"
+        "\t<head>\r\n"
+        "\t\t<title>.naslov</title>\r\n"
+        "\t</head>\r\n"
+        "..\r\n"
+        "\t<body>\r\n"
+        "\t\t<h1>\r\n"
+        "\t\t\t..Zdravo, Sveteeeee!\r\n"
+        "\t\t</h1>\r\n"
+        "\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n\r\n"
+        "\t.<p>Ima li koga?</p>\r\n"
+        "\t</body>\r\n"
+        "</html>\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        ".Zdravo svete!\r\n"
+        "..\r\n"
+        "Ima li koga?\r\n"
+        "\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "\r\n"
+        "..yabadabadoo...\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        ".=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+        "..\r\n"
+        "=D0=98=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=BA=D0=BE=D0=B3=D0=B0?\r\n"
+        "\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "\r\n"
+        "..=D1=98=D0=B0=D0=B1=D0=B0=D0=B4=D0=B0=D0=B1=D0=B0=D0=B4=D1=83=D1=83...\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "PGh0bWw+DQoJPGhlYWQ+DQoJCTx0aXRsZT4ubmFzbG92PC90aXRsZT4NCgk8L2hlYWQ+DQouLg0K\r\n"
+        "CTxib2R5Pg0KCQk8aDE+DQoJCQkuLlpkcmF2bywgU3ZldGVlZWVlIQ0KCQk8L2gxPg0KDQoNCi4N\r\n"
+        "Cg0KDQoJLjxwPkltYSBsaSBrb2dhPzwvcD4NCgk8L2JvZHk+DQo8L2h0bWw+\r\n"
+        "\r\n"
+        "--my_bound--\r\n";
+    msg.parse(msg_str, false);
+
+    ptime t = time_from_string("2016-03-15 13:13:32");
+    time_zone_ptr tz(new posix_time_zone("-00:00"));
+    local_date_time ldt(t, tz);
+    BOOST_CHECK(msg.subject() == "parse dotted multipart no esc" && msg.boundary() == "my_bound" &&
+        msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 4 &&
+        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "related" && msg.parts().size() == 4);
+    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 &&
+        msg.parts().at(0).content_type().charset == "us-ascii" && msg.parts().at(0).content() == "<html>\r\n"
+        "\t<head>\r\n"
+        "\t\t<title>.naslov</title>\r\n"
+        "\t</head>\r\n"
+        "..\r\n"
+        "\t<body>\r\n"
+        "\t\t<h1>\r\n"
+        "\t\t\t..Zdravo, Sveteeeee!\r\n"
+        "\t\t</h1>\r\n"
+        "\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n\r\n"
+        "\t.<p>Ima li koga?</p>\r\n"
+        "\t</body>\r\n"
+        "</html>");
+    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
+        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == ".Zdravo svete!\r\n"
+        "..\r\n"
+        "Ima li koga?\r\n"
+        "\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "\r\n"
+        "..yabadabadoo...");
+    BOOST_CHECK(msg.parts().at(2).content_type().type == mime::media_type_t::TEXT && msg.parts().at(2).content_type().subtype == "plain" &&
+        msg.parts().at(2).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
+        msg.parts().at(2).content_type().charset == "utf-8" && msg.parts().at(2).content() == ".Здраво, Свете!\r\n"
+        "..\r\n"
+        "Има ли кога?\r\n"
+        "\r\n\r\n"
+        ".\r\n"
+        "\r\n\r\n"
+        "..јабадабадуу...");
+    BOOST_CHECK(msg.parts().at(3).content_type().type == mime::media_type_t::TEXT && msg.parts().at(3).content_type().subtype == "html" &&
+        msg.parts().at(3).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
+        msg.parts().at(3).content_type().charset == "us-ascii" && msg.parts().at(3).content() == "<html>\r\n"
+        "\t<head>\r\n"
+        "\t\t<title>.naslov</title>\r\n"
+        "\t</head>\r\n"
+        "..\r\n"
+        "\t<body>\r\n"
+        "\t\t<h1>\r\n"
+        "\t\t\t..Zdravo, Sveteeeee!\r\n"
+        "\t\t</h1>\r\n"
+        "\r\n"
+        "\r\n"
+        ".\r\n"
+        "\r\n"
+        "\r\n"
+        "\t.<p>Ima li koga?</p>\r\n"
+        "\t</body>\r\n"
+        "</html>");
+}
