@@ -2978,3 +2978,53 @@ BOOST_AUTO_TEST_CASE(parse_long_multipart)
         "\r\n\r\n\r\n\r\n"
         "Овде је и провера за низ празних линија.");
 }
+
+
+/**
+Parsing multipart message with a content.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_multipart_content)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>, <qwerty@gmail.com>, Tomislav Karastojkovic <asdfgh@outlook.com>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/alternative; boundary=\"my_bound\"\r\n"
+        "Subject: parse multipart content\r\n"
+        "\r\n"
+        "This is a multipart message.\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "PGh0bWw+PGhlYWQ+PC9oZWFkPjxib2R5PjxoMT7EhmFvLCBTdmV0ZSE8L2gxPjwvYm9keT48L2h0bWw+\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+        "--my_bound--\r\n";
+    msg.parse(msg_str);
+
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    BOOST_CHECK(msg.subject() == "parse multipart content" && msg.content() == "This is a multipart message." && msg.boundary() == "my_bound" &&
+        msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 3 &&
+        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
+        msg.parts().at(0).content_type().charset == "utf-8" &&
+        msg.parts().at(0).content() == "<html><head></head><body><h1>Ćao, Svete!</h1></body></html>");
+    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
+        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
+}
