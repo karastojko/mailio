@@ -200,4 +200,8 @@ endif(${MAILIO_BUILD_EXAMPLES})
 
 if(${MAILIO_BUILD_TESTS})
     add_subdirectory(test)
+    file(GLOB PNGS "${PROJECT_SOURCE_DIR}/test/aleph0.png")
+    install(FILES ${PNGS} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/test/")
+    file(GLOB TXTS "${PROJECT_SOURCE_DIR}/test/cv.txt")
+    install(FILES ${TXTS} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/test/")
 endif(${MAILIO_BUILD_TESTS})
