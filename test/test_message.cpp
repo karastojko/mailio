@@ -1496,6 +1496,52 @@ BOOST_AUTO_TEST_CASE(format_attachment)
 
 
 /**
+Attaching a file with UTF-8 name.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_attachment_utf8)
+{
+    message msg;
+    msg.header_codec(message::header_codec_t::BASE64);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format attachment utf8");
+    msg.boundary("mybnd");
+    std::ifstream ifs1("cv.txt");
+    msg.attach(ifs1, "TomislavKarastojković_CV.txt", message::media_type_t::TEXT, "plain");
+    string msg_str;
+    msg.format(msg_str);
+
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format attachment utf8\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
