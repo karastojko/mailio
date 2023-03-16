@@ -1667,6 +1667,64 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
 
 
 /**
+Attaching a text file together with an HTML message content.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_html_att)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format html attachment");
+    msg.boundary("mybnd");
+    msg.content_type(message::media_type_t::TEXT, "html", "utf-8");
+    msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
+
+    std::ifstream ifs1("cv.txt");
+    std::list<std::tuple<std::istream&, string, message::content_type_t>> atts;
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = std::tie(ifs1, "TomislavKarastojkovic_CV.txt", ct);
+    atts.push_back(tp);
+    msg.attach(atts);
+    string msg_str;
+    msg.format(msg_str);
+
+    BOOST_CHECK(msg.parts().size() == 2);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; charset=utf-8; boundary=\"mybnd\"\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "Subject: format html attachment\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "<h1>Naslov</h1><p>Ovo je poruka.</p>\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
