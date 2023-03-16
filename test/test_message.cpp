@@ -1322,39 +1322,6 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
 
 
 /**
-Attaching two files to a message.
-
-@pre  Files `cv.txt` and `aleph0.png` in the current directory.
-@post None.
-**/
-BOOST_AUTO_TEST_CASE(format_attachment)
-{
-    message msg;
-    msg.from(mail_address("mailio", "adresa@mailio.dev"));
-    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format attachment");
-    std::ifstream ifs1("cv.txt");
-    msg.attach(ifs1, "TomislavKarastojkovic_CV.txt", message::media_type_t::APPLICATION, "txt");
-    std::ifstream ifs2("aleph0.png");
-    msg.attach(ifs2, "logo.png", message::media_type_t::IMAGE, "png");
-    string msg_str;
-    msg.format(msg_str);
-
-    const size_t ATT0_SIZE = 27;
-    const size_t ATT1_SIZE = 18960;
-
-    BOOST_CHECK(msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "mixed" && msg.attachments_size() == 2);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::APPLICATION && msg.parts().at(0).content_type().subtype == "txt" &&
-        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(0).content_disposition() ==
-        mime::content_disposition_t::ATTACHMENT && msg.parts().at(0).content().size() == ATT0_SIZE);
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::IMAGE && msg.parts().at(1).content_type().subtype == "png" &&
-        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(1).content_disposition() ==
-        mime::content_disposition_t::ATTACHMENT && msg.parts().at(1).content().size() == ATT1_SIZE);
-}
-
-
-/**
 Formatting a multipart message which contains themselves more multipart messages.
 
 The message is created, formatted and parsed back again, so resulting strings could be compared.
@@ -1492,6 +1459,39 @@ BOOST_AUTO_TEST_CASE(format_multipart_content)
         "Zdravo, Svete!\r\n"
         "\r\n"
         "--my_bound--\r\n");
+}
+
+
+/**
+Attaching two files to a message.
+
+@pre  Files `cv.txt` and `aleph0.png` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_attachment)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format attachment");
+    std::ifstream ifs1("cv.txt");
+    msg.attach(ifs1, "TomislavKarastojkovic_CV.txt", message::media_type_t::APPLICATION, "txt");
+    std::ifstream ifs2("aleph0.png");
+    msg.attach(ifs2, "logo.png", message::media_type_t::IMAGE, "png");
+    string msg_str;
+    msg.format(msg_str);
+
+    const size_t ATT0_SIZE = 27;
+    const size_t ATT1_SIZE = 18960;
+
+    BOOST_CHECK(msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "mixed" && msg.attachments_size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::APPLICATION && msg.parts().at(0).content_type().subtype == "txt" &&
+        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(0).content_disposition() ==
+        mime::content_disposition_t::ATTACHMENT && msg.parts().at(0).content().size() == ATT0_SIZE);
+    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::IMAGE && msg.parts().at(1).content_type().subtype == "png" &&
+        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(1).content_disposition() ==
+        mime::content_disposition_t::ATTACHMENT && msg.parts().at(1).content().size() == ATT1_SIZE);
 }
 
 
