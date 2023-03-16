@@ -1725,6 +1725,39 @@ BOOST_AUTO_TEST_CASE(format_html_att)
 
 
 /**
+Formatting a message with the disposition notification.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_notification)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.header_codec(message::header_codec_t::BASE64);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.disposition_notification(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format notification");
+    msg.content("Hello, World!");
+    string msg_str;
+    msg.format(msg_str);
+
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Disposition-Notification-To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: format notification\r\n"
+        "\r\n"
+        "Hello, World!\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
