@@ -1542,6 +1542,131 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 
 
 /**
+Attaching a file with long UTF-8 message content.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_msg_att)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format message attachment");
+    msg.boundary("mybnd");
+    msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
+        "па се надам да ће то овај текст показати.\r\n"
+        "\r\n"
+        "Треба видети како познати мејл клијенти ломе текст, па на\r\n"
+        "основу тога дорадити форматирање мејла. А можда и нема потребе, јер libmailio није замишљен да се\r\n"
+        "бави форматирањем текста.\r\n"
+        "\r\n\r\n"
+        "У сваком случају, после провере латинице треба урадити и проверу utf8 карактера одн. ћирилице\r\n"
+        "и видети како се прелама текст када су карактери вишебајтни. Требало би да је небитно да ли је енкодинг\r\n"
+        "base64 или quoted printable, јер се ascii карактери преламају у нове линије. Овај тест би требало да\r\n"
+        "покаже има ли багова у логици форматирања,\r\n"
+        " а исто то треба проверити са парсирањем.\r\n"
+        "\r\n\r\n\r\n\r\n"
+        "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+    std::ifstream ifs1("cv.txt");
+    msg.attach(ifs1, "TomislavKarastojkovic_CV.txt", message::media_type_t::TEXT, "plain");
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; charset=utf-8; boundary=\"mybnd\"\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "Subject: format message attachment\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "\r\n"
+        "=D0=9E=D0=B2=D0=BE =D1=98=D0=B5 =D1=98=D0=B0=D0=BA=D0=BE =D0=B4=D1=83=D0=B3=\r\n"
+        "=D0=B0=D1=87=D0=BA=D0=B0 =D0=BF=D0=BE=D1=80=D1=83=D0=BA=D0=B0 =D0=BA=D0=BE=\r\n"
+        "=D1=98=D0=B0 =D0=B8=D0=BC=D0=B0 =D0=B8 =D0=BF=D1=80=D0=B0=D0=B7=D0=BD=D0=B8=\r\n"
+        "=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B0 =D0=B8 =D0=BF=D1=80=D0=B5=D0=B4=\r\n"
+        "=D1=83=D0=B3=D0=B0=D1=87=D0=BA=D0=B8=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=\r\n"
+        "=D0=B0. =D0=9D=D0=B8=D1=98=D0=B5 =D1=98=D0=B0=D1=81=D0=BD=D0=BE =D0=BA=D0=\r\n"
+        "=B0=D0=BA=D0=BE =D1=9B=D0=B5 =D1=81=D0=B5 =D1=82=D0=B5=D0=BA=D1=81=D1=82 =\r\n"
+        "=D0=BF=D1=80=D0=B5=D0=BB=D0=BE=D0=BC=D0=B8=D1=82=D0=B8\r\n"
+        "=D0=BF=D0=B0 =D1=81=D0=B5 =D0=BD=D0=B0=D0=B4=D0=B0=D0=BC =D0=B4=D0=B0 =D1=\r\n"
+        "=9B=D0=B5 =D1=82=D0=BE =D0=BE=D0=B2=D0=B0=D1=98 =D1=82=D0=B5=D0=BA=D1=81=D1=\r\n"
+        "=82 =D0=BF=D0=BE=D0=BA=D0=B0=D0=B7=D0=B0=D1=82=D0=B8.\r\n"
+        "\r\n"
+        "=D0=A2=D1=80=D0=B5=D0=B1=D0=B0 =D0=B2=D0=B8=D0=B4=D0=B5=D1=82=D0=B8 =D0=BA=\r\n"
+        "=D0=B0=D0=BA=D0=BE =D0=BF=D0=BE=D0=B7=D0=BD=D0=B0=D1=82=D0=B8 =D0=BC=D0=B5=\r\n"
+        "=D1=98=D0=BB =D0=BA=D0=BB=D0=B8=D1=98=D0=B5=D0=BD=D1=82=D0=B8 =D0=BB=D0=BE=\r\n"
+        "=D0=BC=D0=B5 =D1=82=D0=B5=D0=BA=D1=81=D1=82, =D0=BF=D0=B0 =D0=BD=D0=B0\r\n"
+        "=D0=BE=D1=81=D0=BD=D0=BE=D0=B2=D1=83 =D1=82=D0=BE=D0=B3=D0=B0 =D0=B4=D0=BE=\r\n"
+        "=D1=80=D0=B0=D0=B4=D0=B8=D1=82=D0=B8 =D1=84=D0=BE=D1=80=D0=BC=D0=B0=D1=82=\r\n"
+        "=D0=B8=D1=80=D0=B0=D1=9A=D0=B5 =D0=BC=D0=B5=D1=98=D0=BB=D0=B0. =D0=90 =D0=\r\n"
+        "=BC=D0=BE=D0=B6=D0=B4=D0=B0 =D0=B8 =D0=BD=D0=B5=D0=BC=D0=B0 =D0=BF=D0=BE=D1=\r\n"
+        "=82=D1=80=D0=B5=D0=B1=D0=B5, =D1=98=D0=B5=D1=80 libmailio =D0=BD=D0=B8=D1=\r\n"
+        "=98=D0=B5 =D0=B7=D0=B0=D0=BC=D0=B8=D1=88=D1=99=D0=B5=D0=BD =D0=B4=D0=B0 =D1=\r\n"
+        "=81=D0=B5\r\n"
+        "=D0=B1=D0=B0=D0=B2=D0=B8 =D1=84=D0=BE=D1=80=D0=BC=D0=B0=D1=82=D0=B8=D1=80=\r\n"
+        "=D0=B0=D1=9A=D0=B5=D0=BC =D1=82=D0=B5=D0=BA=D1=81=D1=82=D0=B0.\r\n"
+        "\r\n"
+        "\r\n"
+        "=D0=A3 =D1=81=D0=B2=D0=B0=D0=BA=D0=BE=D0=BC =D1=81=D0=BB=D1=83=D1=87=D0=B0=\r\n"
+        "=D1=98=D1=83, =D0=BF=D0=BE=D1=81=D0=BB=D0=B5 =D0=BF=D1=80=D0=BE=D0=B2=D0=B5=\r\n"
+        "=D1=80=D0=B5 =D0=BB=D0=B0=D1=82=D0=B8=D0=BD=D0=B8=D1=86=D0=B5 =D1=82=D1=80=\r\n"
+        "=D0=B5=D0=B1=D0=B0 =D1=83=D1=80=D0=B0=D0=B4=D0=B8=D1=82=D0=B8 =D0=B8 =D0=BF=\r\n"
+        "=D1=80=D0=BE=D0=B2=D0=B5=D1=80=D1=83 utf8 =D0=BA=D0=B0=D1=80=D0=B0=D0=BA=D1=\r\n"
+        "=82=D0=B5=D1=80=D0=B0 =D0=BE=D0=B4=D0=BD. =D1=9B=D0=B8=D1=80=D0=B8=D0=BB=D0=\r\n"
+        "=B8=D1=86=D0=B5\r\n"
+        "=D0=B8 =D0=B2=D0=B8=D0=B4=D0=B5=D1=82=D0=B8 =D0=BA=D0=B0=D0=BA=D0=BE =D1=81=\r\n"
+        "=D0=B5 =D0=BF=D1=80=D0=B5=D0=BB=D0=B0=D0=BC=D0=B0 =D1=82=D0=B5=D0=BA=D1=81=\r\n"
+        "=D1=82 =D0=BA=D0=B0=D0=B4=D0=B0 =D1=81=D1=83 =D0=BA=D0=B0=D1=80=D0=B0=D0=BA=\r\n"
+        "=D1=82=D0=B5=D1=80=D0=B8 =D0=B2=D0=B8=D1=88=D0=B5=D0=B1=D0=B0=D1=98=D1=82=\r\n"
+        "=D0=BD=D0=B8. =D0=A2=D1=80=D0=B5=D0=B1=D0=B0=D0=BB=D0=BE =D0=B1=D0=B8 =D0=\r\n"
+        "=B4=D0=B0 =D1=98=D0=B5 =D0=BD=D0=B5=D0=B1=D0=B8=D1=82=D0=BD=D0=BE =D0=B4=D0=\r\n"
+        "=B0 =D0=BB=D0=B8 =D1=98=D0=B5 =D0=B5=D0=BD=D0=BA=D0=BE=D0=B4=D0=B8=D0=BD=D0=\r\n"
+        "=B3\r\n"
+        "base64 =D0=B8=D0=BB=D0=B8 quoted printable, =D1=98=D0=B5=D1=80 =D1=81=D0=B5 =\r\n"
+        "ascii =D0=BA=D0=B0=D1=80=D0=B0=D0=BA=D1=82=D0=B5=D1=80=D0=B8 =D0=BF=D1=80=\r\n"
+        "=D0=B5=D0=BB=D0=B0=D0=BC=D0=B0=D1=98=D1=83 =D1=83 =D0=BD=D0=BE=D0=B2=D0=B5 =\r\n"
+        "=D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B5. =D0=9E=D0=B2=D0=B0=D1=98 =D1=82=D0=B5=\r\n"
+        "=D1=81=D1=82 =D0=B1=D0=B8 =D1=82=D1=80=D0=B5=D0=B1=D0=B0=D0=BB=D0=BE =D0=B4=\r\n"
+        "=D0=B0\r\n"
+        "=D0=BF=D0=BE=D0=BA=D0=B0=D0=B6=D0=B5 =D0=B8=D0=BC=D0=B0 =D0=BB=D0=B8 =D0=B1=\r\n"
+        "=D0=B0=D0=B3=D0=BE=D0=B2=D0=B0 =D1=83 =D0=BB=D0=BE=D0=B3=D0=B8=D1=86=D0=B8 =\r\n"
+        "=D1=84=D0=BE=D1=80=D0=BC=D0=B0=D1=82=D0=B8=D1=80=D0=B0=D1=9A=D0=B0,\r\n"
+        " =D0=B0 =D0=B8=D1=81=D1=82=D0=BE =D1=82=D0=BE =D1=82=D1=80=D0=B5=D0=B1=D0=\r\n"
+        "=B0 =D0=BF=D1=80=D0=BE=D0=B2=D0=B5=D1=80=D0=B8=D1=82=D0=B8 =D1=81=D0=B0 =D0=\r\n"
+        "=BF=D0=B0=D1=80=D1=81=D0=B8=D1=80=D0=B0=D1=9A=D0=B5=D0=BC.\r\n"
+        "\r\n"
+        "\r\n"
+        "\r\n"
+        "\r\n"
+        "=D0=9E=D0=B2=D0=B4=D0=B5 =D1=98=D0=B5 =D0=B8 =D0=BF=D1=80=D0=BE=D0=B2=D0=B5=\r\n"
+        "=D1=80=D0=B0 =D0=B7=D0=B0 =D0=BD=D0=B8=D0=B7 =D0=BF=D1=80=D0=B0=D0=B7=D0=BD=\r\n"
+        "=D0=B8=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B0.\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
