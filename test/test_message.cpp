@@ -1758,6 +1758,43 @@ BOOST_AUTO_TEST_CASE(format_notification)
 
 
 /**
+Formatting a message with UTF-8 addresses by using Base64 Q codec.
+
+The line policy has to be mandatory because of the third recipient.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_qb_sender)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.header_codec(message::header_codec_t::BASE64);
+    msg.from(mail_address("маилио", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("Tomislav Karastojković", "qwerty@gmail.com"));
+    msg.add_recipient(mail_address("Томислав Карастојковић", "asdfg@zoho.com"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("proba");
+    msg.content("test");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?= <asdfg@zoho.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: proba\r\n"
+        "\r\n"
+        "test\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
