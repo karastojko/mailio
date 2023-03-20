@@ -1894,6 +1894,36 @@ BOOST_AUTO_TEST_CASE(format_qq_long_subject)
 
 
 /**
+Formatting a message with UTF-8 subject containing the long dash character.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_qq_subject_dash)
+{
+    message msg;
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject(u8"C++ Annotated: Sep \u2013 Dec 2017");
+    msg.content("test");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?Q?C++_Annotated:_Sep_=E2=80=93_Dec_2017?=\r\n"
+        "\r\n"
+        "test\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
