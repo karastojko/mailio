@@ -1795,6 +1795,43 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
 
 
 /**
+Formatting a message with UTF-8 addresses by using Quoted Printable Q codec.
+
+The line policy has to be mandatory because of the third recipient.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_qq_sender)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.from(mail_address("маилио", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("Tomislav Karastojković", "qwerty@gmail.com"));
+    msg.add_recipient(mail_address("Томислав Карастојковић", "asdfg@zoho.com"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("proba");
+    msg.content("test");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?Q?Tomislav_Karastojkovi=C4=87?= <qwerty@gmail.com>,\r\n"
+        "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8=D1=9B?= <asdfg@zoho.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: proba\r\n"
+        "\r\n"
+        "test\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
