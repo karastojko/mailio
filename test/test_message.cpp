@@ -1984,6 +1984,37 @@ BOOST_AUTO_TEST_CASE(format_utf8_subject)
 
 
 /**
+Formatting a message with UTF-8 raw subject by using Base64 Q codec.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
+{
+    message msg;
+    msg.header_codec(message::header_codec_t::BASE64);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8"));
+    msg.content("Hello, Sithonia!");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0b3IgLSBF?=\r\n"
+        " =?UTF-8?B?bGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "\r\n"
+        "Hello, Sithonia!\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
