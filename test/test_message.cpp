@@ -1954,6 +1954,36 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
 
 
 /**
+Formatting UTF8 subject in 8bit encoding.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_utf8_subject)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("Tomislav Karastojković", "qwerty@hotmail.com"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("Здраво, Свете!");
+    msg.content("Hello, World!");
+    msg.header_codec(mime::header_codec_t::UTF8);
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Здраво, Свете!\r\n"
+        "\r\n"
+        "Hello, World!\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
