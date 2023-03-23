@@ -2195,6 +2195,45 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
 
 
 /**
+Formatting a message with a long header to be folded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_header)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev"));
+    msg.add_recipient(mail_address("contact", "kontakt@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_group("all", {mail_address("Tomislav", "qwerty@hotmail.com")}));
+    msg.subject("Hello, World!");
+    msg.content("Hello, World!");
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.add_header("Proba", "1234567890123456789 01234567890123456789012345678901234567890123456789012345678901234567890 12345678901234567890@mailio.dev");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "Proba: 1234567890123456789\r\n"
+        "  01234567890123456789012345678901234567890123456789012345678901234567890\r\n"
+        "  12345678901234567890@mailio.dev\r\n"
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
+        "To: contact <kontakt@mailio.dev>,\r\n"
+        "  mailio <adresa@mailio.dev>,\r\n"
+        "  all: Tomislav <qwerty@hotmail.com>;\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: Hello, World!\r\n"
+        "\r\n"
+        "Hello, World!\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
