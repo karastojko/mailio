@@ -2126,6 +2126,38 @@ BOOST_AUTO_TEST_CASE(format_message_id_with_space_strict)
 
 
 /**
+Formatting the message ID with the space character in the non-strict mode.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
+{
+    message msg;
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("Proba");
+    msg.content("Zdravo, Svete!");
+    msg.message_id("1234567890@ mailio.dev");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <1234567890@ mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n");
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
