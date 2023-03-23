@@ -2048,6 +2048,29 @@ BOOST_AUTO_TEST_CASE(format_message_id)
 
 
 /**
+Formatting the message ID without the monkey character in the strict mode.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_strict)
+{
+    message msg;
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.strict_mode(true);
+    msg.date_time(ldt);
+    msg.subject("Proba");
+    msg.content("Zdravo, Svete!");
+    BOOST_CHECK_THROW(msg.message_id("1234567890mailio.dev"), message_error);
+}
+
+
+/**
 Parsing simple message.
 
 @pre  None.
