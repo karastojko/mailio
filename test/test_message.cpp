@@ -15,6 +15,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #define BOOST_TEST_MODULE message_test
 
 #include <string>
+#include <fstream>
 #include <utility>
 #include <fstream>
 #include <boost/test/unit_test.hpp>
@@ -24,6 +25,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 using std::string;
+using std::ifstream;
+using std::ofstream;
 using boost::posix_time::ptime;
 using boost::posix_time::time_from_string;
 using boost::local_time::time_zone_ptr;
@@ -3799,4 +3802,46 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
     BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
         msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
+}
+
+
+/**
+Parsing attachments of a message.
+
+The message is formatted by the library itself.
+
+@pre  Files `cv.txt` and `aleph0.png` used for attaching files.
+@post Created files `tkcv.txt` and `a0.png` as copies of `cv.txt` and `aleph0.png`.
+**/
+BOOST_AUTO_TEST_CASE(parse_attachment)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("parse attachment");
+    ifstream ifs1("cv.txt");
+    msg.attach(ifs1, "tkcv.txt", message::media_type_t::APPLICATION, "txt");
+    ifstream ifs2("aleph0.png");
+    msg.attach(ifs2, "a0.png", message::media_type_t::IMAGE, "png");
+
+    string msg_str;
+    msg.format(msg_str);
+    message msg_msg;
+    msg_msg.parse(msg_str);
+    BOOST_CHECK(msg_msg.content_type().type == mime::media_type_t::MULTIPART && msg_msg.content_type().subtype == "mixed" &&
+        msg_msg.attachments_size() == 2);
+    BOOST_CHECK(msg_msg.parts().at(0).name() == "tkcv.txt" && msg_msg.parts().at(0).content_type().type ==
+        message::media_type_t::APPLICATION && msg_msg.parts().at(0).content_type().subtype == "txt");
+    BOOST_CHECK(msg_msg.parts().at(1).name() == "a0.png" && msg_msg.parts().at(1).content_type().type == message::media_type_t::IMAGE &&
+        msg_msg.parts().at(1).content_type().subtype == "png");
+
+    ofstream ofs1("tkcv.txt");
+    string ofs1_name;
+    msg_msg.attachment(1, ofs1, ofs1_name);
+    BOOST_CHECK(ofs1_name == "tkcv.txt");
+    ofstream ofs2("a0.png");
+    string ofs2_name;
+    msg_msg.attachment(2, ofs2, ofs2_name);
+    BOOST_CHECK(ofs2_name == "a0.png");
 }
