@@ -15,9 +15,11 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #define BOOST_TEST_MODULE message_test
 
 #include <string>
+#include <istream>
 #include <fstream>
 #include <utility>
-#include <fstream>
+#include <list>
+#include <tuple>
 #include <boost/test/unit_test.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <mailio/mailboxes.hpp>
@@ -27,6 +29,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 using std::string;
 using std::ifstream;
 using std::ofstream;
+using std::list;
+using std::tuple;
 using boost::posix_time::ptime;
 using boost::posix_time::time_from_string;
 using boost::local_time::time_zone_ptr;
@@ -3844,4 +3848,52 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     string ofs2_name;
     msg_msg.attachment(2, ofs2, ofs2_name);
     BOOST_CHECK(ofs2_name == "a0.png");
+}
+
+
+/**
+Parsing attachments and an HTML content of a message.
+
+@pre  Files `cv.txt` and `aleph0.png` used for attaching files.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_html_attachment)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("parse html attachment");
+    msg.boundary("mybnd");
+    msg.content_type(message::media_type_t::TEXT, "html", "utf-8");
+    msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
+
+    ifstream ifs1("cv.txt");
+    message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
+    auto tp1 = std::tie(ifs1, "tkcv.txt", ct1);
+    ifstream ifs2("aleph0.png");
+    message::content_type_t ct2(message::media_type_t::IMAGE, "png");
+    auto tp2 = std::tie(ifs2, "a0.png", ct2);
+    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    atts.push_back(tp1);
+    atts.push_back(tp2);
+
+    msg.attach(atts);
+    string msg_str;
+    msg.format(msg_str);
+
+    message msg_msg;
+    msg_msg.parse(msg_str);
+    BOOST_CHECK(msg_msg.content_type().type == mime::media_type_t::MULTIPART && msg_msg.content_type().subtype == "mixed" && msg_msg.attachments_size() == 2);
+    BOOST_CHECK(msg_msg.parts().at(0).content() == "<h1>Naslov</h1><p>Ovo je poruka.</p>" && msg_msg.parts().at(0).content_type().type ==
+        mime::media_type_t::TEXT && msg_msg.parts().at(0).content_type().subtype == "html");
+    BOOST_CHECK(msg_msg.parts().at(1).name() == "tkcv.txt" && msg_msg.parts().at(1).content_type().type ==
+        message::media_type_t::APPLICATION && msg_msg.parts().at(1).content_type().subtype == "txt");
+    BOOST_CHECK(msg_msg.parts().at(2).name() == "a0.png" && msg_msg.parts().at(2).content_type().type ==
+        message::media_type_t::IMAGE && msg_msg.parts().at(2).content_type().subtype == "png");
 }
