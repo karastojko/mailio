@@ -3897,3 +3897,38 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
     BOOST_CHECK(msg_msg.parts().at(2).name() == "a0.png" && msg_msg.parts().at(2).content_type().type ==
         message::media_type_t::IMAGE && msg_msg.parts().at(2).content_type().subtype == "png");
 }
+
+
+/**
+Parsing a message with the recipents and CC recipients in several lines.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_multilined_addresses)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
+        "To: contact <kontakt@mailio.dev>,\r\n"
+        "  Tomislav Karastojkovic <adresa@mailio.dev>,\r\n"
+        "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
+        "  Tomislav Karastojkovic <asdfg@zoho.com>,\r\n"
+        "Cc: mail.io <adresa@mailio.dev>,\r\n"
+        "  Tomislav Karastojkovic <zxcvb@yahoo.com>\r\n"
+        "Date: Wed, 23 Aug 2017 22:16:45 +0000\r\n"
+        "Subject: Hello, World!\r\n"
+        "\r\n"
+        "Hello, World!\r\n";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
+        msg.recipients().addresses.at(0).name == "contact" && msg.recipients().addresses.at(0).address == "kontakt@mailio.dev" &&
+        msg.recipients().addresses.at(1).name == "Tomislav Karastojkovic" && msg.recipients().addresses.at(1).address == "adresa@mailio.dev" &&
+        msg.recipients().addresses.at(2).name == "Tomislav Karastojkovic" && msg.recipients().addresses.at(2).address == "qwerty@gmail.com" &&
+        msg.recipients().addresses.at(3).name == "Tomislav Karastojkovic" && msg.recipients().addresses.at(3).address == "asdfg@zoho.com" &&
+        msg.cc_recipients().addresses.at(0).name == "mail.io" && msg.cc_recipients().addresses.at(0).address == "adresa@mailio.dev" &&
+        msg.cc_recipients().addresses.at(1).name == "Tomislav Karastojkovic" && msg.cc_recipients().addresses.at(1).address == "zxcvb@yahoo.com");
+}
