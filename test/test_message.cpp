@@ -4013,3 +4013,23 @@ BOOST_AUTO_TEST_CASE(parse_qq_sender)
         msg.recipients().addresses.at(1).name == "Tomislav Karastojković" && msg.recipients().addresses.at(1).address == "qwerty@gmail.com" &&
         msg.recipients().addresses.at(2).name == "Томислав Карастојковић" && msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
 }
+
+
+/**
+Parsing a message with Q/Base64 encoded subject.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qb_sender)
+{
+    string msg_str = "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: proba\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "test\r\n";
+    message msg;
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио");
+}
