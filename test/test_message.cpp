@@ -3963,3 +3963,26 @@ BOOST_AUTO_TEST_CASE(parse_long_addresses)
         msg.cc_recipients().addresses.at(0).name == "mail.io" && msg.cc_recipients().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.cc_recipients().addresses.at(1).name == "Tomislav Karastojkovic" && msg.cc_recipients().addresses.at(1).address == "zxcvb@yahoo.com");
 }
+
+
+/**
+Parsing a message with the disposition notification.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_notification)
+{
+    string msg_str = "From: karastojko <qwerty@gmail.com>\r\n"
+        "To: karastojko <asdfg@hotmail.com>\r\n"
+        "Disposition-Notification-To: karastojko <zxcvb@zoho.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: parse notification\r\n"
+        "\r\n"
+        "Hello, World!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+
+    BOOST_CHECK(msg.disposition_notification_to_string() == "karastojko <zxcvb@zoho.com>" && msg.subject() == "parse notification");
+}
