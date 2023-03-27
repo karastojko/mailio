@@ -4016,7 +4016,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_sender)
 
 
 /**
-Parsing a message with Q/Base64 encoded subject.
+Parsing a message with Q/Base64 encoded sender.
 
 @pre  None.
 @post None.
