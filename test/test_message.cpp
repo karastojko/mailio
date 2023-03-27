@@ -4033,3 +4033,25 @@ BOOST_AUTO_TEST_CASE(parse_qb_sender)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "маилио");
 }
+
+
+/**
+Parsing a message with sender's name Q encoded not separated by space from the address.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_from_no_space)
+{
+    string msg_str = "From: =?windows-1252?Q?Action_fran=E7aise_?=<adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: examen\r\n"
+        "\r\n"
+        "test\r\n";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "Action fran" "\xE7" "aise" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
+}
