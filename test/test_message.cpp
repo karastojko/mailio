@@ -4108,3 +4108,27 @@ BOOST_AUTO_TEST_CASE(parse_qq_latin1_subject_raw)
         msg.subject_raw().buffer == "Comprobaci\363n CV" && msg.subject_raw().charset == "ISO-8859-1" &&
         msg.content() == "hello world");
 }
+
+
+/**
+Parsing a subject and checking the result against `string_t`.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_utf8_emoji_subject_raw)
+{
+    string msg_str = "From: \"Tomislav Karastojkovic\" <qwerty@gmail.com>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: =?utf-8?Q?=F0=9F=8E=81=C5=BDivi=20godinu=20dana=20na=20ra=C4=8Dun=20Super=20Kartice?=\r\n"
+        "Date: Fri, 24 Dec 2021 15:15:38 +0000\r\n"
+        "Content-Type: text/plain; charset=\"UTF-8\"\r\n"
+        "Content-Transfer-Encoding: base64\r\n"
+        "\r\n"
+        "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
+}
