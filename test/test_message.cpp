@@ -4080,3 +4080,31 @@ BOOST_AUTO_TEST_CASE(parse_qb_utf8_subject)
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "Re: Σχετ: Summer 2017" && msg.content() == "hello world");
 }
+
+
+/**
+Parsing a message with Q/Base64 encoded subject in the ISO-8859-1 charset by using the mailio string type.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_latin1_subject_raw)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: =?iso-8859-1?Q?Comprobaci=F3n_CV?=\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello world\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.parse(msg_str);
+
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" && msg.date_time() == ldt &&
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+        msg.subject_raw().buffer == "Comprobaci\363n CV" && msg.subject_raw().charset == "ISO-8859-1" &&
+        msg.content() == "hello world");
+}
