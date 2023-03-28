@@ -4132,3 +4132,38 @@ BOOST_AUTO_TEST_CASE(parse_qq_utf8_emoji_subject_raw)
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
 }
+
+
+/**
+Parsing a message with Q/Quoted Printable encoded long subject.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
+{
+    string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: =?UTF-8?Q?TOMISLAV_KARASTOJKOVI=C4=86_PR_RA=C4=8CUNAR?=\r\n"
+        "    =?UTF-8?Q?SKO_PROGRAMIRANJE_ALEPHO_BEOGRAD_?=\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello\r\n"
+        "\r\n"
+        "world\r\n"
+        "\r\n"
+        "\r\n"
+        "opa bato\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+        msg.subject() == "TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO PROGRAMIRANJE ALEPHO BEOGRAD" &&
+        msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+}
