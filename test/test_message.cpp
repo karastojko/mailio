@@ -4167,3 +4167,38 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
         msg.subject() == "TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO PROGRAMIRANJE ALEPHO BEOGRAD" &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
+
+
+/**
+Parsing a message with Q/Base64 encoded long subject.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
+{
+    string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0b3Ig?=\r\n"
+        "  =?UTF-8?B?LSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello\r\n"
+        "\r\n"
+        "world\r\n"
+        "\r\n"
+        "\r\n"
+        "opa bato\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+        msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
+        msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+}
