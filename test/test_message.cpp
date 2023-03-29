@@ -4317,7 +4317,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_long)
 
 
 /**
-Parsing a UTF8 subject in eight bit encoding.
+Parsing a UTF8 subject in the eight bit encoding.
 
 @pre  None.
 @post None.
@@ -4341,7 +4341,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_subject)
 
 
 /**
-Parsing a UTF8 sender with the quoted name in eight bit encoding.
+Parsing a UTF8 sender with the quoted name in the eight bit encoding.
 
 @pre  None.
 @post None.
@@ -4368,7 +4368,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_quoted_name)
 
 
 /**
-Parsing a UTF8 recipient with the quoted name in eight bit encoding.
+Parsing a UTF8 recipient with the quoted name in the eight bit encoding.
 
 @pre  None.
 @post None.
