@@ -4288,3 +4288,31 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_emoji)
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
 }
+
+
+/**
+Parsing a long subject.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_subject_long)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?utf-8?Q?=F0=9F=8E=84=F0=9F=8E=81=F0=9F=8E=8A=C2=A0Sre=C4=87ni=20novogodi=C5=A1nji=20i=20bo=C5=BEi=C4=87ni=20praznici=C2=A0=F0=9F=8E=89=F0=9F=8E=85=F0=9F=92=9D?=\r\n"
+        "\r\n"
+        "test\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.subject() ==
+        u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
+}
+
+
