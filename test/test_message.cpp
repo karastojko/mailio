@@ -4262,3 +4262,29 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_dash)
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "C++ Annotated: Sep – Dec 2017");
 }
+
+
+/**
+Parsing a message with UTF-8 subject containing an emoji character.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_subject_emoji)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?utf-8?Q?=F0=9F=8E=81=C5=BDivi=20godinu=20dana=20na=20ra=C4=8Dun=20Super=20Kartice?=\r\n"
+        "\r\n"
+        "test\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
+}
