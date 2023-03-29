@@ -4236,3 +4236,29 @@ BOOST_AUTO_TEST_CASE(parse_qbq_long_subject)
         msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
+
+
+/**
+Parsing a message with UTF-8 subject containing the long dash character.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_qq_subject_dash)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?Q?C++_Annotated:_Sep_=E2=80=93_Dec_2017?=\r\n"
+        "\r\n"
+        "test\r\n";
+    message msg;
+
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.subject() == "C++ Annotated: Sep – Dec 2017");
+}
