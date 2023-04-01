@@ -4393,3 +4393,30 @@ BOOST_AUTO_TEST_CASE(parse_utf8_name)
     msg.header_codec(mime::header_codec_t::UTF8);
     BOOST_CHECK(msg.recipients_to_string() == "Tomislav Karastojković <qwerty@gmail.com>");
 }
+
+
+/**
+Parsing UTF8 sender with the address in the eight bit encoding.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_utf8_address)
+{
+    string msg_str = "From: Tomislav Karastojkovic <karastojković@gmail.com>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: Proba za UTF8\r\n"
+        "Date: Fri, 24 Dec 2021 15:15:38 +0000\r\n"
+        "Content-Type: text/plain; charset=\"UTF-8\"\r\n"
+        "Content-Transfer-Encoding: base64\r\n"
+        "\r\n"
+        "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojkovic" && msg.from().addresses.at(0).address == "karastojković@gmail.com");
+
+    msg.header_codec(mime::header_codec_t::UTF8);
+    BOOST_CHECK(msg.from_to_string() == "Tomislav Karastojkovic <karastojković@gmail.com>" && msg.content() == "Здраво, Свете!\r\n");
+}
