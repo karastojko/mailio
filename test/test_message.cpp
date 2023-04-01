@@ -44,6 +44,7 @@ using mailio::mime;
 using mailio::message;
 using mailio::mime_error;
 using mailio::message_error;
+using mailio::codec_error;
 
 
 #ifdef __cpp_char8_t
@@ -4419,4 +4420,25 @@ BOOST_AUTO_TEST_CASE(parse_utf8_address)
 
     msg.header_codec(mime::header_codec_t::UTF8);
     BOOST_CHECK(msg.from_to_string() == "Tomislav Karastojkovic <karastojković@gmail.com>" && msg.content() == "Здраво, Свете!\r\n");
+}
+
+
+/**
+Parsing Q encoded recipient with the missing charset.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_q_subject_missing_charset)
+{
+    string msg_str = "From: =??Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: proba\r\n"
+        "\r\n"
+        "test\r\n";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
 }
