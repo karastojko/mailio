@@ -4463,3 +4463,37 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_codec)
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
 }
+
+
+/**
+Parsing the message ID.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_message_id)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <1234567890@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+
+    {
+        // strict mode
+        message msg;
+        msg.strict_mode(true);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.message_id() == "1234567890@mailio.dev");
+    }
+    {
+        // non-strict mode
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>");
+    }
+}
