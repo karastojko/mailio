@@ -4442,3 +4442,24 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_charset)
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
 }
+
+
+/**
+Parsing Q encoded recipient with the missing codec type.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_q_subject_missing_codec)
+{
+    string msg_str = "From: =?UTF-8\?\?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: proba\r\n"
+        "\r\n"
+        "test\r\n";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
+}
