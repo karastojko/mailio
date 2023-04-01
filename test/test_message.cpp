@@ -4497,3 +4497,37 @@ BOOST_AUTO_TEST_CASE(parse_message_id)
         BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>");
     }
 }
+
+
+/**
+Parsing a message with the in-reply-to IDs.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_in_reply_to)
+{
+    string msg_str = "From: mailio <mailio@mailio.dev>\r\n"
+        "To: mailio <mailio@mailio.dev>\r\n"
+        "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev>\r\n"
+        "References: <4444@mailio.dev> <55555@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    {
+        message msg;
+        msg.strict_mode(true);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.in_reply_to().size() == 3 && msg.in_reply_to().at(0) == "1@mailio.dev" && msg.in_reply_to().at(1) == "22@mailio.dev" &&
+            msg.in_reply_to().at(2) == "333@mailio.dev" && msg.references().at(0) == "4444@mailio.dev" && msg.references().at(1) == "55555@mailio.dev");
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.parse(msg_str);
+
+        BOOST_CHECK(msg.in_reply_to().size() == 1 && msg.in_reply_to().at(0) == "<1@mailio.dev> <22@mailio.dev> <333@mailio.dev>" &&
+            msg.references().size() == 1 && msg.references().at(0) == "<4444@mailio.dev> <55555@mailio.dev>");
+    }
+}
