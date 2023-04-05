@@ -4507,8 +4507,8 @@ Parsing a message with the in-reply-to IDs.
 **/
 BOOST_AUTO_TEST_CASE(parse_in_reply_to)
 {
-    string msg_str = "From: mailio <mailio@mailio.dev>\r\n"
-        "To: mailio <mailio@mailio.dev>\r\n"
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
         "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev>\r\n"
         "References: <4444@mailio.dev> <55555@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
@@ -4530,4 +4530,45 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_to)
         BOOST_CHECK(msg.in_reply_to().size() == 1 && msg.in_reply_to().at(0) == "<1@mailio.dev> <22@mailio.dev> <333@mailio.dev>" &&
             msg.references().size() == 1 && msg.references().at(0) == "<4444@mailio.dev> <55555@mailio.dev>");
     }
+}
+
+
+/**
+Copying the message by using the constructor.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(object_copying_1)
+{
+    message msg1;
+    msg1.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg1.reply_address(mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev"));
+    msg1.add_recipient(mail_address("kontakt", "kontakt@mailio.dev"));
+    msg1.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg1.add_recipient(mail_group("all", {mail_address("Tomislav", "qwerty@hotmail.com")}));
+    msg1.add_cc_recipient(mail_group("mailio", {mail_address("", "karas@mailio.dev"), mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev")}));
+    msg1.add_cc_recipient(mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev"));
+    msg1.add_cc_recipient(mail_address("Tomislav @ Karastojkovic", "asdfg@gmail.com"));
+    msg1.add_cc_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg1.add_cc_recipient(mail_group("all", {mail_address("", "qwerty@hotmail.com"), mail_address("Tomislav", "asdfg@gmail.com"),
+        mail_address("Tomislav @ Karastojkovic", "zxcvb@zoho.com")}));
+    msg1.add_bcc_recipient(mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev"));
+    msg1.add_bcc_recipient(mail_address("Tomislav @ Karastojkovic", "asdfg@gmail.com"));
+    msg1.add_bcc_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg1.subject("Hello, World!");
+    msg1.content("Hello, World!");
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg1.date_time(ldt);
+
+    string msg1_str;
+    msg1.format(msg1_str);
+
+    message msg2(msg1);
+    string msg2_str;
+    msg2.format(msg2_str);
+
+    BOOST_CHECK(msg1_str == msg2_str);
 }
