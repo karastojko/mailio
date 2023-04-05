@@ -108,6 +108,23 @@ BOOST_AUTO_TEST_CASE(format_addresses)
 
 
 /**
+Formatting a message without author.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_no_from)
+{
+    message msg;
+    msg.sender(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format no from");
+    string msg_str;
+    BOOST_CHECK_THROW(msg.format(msg_str), message_error);
+}
+
+
+/**
 Formatting other headers.
 
 @pre  None.
