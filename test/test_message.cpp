@@ -125,6 +125,24 @@ BOOST_AUTO_TEST_CASE(format_no_from)
 
 
 /**
+Formatting a message with two authors but no sender.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_no_sender_two_authors)
+{
+    message msg;
+    msg.add_from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_from(mail_address("karas", "karas@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format no sender two authors");
+    string msg_str;
+    BOOST_CHECK_THROW(msg.format(msg_str), message_error);
+}
+
+
+/**
 Formatting other headers.
 
 @pre  None.
