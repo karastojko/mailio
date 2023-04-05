@@ -4534,12 +4534,12 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_to)
 
 
 /**
-Copying the message by using the constructor.
+Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(object_copying_1)
+BOOST_AUTO_TEST_CASE(object_copying)
 {
     message msg1;
     msg1.from(mail_address("mailio", "adresa@mailio.dev"));
@@ -4566,9 +4566,22 @@ BOOST_AUTO_TEST_CASE(object_copying_1)
     string msg1_str;
     msg1.format(msg1_str);
 
-    message msg2(msg1);
-    string msg2_str;
-    msg2.format(msg2_str);
+    {
+        // Test the copy constructor.
 
-    BOOST_CHECK(msg1_str == msg2_str);
+        message msg2(msg1);
+        string msg2_str;
+        msg2.format(msg2_str);
+        BOOST_CHECK(msg1_str == msg2_str);
+    }
+
+    {
+        // Test for the assignment operator.
+
+        message msg3;
+        msg3 = msg1;
+        string msg3_str;
+        msg3.format(msg3_str);
+        BOOST_CHECK(msg1_str == msg3_str);
+    }
 }
