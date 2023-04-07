@@ -2486,6 +2486,27 @@ BOOST_AUTO_TEST_CASE(parse_by_line_oversized)
 
 
 /**
+Parsing by lines an oversized line Base64 encoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_base64_line_oversized)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse_by_line("From: mailio <adresa@mailio.dev>");
+    msg.parse_by_line("To: mailio <adresa@mailio.dev>");
+    msg.parse_by_line("Date: Fri, 17 Jan 2014 05:39:22 -0730");
+    msg.parse_by_line("Content-Type: text/plain");
+    msg.parse_by_line("Content-Transfer-Encoding: Base64");
+    msg.parse_by_line("Subject: parse base64 line oversized");
+    msg.parse_by_line("");
+    BOOST_CHECK_THROW(msg.parse_by_line("T3ZvIGplIGpha28gZHVnYWNoa2EgcG9ydWthIGtvamEgaW1hIGkgcHJhem5paCBsaW5pamEgaSBwcmVkdWdhY2hraWggbGluaWphLg==\r\n"), mime_error);
+}
+
+
+/**
 Parsing addresses and groups from the header.
 
 Multiple addresses in a header are in separated lines, some of them are contain additional spaces.
