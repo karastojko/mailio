@@ -2468,6 +2468,24 @@ BOOST_AUTO_TEST_CASE(parse_wrong_line_len)
 
 
 /**
+Parsing by lines an oversized line.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_by_line_oversized)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse_by_line("From: mailio <adresa@mailio.dev>");
+    msg.parse_by_line("To: mailio");
+    msg.parse_by_line("Subject: parse by line oversized");
+    msg.parse_by_line("");
+    BOOST_CHECK_THROW(msg.parse_by_line("01234567890123456789012345678901234567890123456789012345678901234567890123456789\r\n"), mime_error);
+}
+
+
+/**
 Parsing addresses and groups from the header.
 
 Multiple addresses in a header are in separated lines, some of them are contain additional spaces.
