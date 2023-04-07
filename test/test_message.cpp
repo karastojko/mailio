@@ -1768,6 +1768,38 @@ BOOST_AUTO_TEST_CASE(format_html_att)
 
 
 /**
+Formatting a message without content type.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_mime_no_content_type)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("mime no content type");
+    msg.boundary("my_bound");
+
+    mime m1;
+    m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
+    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
+
+    mime m2;
+    m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m2.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m2.content("Zdravo, Svete!");
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+    string msg_str;
+    BOOST_CHECK_THROW(msg.format(msg_str), message_error);
+}
+
+
+/**
 Formatting a message with the disposition notification.
 
 @pre  None.
