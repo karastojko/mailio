@@ -2613,6 +2613,25 @@ BOOST_AUTO_TEST_CASE(parse_no_author_address)
 
 
 /**
+Parsing a message with a wrong recipient mail group.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_bad_mail_group)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: all: karas@mailio.dev\r\n"
+        "Subject: parse bad mail group\r\n"
+        "\r\n"
+        "hello\r\n";
+    message msg;
+
+    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+}
+
+
+/**
 Parsing quoted address not separated by space from name.
 
 @pre  None.
