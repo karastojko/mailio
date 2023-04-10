@@ -2652,6 +2652,30 @@ BOOST_AUTO_TEST_CASE(parse_bad_recipient_address)
 
 
 /**
+Parsing oversized recipients with the recommended line policy.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_recommended_address)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
+        "To: contact <kontakt@mailio.dev>, Tomislav Karastojkovic <karas@mailio.dev>, Tomislav Karastojkovic <qwerty@gmail.com>, "
+        "Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
+        "Cc: mail.io <adresa@mailio.dev>, Tomislav Karastojkovic <zxcvb@yahoo.com>\r\n"
+        "Date: Wed, 23 Aug 2017 22:16:45 +0000\r\n"
+        "Subject: parse recommended address\r\n"
+        "\r\n"
+        "Hello, World!\r\n";
+
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+}
+
+
+/**
 Parsing quoted address not separated by space from name.
 
 @pre  None.
