@@ -2632,6 +2632,26 @@ BOOST_AUTO_TEST_CASE(parse_bad_mail_group)
 
 
 /**
+Parsing a wrong recipient address.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_bad_recipient_address)
+{
+    string msg_str = "From: maill.io@mailio.dev\r\n"
+        "To: <mailio>\r\n"
+        "Subject: parse bad recipient address\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello\r\n";
+    message msg;
+
+    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+}
+
+
+/**
 Parsing quoted address not separated by space from name.
 
 @pre  None.
