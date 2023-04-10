@@ -2573,6 +2573,26 @@ BOOST_AUTO_TEST_CASE(parse_address_no_space)
 
 
 /**
+Parsing the name and address without brackets.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_bad_author_address)
+{
+    string msg_str = "From: mailio adresa@mailio.dev\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: parse bad author address\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello\r\n";
+    message msg;
+
+    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+}
+
+
+/**
 Parsing quoted address not separated by space from name.
 
 @pre  None.
