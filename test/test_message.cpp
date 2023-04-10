@@ -2593,6 +2593,26 @@ BOOST_AUTO_TEST_CASE(parse_bad_author_address)
 
 
 /**
+Parsing a message without the author address.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_no_author_address)
+{
+    string msg_str = "Sender: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Subject: parse no author address\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "\r\n"
+        "hello\r\n";
+    message msg;
+
+    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+}
+
+
+/**
 Parsing quoted address not separated by space from name.
 
 @pre  None.
