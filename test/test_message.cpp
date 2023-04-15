@@ -4767,6 +4767,27 @@ BOOST_AUTO_TEST_CASE(parse_whitespace_message_id)
 
 
 /**
+Parsing the empty message ID.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_empty_message_id)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID:\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+}
+
+
+/**
 Parsing a message with the in-reply-to IDs.
 
 @pre  None.
