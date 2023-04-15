@@ -4788,6 +4788,38 @@ BOOST_AUTO_TEST_CASE(parse_empty_message_id)
 
 
 /**
+Parsing few message IDs.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_few_message_ids)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <1@mailio.dev><2@mailio.dev>   <3@mailio.dev>    <4@mailio.dev>   \r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    {
+        message msg;
+        msg.strict_mode(true);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.message_id() == "1@mailio.dev");
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.message_id() == "<1@mailio.dev><2@mailio.dev>   <3@mailio.dev>    <4@mailio.dev>");
+    }
+}
+
+
+/**
 Parsing a message with the in-reply-to IDs.
 
 @pre  None.
