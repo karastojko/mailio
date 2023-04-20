@@ -4854,6 +4854,36 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_to)
 
 
 /**
+Parsing the message ID without the monkey character.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_in_reply_without_monkey)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "In-reply-To: <1@mailio.dev> <2 mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    {
+        message msg;
+        msg.strict_mode(true);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.in_reply_to().size() == 1 && msg.in_reply_to().at(0) == "<1@mailio.dev> <2 mailio.dev>");
+    }
+}
+
+
+/**
 Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
