@@ -4916,6 +4916,28 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
 
 
 /**
+Parsing an empty header in the strict mode.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_empty_header_strict)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "User-Agent:\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    message msg;
+    msg.strict_mode(true);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+}
+
+
+/**
 Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
