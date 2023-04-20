@@ -4884,6 +4884,38 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_without_monkey)
 
 
 /**
+Parsing the message ID without the angle brackets.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "References: <1@mailio.dev> 2@mailio.dev\r\n"
+        "In-reply-To: <3@mailio.dev> <4@mailio.dev>"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    {
+        message msg;
+        msg.strict_mode(true);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.references().size() == 1);
+    }
+}
+
+
+/**
 Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
