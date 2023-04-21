@@ -4993,6 +4993,34 @@ BOOST_AUTO_TEST_CASE(parse_wrong_empty_header)
 
 
 /**
+Parsing a header with horizontal tabs.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_headers_htab)
+{
+    string msg_str = "From: mail io <test@sender.com>\r\n"
+        "To: \tmail io <test@sender.com>\r\n"
+        "Date: Sat, 18 Jun 2022 05:56:34 +0000\r\n"
+        "Received: from SRV2 - test@sender.com\r\n"
+        " (srv2 - test@sender.com[192.168.245.16])\tby\r\n"
+        " smtp - 01.test@sender.com(Postfix) with ESMTP id 8D16C3CE\tfor\r\n"
+        " <test@receiver.com>; Sat, 20 Aug 2022 11:01 : 35 + 0200\r\n"
+        " (CEST)\r\n"
+        "Subject: Hello, World!\r\n"
+        "\r\n"
+        "Hello, World!\r\n";
+    message msg;
+    msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY, mailio::codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    auto hdrs = msg.headers();
+    auto rcv = hdrs.find("Received");
+    BOOST_CHECK(rcv != hdrs.end());
+}
+
+
+/**
 Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
