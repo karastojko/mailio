@@ -4938,6 +4938,40 @@ BOOST_AUTO_TEST_CASE(parse_empty_header_strict)
 
 
 /**
+Parsing the empty header in the non-strict mode.
+
+@pre  None.
+@post None.
+@todo MSVC is not working well if headers are not copied, see below.
+**/
+BOOST_AUTO_TEST_CASE(parse_empty_header_relaxed)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "User-Agent:\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "Hello: World\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+
+    // If the headers in tests are accessed without copying, then for some reason the multimap often does not read the individual headers
+    // properly. Not sure what is the reason for this behavior, Gcc works fine.
+    auto headers = msg.headers();
+    BOOST_CHECK(headers.size() == 2);
+    BOOST_CHECK(msg.subject() == "Proba");
+    BOOST_CHECK(headers.count("User-Agent") == 1 && headers.count("Hello") == 1);
+    auto user_agent = headers.find("User-Agent");
+    BOOST_CHECK(user_agent->first == "User-Agent" && user_agent->second.empty());
+    auto hello = headers.find("Hello");
+    BOOST_CHECK(hello->first == "Hello" && hello->second == "World");
+}
+
+
+/**
 Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
