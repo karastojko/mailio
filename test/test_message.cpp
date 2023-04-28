@@ -1522,8 +1522,6 @@ BOOST_AUTO_TEST_CASE(format_attachment)
     msg.attach(ifs1, "TomislavKarastojkovic_CV.txt", message::media_type_t::APPLICATION, "txt");
     std::ifstream ifs2("aleph0.png");
     msg.attach(ifs2, "logo.png", message::media_type_t::IMAGE, "png");
-    string msg_str;
-    msg.format(msg_str);
 
     const size_t ATT0_SIZE = 27;
     const size_t ATT1_SIZE = 18960;
