@@ -837,12 +837,12 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_ascii_qp_text_ascii_bit8)
 
 
 /**
-Formatting an alternative multipart with the first part HTML default charset Base64 encoded, the second part text UTF-8 charset Quoted Printable encoded.
+Formatting a related multipart with the first part HTML default charset Base64 encoded, the second part text UTF-8 charset Quoted Printable encoded.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_multipart_html_default_base64_text_utf8_qp)
+BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
 {
     message msg;
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
@@ -852,7 +852,7 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_default_base64_text_utf8_qp)
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format multipart html default base64 text utf8 qp");
+    msg.subject("format related html default base64 text utf8 qp");
     msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "related");
 
@@ -878,7 +878,7 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_default_base64_text_utf8_qp)
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
-        "Subject: format multipart html default base64 text utf8 qp\r\n"
+        "Subject: format related html default base64 text utf8 qp\r\n"
         "\r\n"
         "--my_bound\r\n"
         "Content-Type: text/html\r\n"
