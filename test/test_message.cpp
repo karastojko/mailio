@@ -898,6 +898,66 @@ BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
 
 
 /**
+Formatting an alternative multipart with the first part HTML ASCII charset Bit8 encoded, the second part text UTF-8 charset Base64 encoded.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_alternative_html_ascii_bit8_text_utf8_base64)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("format alternative html ascii bit8 text utf8 base64");
+    msg.boundary("my_bound");
+    msg.content_type(message::media_type_t::MULTIPART, "alternative");
+
+    mime m1;
+    m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
+    m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_8);
+    m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
+
+    mime m2;
+    m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    m2.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
+    m2.content("Здраво, Свете!");
+
+    msg.add_part(m1);
+    msg.add_part(m2);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/alternative; boundary=\"my_bound\"\r\n"
+        "Subject: format alternative html ascii bit8 text utf8 base64\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/html; charset=us-ascii\r\n"
+        "Content-Transfer-Encoding: 8bit\r\n"
+        "\r\n"
+        "<html><head></head><body><h1>Hello, World!</h1></body></html>\r\n"
+        "\r\n"
+        "--my_bound\r\n"
+        "Content-Type: text/plain; charset=utf-8\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "\r\n"
+        "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ==\r\n"
+        "\r\n"
+        "--my_bound--\r\n");
+}
+
+
+/**
 Formatting a multipart message with leading dots and the escaping flag turned off and on.
 
 The first part is HTML ASCII charset Seven Bit encoded, the second part is text UTF-8 charset Quoted Printable encoded, the third part is text UTF-8
