@@ -47,9 +47,9 @@ namespace mailio
 {
 
 
-pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) :
-    dlg_(make_shared<dialog>(hostname, port, timeout))
+pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) : dlg_(make_shared<dialog>(hostname, port, timeout))
 {
+    dlg_->connect();
 }
 
 

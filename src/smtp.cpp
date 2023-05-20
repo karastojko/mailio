@@ -42,10 +42,10 @@ namespace mailio
 {
 
 
-smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) :
-    dlg_(make_shared<dialog>(hostname, port, timeout))
+smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) : dlg_(make_shared<dialog>(hostname, port, timeout))
 {
     src_host_ = read_hostname();
+    dlg_->connect();
 }
 
 

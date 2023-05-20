@@ -172,6 +172,7 @@ imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
     dlg_(make_shared<dialog>(hostname, port, timeout)), tag_(0), optional_part_state_(false), atom_state_(atom_state_t::NONE),
     parenthesis_list_counter_(0), literal_state_(string_literal_state_t::NONE), literal_bytes_read_(0), eols_no_(2)
 {
+    dlg_->connect();
 }
 
 

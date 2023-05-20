@@ -43,12 +43,22 @@ namespace mailio
 boost::asio::io_context dialog::ios_;
 
 
-dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
+dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) : std::enable_shared_from_this<dialog>(),
     hostname_(hostname), port_(port), socket_(make_shared<tcp::socket>(ios_)), timer_(make_shared<deadline_timer>(ios_)),
-    timeout_(timeout), timer_expired_(false), strmbuf_(make_shared<streambuf>())
+    timeout_(timeout), timer_expired_(false), strmbuf_(make_shared<streambuf>()), istrm_(make_shared<istream>(strmbuf_.get()))
 {
-    istrm_ = make_shared<istream>(strmbuf_.get());
+}
 
+
+dialog::dialog(const dialog& other) : std::enable_shared_from_this<dialog>(),
+    hostname_(move(other.hostname_)), port_(other.port_), socket_(other.socket_), timer_(other.timer_),
+    timeout_(other.timeout_), timer_expired_(other.timer_expired_), strmbuf_(other.strmbuf_), istrm_(other.istrm_)
+{
+}
+
+
+void dialog::connect()
+{
     try
     {
         if (timeout_.count() == 0)
@@ -63,13 +73,6 @@ dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) :
     {
         throw dialog_error("Server connecting failed.");
     }
-}
-
-
-dialog::dialog(const dialog& other) : hostname_(move(other.hostname_)), port_(other.port_), socket_(other.socket_), timer_(other.timer_),
-    timeout_(other.timeout_), timer_expired_(other.timer_expired_), strmbuf_(other.strmbuf_)
-{
-    istrm_ = other.istrm_;
 }
 
 
@@ -133,7 +136,7 @@ void dialog::connect_async()
     timer_->expires_at(boost::posix_time::pos_infin);
     timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
     boost::system::error_code ignored_ec;
-    check_timeout(ignored_ec, socket_, timer_, timer_expired_);
+    check_timeout();
 
     bool has_connected{false}, connect_error{false};
     async_connect(*socket_, res.resolve(hostname_, to_string(port_)),
@@ -213,16 +216,16 @@ string dialog::receive_async(Socket& socket, bool raw)
 }
 
 
-void dialog::check_timeout(const boost::system::error_code& error, shared_ptr<tcp::socket> socket, shared_ptr<deadline_timer> timer, bool& expired)
+void dialog::check_timeout()
 {
-    if (timer->expires_at() <= deadline_timer::traits_type::now())
+    if (timer_->expires_at() <= deadline_timer::traits_type::now())
     {
-        expired = true;
         boost::system::error_code ignored_ec;
-        socket->close(ignored_ec);
-        timer->expires_at(boost::posix_time::pos_infin);
+        socket_->close(ignored_ec);
+        timer_->expires_at(boost::posix_time::pos_infin);
+        timer_expired_ = true;
     }
-    timer->async_wait(bind(&dialog::check_timeout, error, socket, timer, expired));
+    timer_->async_wait(bind(&dialog::check_timeout, shared_from_this()));
 }
 
 
@@ -234,7 +237,7 @@ dialog_ssl::dialog_ssl(const string& hostname, unsigned port, milliseconds timeo
 
 
 dialog_ssl::dialog_ssl(const dialog& other) : dialog(other), context_(make_shared<context>(context::sslv23)),
-    ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*(dialog::socket_), *context_))
+    ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*socket_, *context_))
 {
     try
     {

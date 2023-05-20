@@ -32,7 +32,7 @@ namespace mailio
 /**
 Dealing with network in a line oriented fashion.
 **/
-class dialog
+class dialog : public std::enable_shared_from_this<dialog>
 {
 public:
 
@@ -64,6 +64,8 @@ public:
     void operator=(const dialog&) = delete;
 
     void operator=(dialog&&) = delete;
+
+    virtual void connect();
 
     /**
     Sending a line to network synchronously or asynchronously, depending of the timeout value.
@@ -138,16 +140,8 @@ protected:
 
     /**
     Checking if the timeout is reached.
-    The method is static to ensure that it still exists at the moment of the socket destruction. As method, it could happen that in the destructor it's being
-    used by the IO service, thus producing the crash.
-
-    @param error   Error code.
-    @param socket  Socket to check the timeout.
-    @param timer   Timer associated with the socket.
-    @param expired Flag if the timer has expired.
     **/
-    static void check_timeout(const boost::system::error_code& error, std::shared_ptr<boost::asio::ip::tcp::socket> socket,
-        std::shared_ptr<boost::asio::deadline_timer> timer, bool& expired);
+    void check_timeout();
 
     /**
     Server hostname.
