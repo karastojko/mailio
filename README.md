@@ -1,6 +1,8 @@
 
 # mailio #
 
+[中文文档](README_zh.md)
+
 *mailio* is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on the standard C++ 17 and Boost library.
 
 
@@ -192,7 +194,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Canyon E](https://github.com/canyone2015): IMAP folder delimiter static variable issue.
 * [ostermal](https://github.com/ostermal): Bug with the horizontal tab in MIME headers.
 * [MRsoymilk](mailto:313958485[at]qq.com): Bug in the sending attachment example.
-
+* [Don Yihtseu](https://github.com/tsurumi-yizhou): Add Chinese document
 
 # Contact #
 
