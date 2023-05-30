@@ -339,6 +339,7 @@ tuple<string, string> pop3::parse_status(const string& line)
 
 pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3(hostname, port, timeout)
 {
+    ssl_options_ = {boost::asio::ssl::context::sslv23};
 }
 
 
@@ -361,6 +362,12 @@ string pop3s::authenticate(const string& username, const string& password, auth_
 }
 
 
+void pop3s::ssl_options(const dialog_ssl::ssl_options_t& options)
+{
+    ssl_options_ = options;
+}
+
+
 /*
 For details see [rfc 2595/4616].
 */
@@ -378,7 +385,7 @@ void pop3s::start_tls()
 
 void pop3s::switch_to_ssl()
 {
-    dlg_ = make_shared<dialog_ssl>(*dlg_);
+    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 

@@ -229,14 +229,14 @@ void dialog::check_timeout()
 }
 
 
-dialog_ssl::dialog_ssl(const string& hostname, unsigned port, milliseconds timeout) :
-    dialog(hostname, port, timeout), ssl_(false), context_(make_shared<context>(context::sslv23)),
+dialog_ssl::dialog_ssl(const string& hostname, unsigned port, milliseconds timeout, const ssl_options_t& options) :
+    dialog(hostname, port, timeout), ssl_(false), context_(make_shared<context>(options.method)),
     ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*socket_, *context_))
 {
 }
 
 
-dialog_ssl::dialog_ssl(const dialog& other) : dialog(other), context_(make_shared<context>(context::sslv23)),
+dialog_ssl::dialog_ssl(const dialog& other, const ssl_options_t& options) : dialog(other), context_(make_shared<context>(options.method)),
     ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*socket_, *context_))
 {
     try

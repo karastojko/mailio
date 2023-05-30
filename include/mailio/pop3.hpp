@@ -275,6 +275,8 @@ public:
     **/
     std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
+    void ssl_options(const dialog_ssl::ssl_options_t& options);
+
 protected:
 
     /**
@@ -291,6 +293,8 @@ protected:
     @throw * `dialog_ssl::dialog_ssl(dialog&&)`.
     **/
     void switch_to_ssl();
+
+    dialog_ssl::ssl_options_t ssl_options_;
 };
 
 

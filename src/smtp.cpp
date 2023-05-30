@@ -301,6 +301,7 @@ inline bool smtp::permanent_negative(int status)
 
 smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp(hostname, port, timeout)
 {
+    ssl_options_ = {boost::asio::ssl::context::sslv23};
 }
 
 
@@ -331,6 +332,12 @@ string smtps::authenticate(const string& username, const string& password, auth_
 }
 
 
+void smtps::ssl_options(const dialog_ssl::ssl_options_t& options)
+{
+    ssl_options_ = options;
+}
+
+
 void smtps::start_tls()
 {
     dlg_->send("STARTTLS");
@@ -346,7 +353,7 @@ void smtps::start_tls()
 
 void smtps::switch_to_ssl()
 {
-    dlg_ = make_shared<dialog_ssl>(*dlg_);
+    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 

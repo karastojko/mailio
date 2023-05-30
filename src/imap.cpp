@@ -1329,6 +1329,7 @@ list<shared_ptr<imap::response_token_t>>* imap::find_last_token_list(list<shared
 
 imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap(hostname, port, timeout)
 {
+    ssl_options_ = {boost::asio::ssl::context::sslv23};
 }
 
 
@@ -1351,6 +1352,12 @@ string imaps::authenticate(const string& username, const string& password, auth_
 }
 
 
+void imaps::ssl_options(const dialog_ssl::ssl_options_t& options)
+{
+    ssl_options_ = options;
+}
+
+
 void imaps::start_tls()
 {
     dlg_->send(format("STARTTLS"));
@@ -1367,7 +1374,7 @@ void imaps::start_tls()
 
 void imaps::switch_to_ssl()
 {
-    dlg_ = std::make_shared<dialog_ssl>(*dlg_);
+    dlg_ = std::make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 
