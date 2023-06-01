@@ -198,10 +198,13 @@ class dialog_ssl : public dialog
 public:
 
     /**
-    SSL options.
+    SSL options to set on a socket.
     **/
     struct ssl_options_t
     {
+        /**
+        Methods as supported by Asio.
+        **/
         boost::asio::ssl::context::method method;
     };
 
@@ -211,12 +214,16 @@ public:
     @param hostname Server hostname.
     @param port     Server port.
     @param timeout  Network timeout after which I/O operations fail. If zero, then no timeout is set i.e. I/O operations are synchronous.
+    @param options  SSL options to set.
     @throw *        `dialog::dialog(const std::string&, unsigned)`.
     **/
     dialog_ssl(const std::string& hostname, unsigned port, std::chrono::milliseconds timeout, const ssl_options_t& options);
 
     /**
     Calling the parent constructor, initializing the SSL socket.
+
+    @param other   Plain connection to use for the SSL.
+    @param options SSL options to set.
     **/
     dialog_ssl(const dialog& other, const ssl_options_t& options);
 

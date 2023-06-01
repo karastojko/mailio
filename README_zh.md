@@ -151,7 +151,6 @@ vcpkg install mailio
 
 * 无ASCII附件名称为UTF-8
 * SSL认证尚未验证
-* SSL版本尚未可配置，目前锁定为2.3
 
 # 贡献者 #
 * [Trevor Mellon](https://github.com/TrevorMellon): 提供了CMake构建脚本

@@ -919,6 +919,11 @@ public:
     **/
     std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
+    /**
+    Setting SSL options.
+
+    @param options SSL options to set.
+    **/
     void ssl_options(const dialog_ssl::ssl_options_t& options);
 
 protected:
@@ -933,12 +938,15 @@ protected:
     void start_tls();
 
     /**
-    Replacing TCP socket with SSL socket.
+    Replacing a TCP socket with an SSL one.
 
-    @throw * `dialog_ssl::dialog_ssl(dialog_ssl&&)`.
+    @throw * `dialog_ssl::dialog_ssl(dialog&, const ssl_options_t&)`.
     **/
     void switch_to_ssl();
 
+    /**
+    SSL options to set.
+    **/
     dialog_ssl::ssl_options_t ssl_options_;
 };
 
