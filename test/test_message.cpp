@@ -4169,7 +4169,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
     BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
         msg.parts().at(0).content_type().charset == "utf-8" &&
-        msg.parts().at(0).name() == "name" &&
+        msg.parts().at(0).http_name() == "name" &&
         msg.parts().at(0).content() == "<html><head></head><body><h1>Ćao, Svete!</h1></body></html>");
     BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&

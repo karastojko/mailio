@@ -281,6 +281,18 @@ string mime::name() const
 }
 
 
+void mime::http_name(const string& http_name)
+{
+    http_name_ = http_name;
+}
+
+
+string mime::http_name() const
+{
+    return http_name_;
+}
+
+
 void mime::content_transfer_encoding(content_transfer_encoding_t encoding)
 {
     encoding_ = encoding;

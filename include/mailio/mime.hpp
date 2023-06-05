@@ -265,11 +265,25 @@ public:
     void name(const std::string& mime_name);
 
     /**
+    Setting the HTTP mime name.
+
+    @param mime_name HTTP Mime name to set.
+    **/
+    void http_name(const std::string& http_name);
+
+    /**
     Getting the mime name.
 
     @return Mime name.
     **/
     std::string name() const;
+
+    /**
+    Getting the HTTP MIME name.
+
+    @return HTTP MIME name.
+    **/
+    std::string http_name() const;
 
     /**
     Setting the content transfer encoding.
@@ -778,6 +792,11 @@ protected:
     @todo Should it contain filename of the attachment?
     **/
     std::string name_;
+
+    /**
+    Content-Disposition HTTP name of mime.
+    **/
+    std::string http_name_;
 
     /**
     Content transfer encoding of the mime part.
