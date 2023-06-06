@@ -728,6 +728,13 @@ void mime::parse_header_line(const string& header_line)
             q_codec qc(line_policy_, decoder_line_policy_);
             name_ = get<0>(qc.check_decode(filename_it->second));
         }
+        // HTTP name
+        attributes_t::iterator httpname_it = attributes.find(ATTRIBUTE_NAME);
+        if (httpname_it != attributes.end())
+        {
+            q_codec qc(line_policy_, decoder_line_policy_);
+            http_name_ = get<0>(qc.check_decode(httpname_it->second));
+        }
     }
 }
 
