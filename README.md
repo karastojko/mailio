@@ -106,8 +106,8 @@ There are two ways to build *mailio*: by cloning the [repo](https://github.com/k
 Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could use CMake options `-DOPENSSL_ROOT_DIR` and `-DBOOST_ROOT` to set
 them. Boost must be built with the OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include` parameters of
 `b2` script (after `bootstrap` finishes). Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default
-installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INSTALL_PREFIX`. Other available options are `MAILIO_BUILD_SHARED_LIBRARY`
-(whether a shared or static library shall be build, by default is on), `MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on)
+installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INSTALL_PREFIX`. Other available options are `BUILD_SHARED_LIBS`
+(whether a shared or static library shall be build, by default a shared lib is build), `MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on)
 and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 

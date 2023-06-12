@@ -47,8 +47,9 @@ endif(NOT SHARE_INSTALL_DIR)
 # options for mailio to control how the project is built.
 option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
-option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build the shared library." ON)
 option(MAILIO_BUILD_TESTS "Turn on to build the tests." ON)
+
+option(BUILD_SHARED_LIBS "Turn on to build mailio as a shared library. When off mailio is build as a static library." ON)
 
 # add a dependent option to build latex documentation or not.
 include(CMakeDependentOption)
@@ -116,13 +117,7 @@ if(${MAILIO_BUILD_DOCUMENTATION})
     endif(DOXYGEN_FOUND)
 endif(${MAILIO_BUILD_DOCUMENTATION})
 
-set(LIBRARY_TYPE, "")
-if (MAILIO_BUILD_SHARED_LIBRARY)
-    set(LIBRARY_TYPE "SHARED")
-else()
-    set(LIBRARY_TYPE "STATIC")
-endif()
-add_library(${PROJECT_NAME} ${LIBRARY_TYPE} ${project_sources} ${project_headers})
+add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
 
 
 # pkg-config support
