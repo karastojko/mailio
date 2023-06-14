@@ -1,3 +1,4 @@
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
 function(add_mailio_tests SOURCE_FILE)
     get_filename_component(file_name ${SOURCE_FILE} NAME_WE)
