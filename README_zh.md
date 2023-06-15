@@ -100,7 +100,7 @@ Boost必须在有OpenSSL下构建。如果在PATH中不能发现这些库，通�
 
 动态和静态库都会构建于`build`文件夹。如果你需要把库安装到一个特定的路径(例如`/opt/mailio`),设置CMake参数`-DCMAKE_INSTALL_PREFIX`。
 
-其他可行的参数有`MAILIO_BUILD_SHARED_LIBRARY`(默认开启，开启会构建动态链接库), `MAILIO_BUILD_DOCUMENTATION`(默认开启，会生成Doxygen文档，如果安装了的话), `MAILIO_BUILD_EXAMPLES`(默认开启，构建示例代码)
+其他可行的参数有`BUILD_SHARED_LIBS`(默认开启，开启会构建动态链接库), `MAILIO_BUILD_DOCUMENTATION`(默认开启，会生成Doxygen文档，如果安装了的话), `MAILIO_BUILD_EXAMPLES`(默认开启，构建示例代码)
 
 ### Linux, FreeBSD, macOS, Cygwin ###
 从终端直接进入项目路径构建，只需运行：
