@@ -339,7 +339,11 @@ tuple<string, string> pop3::parse_status(const string& line)
 
 pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3(hostname, port, timeout)
 {
-    ssl_options_ = {boost::asio::ssl::context::sslv23};
+    ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_peer
+        };
 }
 
 

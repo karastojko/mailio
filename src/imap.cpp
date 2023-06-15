@@ -1329,7 +1329,11 @@ list<shared_ptr<imap::response_token_t>>* imap::find_last_token_list(list<shared
 
 imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap(hostname, port, timeout)
 {
-    ssl_options_ = {boost::asio::ssl::context::sslv23};
+    ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_peer
+        };
 }
 
 

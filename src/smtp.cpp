@@ -301,7 +301,11 @@ inline bool smtp::permanent_negative(int status)
 
 smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp(hostname, port, timeout)
 {
-    ssl_options_ = {boost::asio::ssl::context::sslv23};
+    ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_peer
+        };
 }
 
 

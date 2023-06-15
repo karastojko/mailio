@@ -241,7 +241,7 @@ dialog_ssl::dialog_ssl(const dialog& other, const ssl_options_t& options) : dial
 {
     try
     {
-        ssl_socket_->set_verify_mode(boost::asio::ssl::verify_none);
+        ssl_socket_->set_verify_mode(options.verify_mode);
         ssl_socket_->handshake(boost::asio::ssl::stream_base::client);
         ssl_ = true;
     }

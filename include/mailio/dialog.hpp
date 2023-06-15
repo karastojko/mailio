@@ -206,6 +206,11 @@ public:
         Methods as supported by Asio.
         **/
         boost::asio::ssl::context::method method;
+
+        /**
+        Peer verification bitmask supported by Asio.
+        **/
+        boost::asio::ssl::verify_mode verify_mode;
     };
 
     /**
