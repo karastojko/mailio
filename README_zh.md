@@ -150,7 +150,6 @@ vcpkg install mailio
 并非所有邮件服务器都被覆盖测试了。如果你发现了什么不能用的库，那么请联系我们。这里是已知的，会在未来修复的问题：
 
 * 无ASCII附件名称为UTF-8
-* SSL认证尚未验证
 
 # 贡献者 #
 * [Trevor Mellon](https://github.com/TrevorMellon): 提供了CMake构建脚本

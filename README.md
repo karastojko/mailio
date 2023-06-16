@@ -172,7 +172,6 @@ The library is tested on valid mail servers, so probably there are negative test
 contact me. Here is a list of issues known so far and planned to be fixed in the future.
 
 * Non-ASCII attachment name is assumed to be UTF-8.
-* SSL certificate is not verified.
 
 
 # Contributors #
