@@ -2,6 +2,7 @@
 function(add_mailio_tests SOURCE_FILE)
     get_filename_component(file_name ${SOURCE_FILE} NAME_WE)
     add_executable(${file_name} ${SOURCE_FILE})
+    target_link_directories(${file_name} PUBLIC ${Boost_LIBRARY_DIRS})
     target_link_libraries(${file_name} PUBLIC ${Boost_LIBRARIES} mailio ${CMAKE_THREAD_LIBS_INIT})
     install(TARGETS ${file_name} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/test")
 endfunction(add_mailio_tests)
