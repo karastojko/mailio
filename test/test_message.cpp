@@ -11,7 +11,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
-#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE message_test
 
 #include <string>

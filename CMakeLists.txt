@@ -49,6 +49,7 @@ option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation.
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
 option(MAILIO_BUILD_SHARED_LIBRARY "Turn on to build the shared library." ON)
 option(MAILIO_BUILD_TESTS "Turn on to build the tests." ON)
+option(MAILIO_DYN_LINK_TESTS "Turn on to dynamically link the tests." OFF)
 
 # add a dependent option to build latex documentation or not.
 include(CMakeDependentOption)
