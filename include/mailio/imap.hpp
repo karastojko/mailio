@@ -146,11 +146,12 @@ public:
         - BEFORE_DATE: messages whose internal date is earlier than the specified date.
         - ON_DATE: messages whose internal date is within the specified date.
         - SINCE_DATE: messages whose internal date is within or later than the specified date.
+        - RECENT: messages that have the `\Recent` flag set.
 
         @todo Criterion for the body.
         @todo Criteria for the flags set.
         **/
-        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE} key;
+        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, RECENT} key;
 
         /**
         Condition value type to be used as message search criteria.

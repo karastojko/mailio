@@ -128,6 +128,10 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
                 imap_string = "SINCE " + imap_date_to_string(std::get<boost::gregorian::date>(value));
                 break;
 
+            case RECENT:
+                imap_string = "RECENT";
+                break;
+
             default:
                 break;
         }
