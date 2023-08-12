@@ -304,7 +304,7 @@ smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp
     ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
-            boost::asio::ssl::verify_peer
+            boost::asio::ssl::verify_none
         };
 }
 

@@ -342,7 +342,7 @@ pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3
     ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
-            boost::asio::ssl::verify_peer
+            boost::asio::ssl::verify_none
         };
 }
 
