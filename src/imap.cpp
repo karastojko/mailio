@@ -132,6 +132,10 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
                 imap_string = "RECENT";
                 break;
 
+            case SEEN:
+                imap_string = "SEEN";
+                break;
+
             default:
                 break;
         }

@@ -151,7 +151,7 @@ public:
         @todo Criterion for the body.
         @todo Criteria for the flags set.
         **/
-        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, RECENT} key;
+        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, RECENT, SEEN} key;
 
         /**
         Condition value type to be used as message search criteria.
