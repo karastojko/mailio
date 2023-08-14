@@ -136,6 +136,10 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
                 imap_string = "SEEN";
                 break;
 
+            case UNSEEN:
+                imap_string = "UNSEEN";
+                break;
+
             default:
                 break;
         }
