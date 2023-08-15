@@ -147,6 +147,7 @@ public:
         - BEFORE_DATE: messages whose internal date is earlier than the specified date.
         - ON_DATE: messages whose internal date is within the specified date.
         - SINCE_DATE: messages whose internal date is within or later than the specified date.
+        - NEW: messages that have the `\Recent` flag set but not `\Seen`.
         - RECENT: messages that have the `\Recent` flag set.
         - SEEN: messages that have the `\Seen` flag set.
         - UNSEEN: messages that do not have the `\Seen` flag set.
@@ -154,7 +155,7 @@ public:
         @todo Criteria for the flags set.
         @todo Negative (not) criteria.
         **/
-        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, BODY, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, RECENT, SEEN, UNSEEN} key;
+        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, BODY, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, NEW, RECENT, SEEN, UNSEEN} key;
 
         /**
         Condition value type to be used as message search criteria.
