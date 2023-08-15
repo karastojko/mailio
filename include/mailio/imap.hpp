@@ -141,6 +141,7 @@ public:
         - SID_LIST: messages with session identifiers specified in the set.
         - UID_LIST: messages with unique identifiers specified in the set.
         - SUBJECT: messages that contain the specified string in the subject.
+        - BODY: messages that contain the specified string in the body.
         - FROM: messages that contain the specified string in the 'from' field.
         - TO: messages that contain the specified string in the 'to' field.
         - BEFORE_DATE: messages whose internal date is earlier than the specified date.
@@ -148,10 +149,9 @@ public:
         - SINCE_DATE: messages whose internal date is within or later than the specified date.
         - RECENT: messages that have the `\Recent` flag set.
 
-        @todo Criterion for the body.
         @todo Criteria for the flags set.
         **/
-        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, RECENT, SEEN, UNSEEN} key;
+        enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, BODY, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, RECENT, SEEN, UNSEEN} key;
 
         /**
         Condition value type to be used as message search criteria.

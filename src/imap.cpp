@@ -108,6 +108,10 @@ imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type 
                 imap_string = "SUBJECT " + QUOTED_STRING_SEPARATOR + std::get<string>(value) + QUOTED_STRING_SEPARATOR;
                 break;
 
+            case BODY:
+                imap_string = "BODY " + QUOTED_STRING_SEPARATOR + std::get<string>(value) + QUOTED_STRING_SEPARATOR;
+                break;
+
             case FROM:
                 imap_string = "FROM " + QUOTED_STRING_SEPARATOR + std::get<string>(value) + QUOTED_STRING_SEPARATOR;
                 break;
