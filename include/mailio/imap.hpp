@@ -397,6 +397,9 @@ public:
     /**
     Searching a mailbox.
 
+    The RFC 3501 section 6.4.4 does not specify whether another untagged response except the SEARCH can be obtained. However, there are IMAP servers which
+    send, for instance, the EXISTS response. Thus, such non-specified responses are ignored, instead of being reported as errors.
+
     @param conditions  List of conditions taken in conjuction way.
     @param results     Store resulting list of message sequence numbers or UIDs here.
                        Does not clear the list first, so that results can be accumulated.

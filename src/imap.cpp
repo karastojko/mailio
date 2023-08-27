@@ -960,8 +960,9 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
                 parse_response(parsed_line.response);
 
                 auto search_token = mandatory_part_.front();
+                // ignore other responses, although not sure whether this is by the rfc or not
                 if (search_token->token_type == response_token_t::token_type_t::ATOM && !iequals(search_token->atom, "SEARCH"))
-                    throw imap_error("Search mailbox failure.");
+                    continue;
                 mandatory_part_.pop_front();
 
                 for (auto it = mandatory_part_.begin(); it != mandatory_part_.end(); it++)
