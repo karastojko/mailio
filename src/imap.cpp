@@ -918,7 +918,9 @@ string imap::connect()
 
 void imap::auth_login(const string& username, const string& password)
 {
-    auto cmd = format("LOGIN " + username + TOKEN_SEPARATOR_STR + password);
+    auto user_esc = codec::surround_string(codec::escape_string(username, "\"\\"));
+    auto pass_esc = codec::surround_string(codec::escape_string(password, "\"\\"));
+    auto cmd = format("LOGIN " + user_esc + TOKEN_SEPARATOR_STR + pass_esc);
     dlg_->send(cmd);
 
     bool has_more = true;

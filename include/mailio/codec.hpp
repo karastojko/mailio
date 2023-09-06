@@ -208,6 +208,24 @@ public:
     static bool is_8bit_char(char ch);
 
     /**
+    Escaping the specified characters in the given string.
+
+    @param text           String where to escape certain characters.
+    @param escaping_chars Characters to be escaped.
+    @return               The given string with the escaped characters.
+    **/
+    static std::string escape_string(const std::string& text, const std::string& escaping_chars);
+
+    /**
+    Surrounding the given string with the given character.
+
+    @param text          String to surround.
+    @param surround_char Character to be used for the surrounding.
+    @return              Surrounded string.
+    **/
+    static std::string surround_string(const std::string& text, char surround_char = '"');
+
+    /**
     Checking if a string is UTF-8 encoded.
 
     @param txt String to check.

@@ -11,6 +11,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
+#include <algorithm>
 #include <string>
 #include <mailio/codec.hpp>
 
@@ -56,6 +57,25 @@ bool codec::is_utf8_string(const string& txt)
         if (static_cast<unsigned>(ch) > 127)
             return true;
     return false;
+}
+
+
+string codec::escape_string(const string& text, const string& escaping_chars)
+{
+    string esc_str;
+    esc_str.reserve(text.size());
+    std::for_each(text.begin(), text.end(), [&](char ch) {
+        if (escaping_chars.find(ch) != string::npos)
+            esc_str += "\\";
+        esc_str += ch;
+    });
+    return esc_str;
+}
+
+
+    string codec::surround_string(const string& text, char surround_char)
+{
+    return surround_char + text + surround_char;
 }
 
 
