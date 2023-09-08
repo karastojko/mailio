@@ -81,6 +81,12 @@ string imap::messages_range_list_to_string(list<messages_range_t> ranges)
 }
 
 
+string imap::to_astring(const string& text)
+{
+    return codec::surround_string(codec::escape_string(text, "\"\\"));
+}
+
+
 imap::search_condition_t::search_condition_t(imap::search_condition_t::key_type condition_key, imap::search_condition_t::value_type condition_value) :
     key(condition_key), value(condition_value)
 {
@@ -918,8 +924,8 @@ string imap::connect()
 
 void imap::auth_login(const string& username, const string& password)
 {
-    auto user_esc = codec::surround_string(codec::escape_string(username, "\"\\"));
-    auto pass_esc = codec::surround_string(codec::escape_string(password, "\"\\"));
+    auto user_esc = to_astring(username);
+    auto pass_esc = to_astring(password);
     auto cmd = format("LOGIN " + user_esc + TOKEN_SEPARATOR_STR + pass_esc);
     dlg_->send(cmd);
 

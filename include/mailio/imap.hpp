@@ -529,6 +529,14 @@ protected:
     static std::string messages_range_list_to_string(std::list<messages_range_t> ranges);
 
     /**
+    Escaping the double quote and backslashes.
+
+    @param text String to escape.
+    @return     Escaped string.
+    **/
+    static std::string to_astring(const std::string& text);
+
+    /**
     Untagged response character as defined by the protocol.
     **/
     static const std::string UNTAGGED_RESPONSE;
