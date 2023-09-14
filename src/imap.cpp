@@ -235,9 +235,9 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 {
     string cmd;
     if (read_only)
-        cmd = format("EXAMINE " + mailbox);
+        cmd = format("EXAMINE " + to_astring(mailbox));
     else
-        cmd = format("SELECT " + mailbox);
+        cmd = format("SELECT " + to_astring(mailbox));
     dlg_->send(cmd);
 
     mailbox_stat_t stat;
@@ -494,7 +494,7 @@ void imap::append(const string& folder_name, const message& msg)
     string msg_str;
     msg.format(msg_str, true);
 
-    string cmd = "APPEND " + folder_name;
+    string cmd = "APPEND " + to_astring(folder_name);
     cmd.append(" {" + to_string(msg_str.size()) + "}");
     dlg_->send(format(cmd));
     string line = dlg_->receive();
@@ -525,7 +525,7 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
     // It doesn't like search terms it doesn't recognize.
     // Some older protocol versions or some servers may not support them.
     // So unseen uidnext and uidvalidity are optional.
-    string cmd = "STATUS " + mailbox + " (messages recent";
+    string cmd = "STATUS " + to_astring(mailbox) + " (messages recent";
     if (info & mailbox_stat_t::UNSEEN)
         cmd += " unseen";
     if (info & mailbox_stat_t::UID_NEXT)
@@ -764,7 +764,7 @@ void imap::search(const list<imap::search_condition_t>& conditions, list<unsigne
 
 bool imap::create_folder(const string& folder_name)
 {
-    dlg_->send(format("CREATE " + folder_name));
+    dlg_->send(format("CREATE " + to_astring(folder_name)));
 
     string line = dlg_->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -790,8 +790,7 @@ bool imap::create_folder(const list<string>& folder_name)
 auto imap::list_folders(const string& folder_name) -> mailbox_folder_t
 {
     string delim = folder_delimiter();
-    dlg_->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + QUOTED_STRING_SEPARATOR + folder_name + "*" +
-        QUOTED_STRING_SEPARATOR));
+    dlg_->send(format("LIST " + QUOTED_STRING_SEPARATOR + QUOTED_STRING_SEPARATOR + TOKEN_SEPARATOR_STR + to_astring(folder_name + "*")));
     mailbox_folder_t mailboxes;
 
     bool has_more = true;
@@ -860,7 +859,7 @@ auto imap::list_folders(const list<string>& folder_name) -> mailbox_folder_t
 
 bool imap::delete_folder(const string& folder_name)
 {
-    dlg_->send(format("DELETE " + folder_name));
+    dlg_->send(format("DELETE " + to_astring(folder_name)));
 
     string line = dlg_->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -884,7 +883,7 @@ bool imap::delete_folder(const list<string>& folder_name)
 
 bool imap::rename_folder(const string& old_name, const string& new_name)
 {
-    dlg_->send(format("RENAME " + old_name + TOKEN_SEPARATOR_STR + new_name));
+    dlg_->send(format("RENAME " + to_astring(old_name) + TOKEN_SEPARATOR_STR + to_astring(new_name)));
 
     string line = dlg_->receive();
     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -1326,7 +1325,7 @@ string imap::folder_tree_to_string(const list<string>& folder_tree, string delim
             folders += f + delimiter;
         else
             folders += f;
-    return to_astring(folders);
+    return folders;
 }
 
 
