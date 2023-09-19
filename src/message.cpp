@@ -58,17 +58,12 @@ using std::size_t;
 using std::get;
 using boost::trim_copy;
 using boost::trim;
-using boost::trim_left_if;
-using boost::trim_right_if;
 using boost::iequals;
 using boost::split;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
-using boost::match_flag_type;
-using boost::match_results;
 using boost::sregex_iterator;
-using boost::algorithm::is_any_of;
 using boost::local_time::local_date_time;
 using boost::local_time::local_time_input_facet;
 using boost::local_time::not_a_date_time;
@@ -82,8 +77,6 @@ using boost::local_time::local_time_facet;
 namespace mailio
 {
 
-const string message::ADDRESS_BEGIN_STR(1, ADDRESS_BEGIN_CHAR);
-const string message::ADDRESS_END_STR(1, ADDRESS_END_CHAR);
 const string message::ATEXT{"!#$%&'*+-./=?^_`{|}~"};
 const string message::DTEXT{"!#$%&'*+-.@/=?^_`{|}~"}; // atext with monkey
 const string message::FROM_HEADER{"From"};
@@ -99,9 +92,6 @@ const string message::SUBJECT_HEADER{"Subject"};
 const string message::DATE_HEADER{"Date"};
 const string message::DISPOSITION_NOTIFICATION_HEADER{"Disposition-Notification-To"};
 const string message::MIME_VERSION_HEADER{"MIME-Version"};
-const string message::MESSAGE_ID_REGEX = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~]+)"
-    "\\@([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~]+)";
-const string message::MESSAGE_ID_REGEX_NS = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~\\@\\\\ \\t<\\>]*)";
 
 
 message::message() : mime(), date_time_(second_clock::universal_time(), time_zone_ptr(new posix_time_zone("00:00")))
@@ -1397,25 +1387,6 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-string message::format_many_ids(const vector<string>& ids)
-{
-    string ids_str;
-    for (auto s = ids.begin(); s != ids.end(); s++)
-    {
-        ids_str += ADDRESS_BEGIN_STR + *s + ADDRESS_END_STR;
-        if (s != ids.end() - 1)
-            ids_str += codec::SPACE_STR;
-    }
-    return ids_str;
-}
-
-
-string message::format_many_ids(const string& id)
-{
-    return format_many_ids(vector<string>{id});
-}
-
-
 string message::fold_header_line(const string& header_line) const
 {
     const string DELIMITERS = " ,;";
@@ -1445,36 +1416,6 @@ string message::fold_header_line(const string& header_line) const
     while (pos_len != string::npos);
 
     return folded_line;
-}
-
-
-vector<string> message::parse_many_ids(const string& ids) const
-{
-    if (!strict_mode_)
-        return vector<string>{ids};
-
-    vector<string> idv;
-    auto start = ids.cbegin();
-    auto end = ids.cend();
-    match_flag_type flags = boost::match_default | boost::match_not_null;
-    match_results<string::const_iterator> tokens;
-    bool all_tokens_parsed = false;
-    const string ANGLED_MESSAGE_ID_REGEX = codec::LESS_THAN_STR + MESSAGE_ID_REGEX + codec::GREATER_THAN_STR;
-    const regex rgx(ANGLED_MESSAGE_ID_REGEX);
-    while (regex_search(start, end, tokens, rgx, flags))
-    {
-        string id = tokens[0];
-        trim_left_if(id, is_any_of(codec::LESS_THAN_STR));
-        trim_right_if(id, is_any_of(codec::GREATER_THAN_STR));
-        idv.push_back(id);
-        start = tokens[0].second;
-        all_tokens_parsed = (start == end);
-    }
-
-    if (!all_tokens_parsed)
-        throw message_error("Parsing failure of the ID: " + ids);
-
-    return idv;
 }
 
 

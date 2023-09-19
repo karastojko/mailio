@@ -45,26 +45,6 @@ class MAILIO_EXPORT message : public mime
 public:
 
     /**
-    Enclosing character for the mail address begin.
-    **/
-    static const char ADDRESS_BEGIN_CHAR = '<';
-
-    /**
-    String representation of the mail address start enclosing character.
-    **/
-    static const std::string ADDRESS_BEGIN_STR;
-
-    /**
-    Enclosing character for the mail address end.
-    **/
-    static const char ADDRESS_END_CHAR = '>';
-
-    /**
-    String representation of the mail address end enclosing character.
-    **/
-    static const std::string ADDRESS_END_STR;
-
-    /**
     Character to separate mail addresses in a list.
     **/
     static const char ADDRESS_SEPARATOR = ',';
@@ -583,7 +563,6 @@ protected:
     **/
     static const std::string DATE_HEADER;
 
-
     /**
     Disposition notification header name.
     **/
@@ -593,16 +572,6 @@ protected:
     Mime version header name.
     **/
     static const std::string MIME_VERSION_HEADER;
-
-    /**
-    Regex for the message id in the strict mode.
-    **/
-    static const std::string MESSAGE_ID_REGEX;
-
-    /**
-    Regex for the message id in the non-strict mode.
-    **/
-    static const std::string MESSAGE_ID_REGEX_NS;
 
     /**
     Formatting the header to a string.
@@ -676,23 +645,6 @@ protected:
     boost::local_time::local_date_time parse_date(const std::string& date_str) const;
 
     /**
-    Formatting the vector of IDs.
-
-    @param ids Vector of IDs.
-    @return    String of IDs in the angle brackets.
-    **/
-    static std::string format_many_ids(const std::vector<std::string>& ids);
-
-    /**
-    Formatting the ID.
-
-    @param id ID to format.
-    @return   ID within the angle brackets.
-    **/
-    static std::string format_many_ids(const std::string& id);
-
-
-    /**
     Splitting string with Q encoded fragments into separate strings.
 
     @param text  String with Q encoded fragments.
@@ -709,16 +661,6 @@ protected:
 
     **/
     std::string fold_header_line(const std::string& header_line) const;
-
-
-    /**
-    Parsing a string of IDs into a vector.
-
-    @param ids           String of IDs within the angle brackets.
-    @return              Vector of IDs.
-    @throw message_error Parsing failure of the message ID.
-    **/
-    std::vector<std::string> parse_many_ids(const std::string& ids) const;
 
     /**
     Formatting the subject which can be ASCII or UTF-8.

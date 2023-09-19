@@ -62,6 +62,31 @@ class MAILIO_EXPORT mime
 public:
 
     /**
+    `Content-ID` header name.
+    **/
+    static const std::string CONTENT_ID_HEADER;
+
+    /**
+    Enclosing character for the mail address begin.
+    **/
+    static const char ADDRESS_BEGIN_CHAR = '<';
+
+    /**
+    String representation of the mail address start enclosing character.
+    **/
+    static const std::string ADDRESS_BEGIN_STR;
+
+    /**
+    Enclosing character for the mail address end.
+    **/
+    static const char ADDRESS_END_CHAR = '>';
+
+    /**
+    String representation of the mail address end enclosing character.
+    **/
+    static const std::string ADDRESS_END_STR;
+
+    /**
     Top level media types.
 
     @todo Mixed subtype is missing.
@@ -256,6 +281,21 @@ public:
     @return Content type.
     **/
     content_type_t content_type() const;
+
+    /**
+    Setting the content ID.
+
+    @param id         The content ID in the format `string1@string2`.
+    @throw mime_error Invalid content ID.
+    **/
+    void content_id(std::string id);
+
+    /**
+    Getting the content ID.
+
+    @return Content ID.
+    **/
+    std::string content_id() const;
 
     /**
     Setting the mime name.
@@ -565,6 +605,41 @@ protected:
     static const std::string CONTENT_HEADER_VALUE_ALPHABET;
 
     /**
+    Regex for the message id in the strict mode.
+    **/
+    static const std::string MESSAGE_ID_REGEX;
+
+    /**
+    Regex for the message id in the non-strict mode.
+    **/
+    static const std::string MESSAGE_ID_REGEX_NS;
+
+    /**
+    Formatting the vector of IDs.
+
+    @param ids Vector of IDs.
+    @return    String of IDs in the angle brackets.
+    **/
+    static std::string format_many_ids(const std::vector<std::string>& ids);
+
+    /**
+    Formatting the ID.
+
+    @param id ID to format.
+    @return   ID within the angle brackets.
+    **/
+    static std::string format_many_ids(const std::string& id);
+
+    /**
+    Parsing a string of IDs into a vector.
+
+    @param ids        String of IDs within the angle brackets.
+    @return           Vector of IDs.
+    @throw mime_error Parsing failure of the message ID.
+    **/
+    std::vector<std::string> parse_many_ids(const std::string& ids) const;
+
+    /**
     Formatting header.
 
     @return Mime header as string.
@@ -600,6 +675,13 @@ protected:
     @return Content disposition as string.
     **/
     std::string format_content_disposition() const;
+
+    /**
+    Formating content ID.
+
+    @return Content ID header.
+    **/
+    std::string format_content_id() const;
 
     /**
     Formats mime name.
@@ -778,6 +860,11 @@ protected:
     @todo Should it contain filename of the attachment?
     **/
     std::string name_;
+
+    /**
+    Content ID.
+    **/
+    std::string content_id_;
 
     /**
     Content transfer encoding of the mime part.

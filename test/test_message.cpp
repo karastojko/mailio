@@ -1517,6 +1517,7 @@ BOOST_AUTO_TEST_CASE(format_multipart_content)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format multipart content");
     msg.boundary("my_bound");
+    msg.content_id("zero@mailio.dev");
     msg.content_type(message::media_type_t::MULTIPART, "related");
     msg.content("This is a multipart message.");
 
@@ -1524,11 +1525,13 @@ BOOST_AUTO_TEST_CASE(format_multipart_content)
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
     m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
+    m1.content_id("first@mailio.dev");
 
     mime m2;
     m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
     m2.content("Zdravo, Svete!");
+    m2.content_id("second@mailio.dev");
 
     msg.add_part(m1);
     msg.add_part(m2);
@@ -1541,6 +1544,7 @@ BOOST_AUTO_TEST_CASE(format_multipart_content)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
+        "Content-ID: <zero@mailio.dev>\r\n"
         "Subject: format multipart content\r\n"
         "\r\n"
         "--my_bound\r\n"
@@ -1551,12 +1555,14 @@ BOOST_AUTO_TEST_CASE(format_multipart_content)
         "--my_bound\r\n"
         "Content-Type: text/html; charset=us-ascii\r\n"
         "Content-Transfer-Encoding: 7bit\r\n"
+        "Content-ID: <first@mailio.dev>\r\n"
         "\r\n"
         "<html><head></head><body><h1>Hello, World!</h1></body></html>\r\n"
         "\r\n"
         "--my_bound\r\n"
         "Content-Type: text/plain; charset=us-ascii\r\n"
         "Content-Transfer-Encoding: 7bit\r\n"
+        "Content-ID: <second@mailio.dev>\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n"
         "\r\n"
@@ -2163,6 +2169,7 @@ BOOST_AUTO_TEST_CASE(format_message_id)
     msg.subject("Proba");
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@mailio.dev");
+    msg.content_id("987654321@mailio.dev");
 
     string msg_str;
     msg.format(msg_str);
@@ -2170,6 +2177,7 @@ BOOST_AUTO_TEST_CASE(format_message_id)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <1234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-ID: <987654321@mailio.dev>\r\n"
         "Subject: Proba\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
@@ -4140,6 +4148,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/alternative; boundary=\"my_bound\"\r\n"
+        "Content-ID: <zero@mailio.dev>\r\n"
         "Subject: parse multipart content\r\n"
         "\r\n"
         "This is a multipart message.\r\n"
@@ -4147,12 +4156,14 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
         "--my_bound\r\n"
         "Content-Type: text/html; charset=utf-8\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
+        "Content-ID: <first@mailio.dev>\r\n"
         "\r\n"
         "PGh0bWw+PGhlYWQ+PC9oZWFkPjxib2R5PjxoMT7EhmFvLCBTdmV0ZSE8L2gxPjwvYm9keT48L2h0bWw+\r\n"
         "\r\n"
         "--my_bound\r\n"
         "Content-Type: text/plain; charset=utf-8\r\n"
         "Content-Transfer-Encoding: Quoted-Printable\r\n"
+        "Content-ID: <second@mailio.dev>\r\n"
         "\r\n"
         "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
         "--my_bound--\r\n";
@@ -4163,14 +4174,16 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse multipart content" && msg.content() == "This is a multipart message." && msg.boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 3 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2);
+        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2 &&
+        msg.content_id() == "<zero@mailio.dev>");
     BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(0).content_type().charset == "utf-8" &&
+        msg.parts().at(0).content_type().charset == "utf-8" && msg.parts().at(0).content_id() == "<first@mailio.dev>" &&
         msg.parts().at(0).content() == "<html><head></head><body><h1>Ćao, Svete!</h1></body></html>");
     BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
+        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content_id() == "<second@mailio.dev>" &&
+        msg.parts().at(1).content() == "Здраво, Свете!");
 }
 
 
@@ -4841,6 +4854,7 @@ BOOST_AUTO_TEST_CASE(parse_message_id)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <1234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-ID: <987654321@mailio.dev>\r\n"
         "Subject: Proba\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n";
@@ -4851,14 +4865,14 @@ BOOST_AUTO_TEST_CASE(parse_message_id)
         msg.strict_mode(true);
         msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.message_id() == "1234567890@mailio.dev");
+        BOOST_CHECK(msg.message_id() == "1234567890@mailio.dev" && msg.content_id() == "987654321@mailio.dev");
     }
     {
         // non-strict mode
         message msg;
         msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>");
+        BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>" && msg.content_id() == "<987654321@mailio.dev>");
     }
 }
 
@@ -4991,7 +5005,7 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_without_monkey)
         message msg;
         msg.strict_mode(true);
         msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-        BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
@@ -5022,7 +5036,7 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
         message msg;
         msg.strict_mode(true);
         msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-        BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;

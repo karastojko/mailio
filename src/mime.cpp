@@ -39,20 +39,31 @@ using std::multimap;
 using std::vector;
 using std::map;
 using std::get;
+using boost::trim_left_if;
+using boost::trim_right_if;
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
+using boost::match_flag_type;
+using boost::match_results;
 using boost::to_lower_copy;
 using boost::trim_copy;
 using boost::trim;
 using boost::trim_right;
 using boost::iequals;
+using boost::algorithm::is_any_of;
 
 
 namespace mailio
 {
 
 
+const string mime::CONTENT_ID_HEADER{"Content-ID"};
+const string mime::ADDRESS_BEGIN_STR(1, ADDRESS_BEGIN_CHAR);
+const string mime::ADDRESS_END_STR(1, ADDRESS_END_CHAR);
+const string mime::MESSAGE_ID_REGEX = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~]+)"
+    "\\@([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~]+)";
+const string mime::MESSAGE_ID_REGEX_NS = "([a-zA-Z0-9\\!#\\$%&'\\*\\+\\-\\./=\\?\\^\\_`\\{\\|\\}\\~\\@\\\\ \\t<\\>]*)";
 const string mime::content_type_t::ATTR_CHARSET{"charset"};
 const string mime::content_type_t::ATTR_BOUNDARY{"boundary"};
 
@@ -269,6 +280,24 @@ mime::content_type_t mime::content_type() const
 }
 
 
+void mime::content_id(string id)
+{
+    const regex r(strict_mode_ ? MESSAGE_ID_REGEX : MESSAGE_ID_REGEX_NS);
+    smatch m;
+
+    if (regex_match(id, m, r))
+        content_id_ = id;
+    else
+        throw mime_error("Invalid content ID.");
+}
+
+
+string mime::content_id() const
+{
+    return content_id_;
+}
+
+
 void mime::name(const string& mime_name)
 {
     name_ = mime_name;
@@ -404,9 +433,58 @@ mime::header_codec_t mime::header_codec() const
 }
 
 
+string mime::format_many_ids(const vector<string>& ids)
+{
+    string ids_str;
+    for (auto s = ids.begin(); s != ids.end(); s++)
+    {
+        ids_str += ADDRESS_BEGIN_STR + *s + ADDRESS_END_STR;
+        if (s != ids.end() - 1)
+            ids_str += codec::SPACE_STR;
+    }
+    return ids_str;
+}
+
+
+string mime::format_many_ids(const string& id)
+{
+    return format_many_ids(vector<string>{id});
+}
+
+
+vector<string> mime::parse_many_ids(const string& ids) const
+{
+    if (!strict_mode_)
+        return vector<string>{ids};
+
+    vector<string> idv;
+    auto start = ids.cbegin();
+    auto end = ids.cend();
+    match_flag_type flags = boost::match_default | boost::match_not_null;
+    match_results<string::const_iterator> tokens;
+    bool all_tokens_parsed = false;
+    const string ANGLED_MESSAGE_ID_REGEX = codec::LESS_THAN_STR + MESSAGE_ID_REGEX + codec::GREATER_THAN_STR;
+    const regex rgx(ANGLED_MESSAGE_ID_REGEX);
+    while (regex_search(start, end, tokens, rgx, flags))
+    {
+        string id = tokens[0];
+        trim_left_if(id, is_any_of(codec::LESS_THAN_STR));
+        trim_right_if(id, is_any_of(codec::GREATER_THAN_STR));
+        idv.push_back(id);
+        start = tokens[0].second;
+        all_tokens_parsed = (start == end);
+    }
+
+    if (!all_tokens_parsed)
+        throw mime_error("Parsing failure of the ID: " + ids);
+
+    return idv;
+}
+
+
 string mime::format_header() const
 {
-    return format_content_type() + format_transfer_encoding() + format_content_disposition();
+    return format_content_type() + format_transfer_encoding() + format_content_disposition() + format_content_id();
 }
 
 
@@ -574,6 +652,12 @@ string mime::format_content_disposition() const
 }
 
 
+string mime::format_content_id() const
+{
+    return content_id_.empty() ? "" : CONTENT_ID_HEADER + HEADER_SEPARATOR_STR + format_many_ids(content_id_) + codec::END_OF_LINE;
+}
+
+
 string mime::format_mime_name(const string& name) const
 {
     if (codec::is_utf8_string(name))
@@ -716,6 +800,12 @@ void mime::parse_header_line(const string& header_line)
             q_codec qc(line_policy_, decoder_line_policy_);
             name_ = get<0>(qc.check_decode(filename_it->second));
         }
+    }
+    else if (iequals(header_name, CONTENT_ID_HEADER))
+    {
+        auto ids = parse_many_ids(header_value);
+        if (!ids.empty())
+            content_id_ = ids[0];
     }
 }
 
