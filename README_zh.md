@@ -169,6 +169,8 @@ vcpkg install mailio
 * [ostermal](https://github.com/ostermal): 修复了MIME头中的水平标签的bug
 * [MRsoymilk](mailto:313958485[at]qq.com): 修复了发送附件的bug
 * [Don Yihtseu](https://github.com/tsurumi-yizhou): 提供了中文文档
+* [Orchistro](https://github.com/orchistro): Improving CMake build script.
+
 
 # 联系方式 #
 如果你发现了bug，请给我的邮箱：contact (at) alepho.com 发邮件。苟利mailio生死以，岂因祸福避趋之。

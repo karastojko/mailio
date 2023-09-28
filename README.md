@@ -195,6 +195,8 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [MRsoymilk](mailto:313958485[at]qq.com): Bug in the sending attachment example.
 * [Don Yihtseu](https://github.com/tsurumi-yizhou): Add Chinese document.
 * [Leonhard Kipp](mailto:Leonhard.Kipp@ppro.com): Proper way to build the shared library.
+* [Orchistro](https://github.com/orchistro): Improving CMake build script.
+
 
 # Contact #
 
