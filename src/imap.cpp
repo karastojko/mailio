@@ -1248,7 +1248,10 @@ void imap::parse_response(const string& response)
                     atom_state_ = atom_state_t::QUOTED;
                 }
                 else if (atom_state_ == atom_state_t::QUOTED)
-                    atom_state_ = atom_state_t::NONE;
+                {
+                    if (token_list->back()->atom.back() != codec::BACKSLASH_CHAR)
+                        atom_state_ = atom_state_t::NONE;
+                }
             }
             break;
 
@@ -1281,6 +1284,7 @@ void imap::parse_response(const string& response)
             }
         }
     }
+
     if (literal_state_ == string_literal_state_t::WAITING)
         literal_state_ = string_literal_state_t::READING;
 }
