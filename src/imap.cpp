@@ -1251,6 +1251,8 @@ void imap::parse_response(const string& response)
                 {
                     if (token_list->back()->atom.back() != codec::BACKSLASH_CHAR)
                         atom_state_ = atom_state_t::NONE;
+                    else
+                        token_list->back()->atom.back() = ch;
                 }
             }
             break;
