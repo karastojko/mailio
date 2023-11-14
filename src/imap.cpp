@@ -1249,6 +1249,7 @@ void imap::parse_response(const string& response)
                 }
                 else if (atom_state_ == atom_state_t::QUOTED)
                 {
+                    // The backslash and a double quote within an atom is the double quote only.
                     if (token_list->back()->atom.back() != codec::BACKSLASH_CHAR)
                         atom_state_ = atom_state_t::NONE;
                     else
@@ -1259,6 +1260,10 @@ void imap::parse_response(const string& response)
 
             default:
             {
+                // Double backslash in an atom is translated to the single backslash.
+                if (ch == codec::BACKSLASH_CHAR && atom_state_ == atom_state_t::QUOTED && token_list->back()->atom.back() == codec::BACKSLASH_CHAR)
+                    break;
+
                 if (literal_state_ == string_literal_state_t::SIZE)
                 {
                     if (!isdigit(ch))
