@@ -149,7 +149,7 @@ string smtp::submit(const message& msg)
         throw smtp_error("Mail message rejection.");
 
     string msg_str;
-    msg.format(msg_str, true);
+    msg.format(msg_str, {/*dot_escape*/true});
     dlg_->send(msg_str + codec::END_OF_LINE + codec::END_OF_MESSAGE);
     line = dlg_->receive();
     tokens = parse_line(line);

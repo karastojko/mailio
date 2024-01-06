@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
         "\r\n");
 
     string msg_str;
-    msg.format(msg_str, true);
+    msg.format(msg_str, {/*dot_escape*/true});
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
@@ -278,6 +278,64 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
         "yaba.daba.doo.\r\n"
         "\r\n"
         "...\r\n");
+}
+
+/**
+Formatting a message with bcc_headers set and format option `add_bcc_headers` set to true 
+adds BCC headers to the message
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_exports_bcc_headers_when_add_bcc_headers_is_set)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.add_bcc_recipient(mail_address("bcc_addr_1", "bcc_addr_1@mailio.dev"));
+    msg.add_bcc_recipient(mail_address("bcc_addr_2", "bcc_addr_2@mailio.dev"));
+    msg.subject("BCC addresses are formatted");
+
+    string msg_str;
+    msg.format(msg_str, {/*dot_escape*/true, /*add_bcc_headers*/true});
+
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Bcc: \"bcc_addr_1\" <bcc_addr_1@mailio.dev>,\r\n"
+        "  \"bcc_addr_2\" <bcc_addr_2@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: BCC addresses are formatted\r\n\r\n");
+}
+
+/**
+Formatting a message with bcc_headers set and format option `add_bcc_headers` set to false 
+does not add BCC headers to the message
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_does_not_exports_bcc_headers_when_add_bcc_headers_is_not_set)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2014-01-17 13:09:22");
+    time_zone_ptr tz(new posix_time_zone("-07:30"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.add_bcc_recipient(mail_address("bcc_addr_1", "bcc_addr_1@mailio.dev"));
+    msg.subject("BCC addresses are not formatted");
+
+    string msg_str;
+    msg.format(msg_str, {/*dot_escape*/true, /*add_bcc_headers*/false});
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: BCC addresses are not formatted\r\n\r\n");
 }
 
 
@@ -1055,7 +1113,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
     {
         string msg_str;
-        msg.format(msg_str, false);
+        msg.format(msg_str, {/*dot_escape*/false});
         BOOST_CHECK(msg_str ==
             "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -1130,7 +1188,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
     {
         string msg_str;
-        msg.format(msg_str, true);
+        msg.format(msg_str, {/*dot_escape*/true});
 
         BOOST_CHECK(msg_str ==
             "From: mailio <adresa@mailio.dev>\r\n"

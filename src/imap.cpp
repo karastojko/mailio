@@ -492,7 +492,7 @@ void imap::append(const list<string>& folder_name, const message& msg)
 void imap::append(const string& folder_name, const message& msg)
 {
     string msg_str;
-    msg.format(msg_str, true);
+    msg.format(msg_str, message_format_options{true, false});
 
     string cmd = "APPEND " + to_astring(folder_name);
     cmd.append(" {" + to_string(msg_str.size()) + "}");

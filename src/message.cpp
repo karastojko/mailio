@@ -99,9 +99,9 @@ message::message() : mime(), date_time_(second_clock::universal_time(), time_zon
 }
 
 
-void message::format(string& message_str, bool dot_escape) const
+void message::format(string& message_str, const message_format_options& opts) const
 {
-    message_str += format_header();
+    message_str += format_header(opts.add_bcc_header);
 
     if (!parts_.empty())
     {
@@ -118,7 +118,7 @@ void message::format(string& message_str, bool dot_escape) const
             content_part.strict_codec_mode(strict_codec_mode_);
             content_part.header_codec(header_codec_);
             string cps;
-            content_part.format(cps, dot_escape);
+            content_part.format(cps, opts.dot_escape);
             message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
@@ -126,21 +126,21 @@ void message::format(string& message_str, bool dot_escape) const
         for (const auto& p: parts_)
         {
             string p_str;
-            p.format(p_str, dot_escape);
+            p.format(p_str, opts.dot_escape);
             message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
         message_str += BOUNDARY_DELIMITER + boundary_ + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
     else
-        message_str += format_content(dot_escape);
+        message_str += format_content(opts.dot_escape);
 }
 
 
 #if defined(__cpp_char8_t)
-void message::format(u8string& message_str, bool dot_escape) const
+void message::format(u8string& message_str, const message_format_options& opts) const
 {
     string m = reinterpret_cast<const char*>(message_str.c_str());
-    format(m, dot_escape);
+    format(m, opts);
 }
 #endif
 
@@ -548,7 +548,7 @@ multimap<string, string> message::headers() const
 }
 
 
-string message::format_header() const
+string message::format_header(bool add_bcc_header) const
 {
     if (!boundary_.empty() && content_type_.type != media_type_t::MULTIPART)
         throw message_error("No boundary for multipart message.");
@@ -572,6 +572,8 @@ string message::format_header() const
     header += reply_address_.name.buffer.empty() ? "" : REPLY_TO_HEADER + HEADER_SEPARATOR_STR + reply_address_to_string() + codec::END_OF_LINE;
     header += TO_HEADER + HEADER_SEPARATOR_STR + recipients_to_string() + codec::END_OF_LINE;
     header += cc_recipients_.empty() ? "" : CC_HEADER + HEADER_SEPARATOR_STR + cc_recipients_to_string() + codec::END_OF_LINE;
+    if(add_bcc_header)
+        header += bcc_recipients_.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
     header += disposition_notification_.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
         format_address(disposition_notification_.name,disposition_notification_.address) + codec::END_OF_LINE;
     string msg_id = format_many_ids(message_id_);
