@@ -435,6 +435,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         string line = dlg_->receive(true);
                         if (!line.empty())
                             trim_eol(line);
+                        // There could be a parenthesized list after the string literal. Read it and do nothing.
                         parse_response(line);
                     }
                     msg_str.emplace(is_uids ? uid : msg_no, move(literal_token->literal));
@@ -445,8 +446,6 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         throw imap_error("Parsing failure.");
                     }
                 }
-                else
-                    throw imap_error("Parsing failure.");
             }
             else if (parsed_line.tag == to_string(tag_))
             {
