@@ -37,18 +37,21 @@ namespace mailio
 {
 
 /**
- * Options to customize the formatting of a message. Used by message::format().
- **/
-struct message_format_options {
-    /** 
-      Flag if the leading dot should be escaped.
-     **/
-    bool dot_escape = false;
+Options to customize the formatting of a message. Used by message::format().
+**/
+struct message_format_options_t
+{
     /**
-     * Flag whether bcc addresses should be added.
-     **/
+    Flag if the leading dot should be escaped.
+    **/
+    bool dot_escape = false;
+
+    /**
+    Flag whether bcc addresses should be added.
+    **/
     bool add_bcc_header = false;
 };
+
 
 /**
 Mail message and applied parsing/formatting algorithms.
@@ -112,10 +115,10 @@ public:
     If a line contains leading dot, then it can be escaped as required by mail protocols.
 
     @param message_str Resulting message as string.
-    @param opts        Options to customize formatting.  
+    @param opts        Options to customize formatting.
     @throw *           `format_header(format_options)`, `format_content(bool)`, `mime::format(string&, bool)`.
     **/
-    void format(std::string& message_str, const message_format_options& opts = message_format_options{}) const;
+    void format(std::string& message_str, const message_format_options_t& opts = message_format_options_t{}) const;
 
     /**
     Overload of `format(string&, const message_format_options&)`.
@@ -123,7 +126,7 @@ public:
     Because of the way the u8string is comverted to string, it's more expensive when used with C++20.
     **/
 #if defined(__cpp_char8_t)
-    void format(std::u8string& message_str,  const message_format_options& = message_format_options{}) const;
+    void format(std::u8string& message_str,  const message_format_options_t& = message_format_options_t{}) const;
 #endif
 
     /**

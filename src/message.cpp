@@ -99,7 +99,7 @@ message::message() : mime(), date_time_(second_clock::universal_time(), time_zon
 }
 
 
-void message::format(string& message_str, const message_format_options& opts) const
+void message::format(string& message_str, const message_format_options_t& opts) const
 {
     message_str += format_header(opts.add_bcc_header);
 
