@@ -96,6 +96,7 @@ For MinGW the following configuration is tested:
 * OpenSSL 1.0.2t.
 * CMake 3.17.3.
 
+
 # Setup #
 
 There are two ways to build *mailio*: by cloning the [repo](https://github.com/karastojko/mailio.git) and using Cmake or by using Vcpkg.
@@ -103,12 +104,15 @@ There are two ways to build *mailio*: by cloning the [repo](https://github.com/k
 
 ## CMake ##
 
-Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could use CMake options `-DOPENSSL_ROOT_DIR` and `-DBOOST_ROOT` to set
-them. Boost must be built with the OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path` and `include` parameters of
-`b2` script (after `bootstrap` finishes). Both static and dynamic libraries should be built in the `build` directory. If one wants to specify non-default
-installation directory say `/opt/mailio`, then use the CMake option `-DCMAKE_INSTALL_PREFIX`. Other available options are `BUILD_SHARED_LIBS`
-(whether a shared or static library shall be build, by default a shared lib is build), `MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on)
-and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
+Ensure that OpenSSL, Boost and CMake are in the path. If they are not in the path, one could use CMake options `-DOPENSSL_ROOT_DIR`, `-DBOOST_ROOT` and
+`Boost_INCLUDE_DIRS` to set them. Boost must be built with the OpenSSL support. If it cannot be found in the path, set the path explicitly via `library-path`
+and `include` parameters of `b2` script (after `bootstrap` finishes). Both static and dynamic libraries should be built in the `build` directory.
+
+If one wants to specify a non-default installation directory, say `/opt/mailio`, then the option `-DCMAKE_INSTALL_PREFIX` should be used. If a user does not have
+privileges for the default directories, then it must specify one by using this CMake variable.
+
+Other available options are `BUILD_SHARED_LIBS` (whether a shared or static library shall be built, by default a shared lib is built),
+`MAILIO_BUILD_DOCUMENTATION` (if Doxygen documentation is generated, by default is on) and `MAILIO_BUILD_EXAMPLES` (if examples are built, by default is on).
 
 
 ### Linux, FreeBSD, MacOS, Cygwin ###
@@ -120,6 +124,7 @@ cd ./build
 cmake ..
 make install
 ```
+Installing the project ensures that the test project has also the auxiliary files copied, required by several tests.
 
 
 ### Microsoft Windows/Visual Studio ###
@@ -130,7 +135,8 @@ mkdir build
 cd .\build
 cmake ..
 ```
-A solution file will be built, open it from Visual Studio and build the project.
+A solution file will be built, open it from Visual Studio and build the project. To install it, build the `INSTALL` project of the *mailio* solution, it copies
+also auxiliary files required by several tests.
 
 
 ### Microsoft Windows/MinGW ###
