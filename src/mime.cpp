@@ -1141,10 +1141,11 @@ void mime::merge_attributes(attributes_t& attributes) const
 string mime::make_boundary() const
 {
     string bound;
-    bound.reserve(10);
+    static string::size_type BOUND_LEN = 10;
+    bound.reserve(BOUND_LEN);
     std::random_device rng;
     std::uniform_int_distribution<> index_dist(0, codec::HEX_DIGITS.size() - 1);
-    for (int i = 0; i < 10; i++)
+    for (string::size_type i = 0; i < BOUND_LEN; i++)
         bound += codec::HEX_DIGITS[index_dist(rng)];
     return BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + bound;
 }
