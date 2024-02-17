@@ -22,6 +22,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <ostream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -56,6 +57,7 @@ using std::make_shared;
 using std::tuple;
 using std::size_t;
 using std::get;
+using std::count_if;
 using boost::trim_copy;
 using boost::trim;
 using boost::iequals;
@@ -494,11 +496,9 @@ void message::attach(const list<tuple<istream&, string, content_type_t>>& attach
 
 size_t message::attachments_size() const
 {
-    size_t no = 0;
-    for (auto& m : parts_)
-        if (m.content_disposition() == content_disposition_t::ATTACHMENT)
-            no++;
-    return no;
+    return count_if(parts_.begin(), parts_.end(), [](const mime& part) {
+        return part.content_disposition() == content_disposition_t::ATTACHMENT;
+    });
 }
 
 
