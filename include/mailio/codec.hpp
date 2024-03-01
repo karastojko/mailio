@@ -44,9 +44,15 @@ struct String
 
     String(const String&) = default;
 
+    String(String&&) = default;
+
     String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
     {
     }
+
+    String& operator=(const String& other) = default;
+
+    String& operator=(String&& other) = default;
 };
 
 template<typename Buf>
