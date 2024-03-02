@@ -786,6 +786,8 @@ protected:
     **/
     void parse_header_value_attributes(const std::string& header, std::string& value, attributes_t& attributes) const;
 
+    string_t parse_header_value_attribute(const std::string& attr_value) const;
+
     /**
     Creating the random boundary for the mime part.
 

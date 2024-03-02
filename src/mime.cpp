@@ -114,7 +114,7 @@ const string mime::QTEXT{"\t !#$%&'()*+,-.@/:;<=>?[]^_`{|}~"};
 // exluded double quote and backslash characters from the header name
 const regex mime::HEADER_NAME_REGEX{R"(([a-zA-Z0-9\!#\$%&'\(\)\*\+\-\./;\<=\>\?@\[\\\]\^\_`\{\|\}\~]+))"};
 const regex mime::HEADER_VALUE_REGEX{R"(([a-zA-Z0-9\ \t\!\"#\$%&'\(\)\*\+\,\-\./:;\<=\>\?@\[\\\]\^\_`\{\|\}\~]+))"};
-const string mime::CONTENT_ATTR_ALPHABET{"!#$%&*+-.^_`|~"};
+const string mime::CONTENT_ATTR_ALPHABET{"!#$%&'*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
@@ -1051,7 +1051,10 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 else
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
+                {
                     attributes[attribute_name] = attribute_value;
+                    parse_header_value_attribute(attribute_value);
+                }
                 break;
 
             case state_t::ATTR_VALUE_BEGIN:
@@ -1065,17 +1068,22 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 {
                     state = state_t::ATTR_BEGIN;
                     attributes[attribute_name] = attribute_value;
+                    parse_header_value_attribute(attribute_value);
                     attribute_name.clear();
                     attribute_value.clear();
                 }
                 else
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
+                {
                     attributes[attribute_name] = attribute_value;
+                    parse_header_value_attribute(attribute_value);
+                }
                 break;
 
             case state_t::ATTR_VALUE_END:
                 attributes[attribute_name] = attribute_value;
+                parse_header_value_attribute(attribute_value);
                 attribute_name.clear();
                 attribute_value.clear();
 
@@ -1091,6 +1099,20 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 return;
         }
     }
+}
+
+
+string_t mime::parse_header_value_attribute(const string& attr_value) const
+{
+    if (attr_value.empty())
+        return string_t();
+
+    size_t charset_pos = attr_value.find('\'');
+    size_t language_pos = attr_value.find('\'', charset_pos + 1);
+    if (charset_pos == string::npos)
+        return string_t(attr_value.substr(language_pos + 1));
+
+    return string_t(attr_value.substr(language_pos + 1), attr_value.substr(0, charset_pos));
 }
 
 
