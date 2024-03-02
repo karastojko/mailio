@@ -226,6 +226,7 @@ public:
     @param mime_string String to parse.
     @param dot_escape  Flag if the leading dot should be escaped.
     @throw *           `parse_by_line(const std::string&, bool)`.
+    @todo              `std::string_view` instead of `string::substr()`.
     **/
     void parse(const std::string& mime_string, bool dot_escape = false);
 
@@ -467,7 +468,7 @@ protected:
     /**
     Attributes map which used the appropriate comparator.
     **/
-    typedef std::map<std::string, std::string, attr_comp_t> attributes_t;
+    typedef std::map<std::string, string_t, attr_comp_t> attributes_t;
 
     /**
     Content type header name.

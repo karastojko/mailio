@@ -771,16 +771,16 @@ void mime::parse_header_line(const string& header_line)
         content_type_.subtype = to_lower_copy(media_subtype);
         attributes_t::iterator bound_it = attributes.find(content_type_t::ATTR_BOUNDARY);
         if (bound_it != attributes.end())
-            boundary_ = bound_it->second;
+            boundary_ = bound_it->second.buffer;
         attributes_t::iterator charset_it = attributes.find(content_type_t::ATTR_CHARSET);
         if (charset_it != attributes.end())
-            content_type_.charset = to_lower_copy(charset_it->second);
+            content_type_.charset = to_lower_copy(charset_it->second.buffer);
         attributes_t::iterator name_it = attributes.find(ATTRIBUTE_NAME);
         // name is set if not already set by content disposition
         if (name_it != attributes.end() && name_.empty())
         {
             q_codec qc(line_policy_, decoder_line_policy_);
-            name_ = get<0>(qc.check_decode(name_it->second));
+            name_ = get<0>(qc.check_decode(name_it->second.buffer));
         }
     }
     else if (iequals(header_name, CONTENT_TRANSFER_ENCODING_HEADER))
@@ -798,7 +798,7 @@ void mime::parse_header_line(const string& header_line)
         if (filename_it != attributes.end())
         {
             q_codec qc(line_policy_, decoder_line_policy_);
-            name_ = get<0>(qc.check_decode(filename_it->second));
+            name_ = get<0>(qc.check_decode(filename_it->second.buffer));
         }
     }
     else if (iequals(header_name, CONTENT_ID_HEADER))
@@ -1096,7 +1096,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
 
 void mime::merge_attributes(attributes_t& attributes) const
 {
-    map<string, map<int, string>> attribute_parts;
+    map<string, map<int, string_t>> attribute_parts;
     for (auto attr = attributes.begin(); attr != attributes.end(); )
     {
         auto full_attr_name = attr->first;
@@ -1130,7 +1130,7 @@ void mime::merge_attributes(attributes_t& attributes) const
     for (auto attr = attribute_parts.begin(); attr != attribute_parts.end(); attr++)
     {
         string attr_name = attr->first;
-        string attr_value;
+        string_t attr_value;
         for (auto part = attr->second.begin(); part != attr->second.end(); part++)
             attr_value += part->second;
         attributes[attr_name] = attr_value;
