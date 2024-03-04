@@ -10,8 +10,13 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 
 #include <string>
+#include <string_view>
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -19,6 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <random>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/url/decode_view.hpp>
 #include <mailio/base64.hpp>
 #include <mailio/quoted_printable.hpp>
 #include <mailio/bit7.hpp>
@@ -29,6 +35,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 using std::string;
+using std::string_view;
 #if defined(__cpp_char8_t)
 using std::u8string;
 #endif
@@ -1053,7 +1060,8 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 if (ch == header.end() - 1)
                 {
                     attributes[attribute_name] = attribute_value;
-                    parse_header_value_attribute(attribute_value);
+                    string_t av = parse_header_value_attribute(attribute_value);
+                    cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
                 }
                 break;
 
@@ -1068,7 +1076,8 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 {
                     state = state_t::ATTR_BEGIN;
                     attributes[attribute_name] = attribute_value;
-                    parse_header_value_attribute(attribute_value);
+                    string_t av = parse_header_value_attribute(attribute_value);
+                    cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
                     attribute_name.clear();
                     attribute_value.clear();
                 }
@@ -1077,13 +1086,16 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 if (ch == header.end() - 1)
                 {
                     attributes[attribute_name] = attribute_value;
-                    parse_header_value_attribute(attribute_value);
+                    string_t av = parse_header_value_attribute(attribute_value);
+                    cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
                 }
                 break;
 
             case state_t::ATTR_VALUE_END:
+            {
                 attributes[attribute_name] = attribute_value;
-                parse_header_value_attribute(attribute_value);
+                string_t av = parse_header_value_attribute(attribute_value);
+                cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
                 attribute_name.clear();
                 attribute_value.clear();
 
@@ -1094,6 +1106,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 else
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 break;
+            }
 
             case state_t::END:
                 return;
@@ -1112,7 +1125,11 @@ string_t mime::parse_header_value_attribute(const string& attr_value) const
     if (charset_pos == string::npos)
         return string_t(attr_value.substr(language_pos + 1));
 
-    return string_t(attr_value.substr(language_pos + 1), attr_value.substr(0, charset_pos));
+    string_view attr_view(attr_value);
+    auto attr_view_dec = boost::urls::decode_view(attr_view.substr(language_pos + 1));
+    stringstream dec_ss;
+    dec_ss << attr_view_dec;
+    return string_t(dec_ss.str(), attr_value.substr(0, charset_pos));
 }
 
 
@@ -1123,10 +1140,12 @@ void mime::merge_attributes(attributes_t& attributes) const
     {
         auto full_attr_name = attr->first;
         auto attr_value = attr->second;
+        cout << "mime::merge_attributes(): full_attr_name=" << full_attr_name << ", attr_value=" << attr_value << endl;
         string::size_type asterisk_pos = full_attr_name.find(ATTRIBUTE_MULTIPLE_NAME_INDICATOR);
         if (asterisk_pos != string::npos)
         {
             string attr_name = full_attr_name.substr(0, asterisk_pos);
+            cout << "mime::merge_attributes(): attr_name=" << attr_name << endl;
             try
             {
                 if (!full_attr_name.substr(asterisk_pos + 1).empty())
