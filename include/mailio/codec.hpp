@@ -53,6 +53,11 @@ struct String
     String& operator=(const String& other) = default;
 
     String& operator=(String&& other) = default;
+
+    operator Buf() const
+    {
+        return buffer;
+    }
 };
 
 
