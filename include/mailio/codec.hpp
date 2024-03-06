@@ -31,7 +31,7 @@ namespace mailio
 /**
 String which contains charset together with the representation.
 **/
-template<typename Buf>
+template<typename Buf, typename Char>
 struct String
 {
     Buf buffer;
@@ -47,6 +47,10 @@ struct String
     String(String&&) = default;
 
     String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
+    {
+    }
+
+    String(const Char* str) : String(Buf(str))
     {
     }
 
@@ -69,16 +73,16 @@ Output stream standard insert operator.
 @return    The output stream itself.
 @todo      Output of the charset too?
 **/
-template<typename Buf>
-std::ostream& operator<<(std::ostream& os, const String<Buf>& str)
+template<typename Buf, typename Char>
+std::ostream& operator<<(std::ostream& os, const String<Buf, Char>& str)
 {
     return os << str.buffer;
 }
 
 
-using string_t = String<std::string>;
+    using string_t = String<std::string, char>;
 #if defined(__cpp_char8_t)
-    using u8string_t = String<std::u8string>;
+    using u8string_t = String<std::u8string, char8_t>;
 #endif
 
 
@@ -88,10 +92,10 @@ using string_t = String<std::string>;
 /**
 Deals only with the buffers. The left character set is taken, the right is ignored.
 **/
-template<typename Buf>
-String<Buf> operator+(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+String<Buf, Char> operator+(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
-    String<Buf> result;
+    String<Buf, Char> result;
     result.buffer = lhs.buffer + rhs.buffer;
     result.charset = lhs.charset;
     return result;
@@ -101,51 +105,51 @@ String<Buf> operator+(const String<Buf>& lhs, const String<Buf>& rhs)
 /**
 Deals only with the buffers. The left character set is taken, the right is ignored.
 **/
-template<typename Buf>
-String<Buf>& operator+=(String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     lhs.buffer += rhs.buffer;
     return lhs;
 }
 
 
-template<typename Buf>
-bool operator==(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+bool operator==(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset;
 }
 
 
-template<typename Buf>
-bool operator!=(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+bool operator!=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     return !operator==(lhs, rhs);
 }
 
 
-template<typename Buf>
-bool operator<(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+bool operator<(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     return lhs.buffer < rhs.buffer;
 }
 
 
-template<typename Buf>
-bool operator>(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+bool operator>(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     return operator<(rhs, lhs);
 }
 
 
-template<typename Buf>
-bool operator<=(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+bool operator<=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     return !operator>(rhs, lhs);
 }
 
 
-template<typename Buf>
-bool operator>=(const String<Buf>& lhs, const String<Buf>& rhs)
+template<typename Buf, typename Char>
+bool operator>=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
     return !operator<(rhs, lhs);
 }
@@ -154,61 +158,61 @@ bool operator>=(const String<Buf>& lhs, const String<Buf>& rhs)
 // String and std::string.
 
 
-template<typename Buf>
-String<Buf> operator+(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+String<Buf, Char> operator+(const String<Buf, Char>& lhs, const std::string& rhs)
 {
-    String<Buf> result;
+    String<Buf, Char> result;
     result.buffer = lhs.buffer + rhs;
     result.charset = lhs.charset;
     return result;
 }
 
 
-template<typename Buf>
-String<Buf>& operator+=(String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const std::string& rhs)
 {
     lhs.buffer += rhs;
     return lhs;
 }
 
 
-template<typename Buf>
-bool operator==(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+bool operator==(const String<Buf, Char>& lhs, const std::string& rhs)
 {
     return lhs.buffer == rhs;
 }
 
 
-template<typename Buf>
-bool operator!=(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+bool operator!=(const String<Buf, Char>& lhs, const std::string& rhs)
 {
     return !operator==(lhs, rhs);
 }
 
 
-template<typename Buf>
-bool operator<(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+bool operator<(const String<Buf, Char>& lhs, const std::string& rhs)
 {
     return lhs.buffer < rhs;
 }
 
 
-template<typename Buf>
-bool operator>(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+bool operator>(const String<Buf, Char>& lhs, const std::string& rhs)
 {
     return lhs.buffer > rhs;
 }
 
 
-template<typename Buf>
-bool operator<=(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+bool operator<=(const String<Buf, Char>& lhs, const std::string& rhs)
 {
     return !operator>(rhs, lhs);
 }
 
 
-template<typename Buf>
-bool operator>=(const String<Buf>& lhs, const std::string& rhs)
+template<typename Buf, typename Char>
+bool operator>=(const String<Buf, Char>& lhs, const std::string& rhs)
 {
     return !operator<(rhs, lhs);
 }
@@ -219,61 +223,61 @@ bool operator>=(const String<Buf>& lhs, const std::string& rhs)
 // String and std::u8string.
 
 
-template<typename Buf>
-String<Buf> operator+(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+String<Buf, Char> operator+(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
-    String<Buf> result;
+    String<Buf, Char> result;
     result.buffer = lhs.buffer + rhs;
     result.charset = lhs.charset;
     return result;
 }
 
 
-template<typename Buf>
-String<Buf>& operator+=(String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     lhs.buffer += rhs;
     return lhs;
 }
 
 
-template<typename Buf>
-bool operator==(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+bool operator==(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     return lhs.buffer == rhs;
 }
 
 
-template<typename Buf>
-bool operator!=(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+bool operator!=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     return !operator==(lhs, rhs);
 }
 
 
-template<typename Buf>
-bool operator<(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+bool operator<(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     return lhs.buffer < rhs;
 }
 
 
-template<typename Buf>
-bool operator>(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+bool operator>(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     return lhs.buffer > rhs;
 }
 
 
-template<typename Buf>
-bool operator<=(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+bool operator<=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     return !operator>(rhs, lhs);
 }
 
 
-template<typename Buf>
-bool operator>=(const String<Buf>& lhs, const std::u8string& rhs)
+template<typename Buf, typename Char>
+bool operator>=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
     return !operator<(rhs, lhs);
 }
