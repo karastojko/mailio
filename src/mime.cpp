@@ -10,10 +10,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 
 #include <string>
 #include <string_view>
@@ -305,13 +301,13 @@ string mime::content_id() const
 }
 
 
-void mime::name(const string& mime_name)
+void mime::name(const string_t& mime_name)
 {
     name_ = mime_name;
 }
 
 
-string mime::name() const
+string_t mime::name() const
 {
     return name_;
 }
@@ -567,7 +563,7 @@ string mime::format_content_type() const
         line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(content_type_.type) + CONTENT_SUBTYPE_SEPARATOR + content_type_.subtype;
         if (!content_type_.charset.empty())
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset;
-        if (!name_.empty())
+        if (!name_.buffer.empty())
         {
             string mn = format_mime_name(name_);
             const string::size_type line_new_size = line.size() + ATTRIBUTES_SEPARATOR_STR.size() + ATTRIBUTE_NAME.size() + NAME_VALUE_SEPARATOR_STR.size() +
@@ -784,10 +780,14 @@ void mime::parse_header_line(const string& header_line)
             content_type_.charset = to_lower_copy(charset_it->second.buffer);
         attributes_t::iterator name_it = attributes.find(ATTRIBUTE_NAME);
         // name is set if not already set by content disposition
-        if (name_it != attributes.end() && name_.empty())
+        if (name_it != attributes.end() && name_.buffer.empty())
         {
             q_codec qc(line_policy_, decoder_line_policy_);
-            name_ = get<0>(qc.check_decode(name_it->second.buffer));
+            name_ =
+            {
+                get<0>(qc.check_decode(name_it->second.buffer)),
+                name_it->second.charset
+            };
         }
     }
     else if (iequals(header_name, CONTENT_TRANSFER_ENCODING_HEADER))
@@ -805,7 +805,11 @@ void mime::parse_header_line(const string& header_line)
         if (filename_it != attributes.end())
         {
             q_codec qc(line_policy_, decoder_line_policy_);
-            name_ = get<0>(qc.check_decode(filename_it->second.buffer));
+            name_ =
+            {
+                get<0>(qc.check_decode(filename_it->second.buffer)),
+                filename_it->second.charset
+            };
         }
     }
     else if (iequals(header_name, CONTENT_ID_HEADER))
@@ -1059,9 +1063,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
                 {
-                    attributes[attribute_name] = attribute_value;
-                    string_t av = parse_header_value_attribute(attribute_value);
-                    cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
+                    attributes[attribute_name] = parse_header_value_attribute(attribute_value);
                 }
                 break;
 
@@ -1075,9 +1077,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 else if (*ch == ATTRIBUTES_SEPARATOR_CHAR)
                 {
                     state = state_t::ATTR_BEGIN;
-                    attributes[attribute_name] = attribute_value;
-                    string_t av = parse_header_value_attribute(attribute_value);
-                    cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
+                    attributes[attribute_name] = parse_header_value_attribute(attribute_value);
                     attribute_name.clear();
                     attribute_value.clear();
                 }
@@ -1085,17 +1085,13 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
                 {
-                    attributes[attribute_name] = attribute_value;
-                    string_t av = parse_header_value_attribute(attribute_value);
-                    cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
+                    attributes[attribute_name] = parse_header_value_attribute(attribute_value);
                 }
                 break;
 
             case state_t::ATTR_VALUE_END:
             {
-                attributes[attribute_name] = attribute_value;
-                string_t av = parse_header_value_attribute(attribute_value);
-                cout << "mime::parse_header_value_attributes(): av=" << av.buffer << endl;
+                attributes[attribute_name] = parse_header_value_attribute(attribute_value);
                 attribute_name.clear();
                 attribute_value.clear();
 
@@ -1120,8 +1116,8 @@ string_t mime::parse_header_value_attribute(const string& attr_value) const
     if (attr_value.empty())
         return string_t();
 
-    size_t charset_pos = attr_value.find('\'');
-    size_t language_pos = attr_value.find('\'', charset_pos + 1);
+    size_t charset_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR);
+    size_t language_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
     if (charset_pos == string::npos)
         return string_t(attr_value.substr(language_pos + 1));
 
@@ -1140,12 +1136,10 @@ void mime::merge_attributes(attributes_t& attributes) const
     {
         auto full_attr_name = attr->first;
         auto attr_value = attr->second;
-        cout << "mime::merge_attributes(): full_attr_name=" << full_attr_name << ", attr_value=" << attr_value << endl;
         string::size_type asterisk_pos = full_attr_name.find(ATTRIBUTE_MULTIPLE_NAME_INDICATOR);
         if (asterisk_pos != string::npos)
         {
             string attr_name = full_attr_name.substr(0, asterisk_pos);
-            cout << "mime::merge_attributes(): attr_name=" << attr_name << endl;
             try
             {
                 if (!full_attr_name.substr(asterisk_pos + 1).empty())
@@ -1173,7 +1167,11 @@ void mime::merge_attributes(attributes_t& attributes) const
         string attr_name = attr->first;
         string_t attr_value;
         for (auto part = attr->second.begin(); part != attr->second.end(); part++)
+        {
+            if (!part->second.charset.empty())
+                attr_value.charset = part->second.charset;
             attr_value += part->second;
+        }
         attributes[attr_name] = attr_value;
     }
 }

@@ -303,14 +303,14 @@ public:
 
     @param mime_name Mime name to set.
     **/
-    void name(const std::string& mime_name);
+    void name(const string_t& mime_name);
 
     /**
     Getting the mime name.
 
     @return Mime name.
     **/
-    std::string name() const;
+    string_t name() const;
 
     /**
     Setting the content transfer encoding.
@@ -564,6 +564,8 @@ protected:
     Attribute indicator for the parameter continuation.
     **/
     static const char ATTRIBUTE_MULTIPLE_NAME_INDICATOR{'*'};
+
+    static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
 
     /**
     Attribute name part.
@@ -862,7 +864,7 @@ protected:
 
     @todo Should it contain filename of the attachment?
     **/
-    std::string name_;
+    string_t name_;
 
     /**
     Content ID.

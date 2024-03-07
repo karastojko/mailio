@@ -3057,6 +3057,26 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
 }
 
 
+BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=UTF-8'en-us'%E8.xlsx; \r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse encoded continued filename\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+    cout << msg.name().buffer << endl;
+    BOOST_CHECK(msg.name().charset == "UTF-8" && msg.name().buffer == "è.xlsx");
+}
+
+
 /**
 Parsing a header split into two lines.
 
