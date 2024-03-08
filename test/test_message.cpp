@@ -1966,7 +1966,7 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -3072,8 +3072,7 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    cout << msg.name().buffer << endl;
-    BOOST_CHECK(msg.name().charset == "UTF-8" && msg.name().buffer == "è.xlsx");
+    BOOST_CHECK(msg.name().charset == "UTF-8" && msg.name().buffer == "\xE8.xlsx");
 }
 
 
