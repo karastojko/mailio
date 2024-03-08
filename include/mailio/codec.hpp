@@ -34,30 +34,60 @@ String which contains charset together with the representation.
 template<typename Buf, typename Char>
 struct String
 {
+    /**
+    String content.
+    **/
     Buf buffer;
 
+
+    /**
+    String charset.
+    **/
     std::string charset;
+
 
     String() : buffer(), charset("ASCII")
     {
     }
 
+
     String(const String&) = default;
+
 
     String(String&&) = default;
 
+
+    /**
+    Initializing of the buffer and charset.
+
+    @param buffer_s  Content of the string.
+    @param charset_s Charset of the string.
+    @todo  Hardcoded string is available as static in `codec`.
+    **/
     String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
     {
     }
 
+
+    /**
+    Initializing of the buffer with the string literal.
+
+    @param str String literal.
+    **/
     String(const Char* str) : String(Buf(str))
     {
     }
 
+
     String& operator=(const String& other) = default;
+
 
     String& operator=(String&& other) = default;
 
+
+    /**
+    Conversion to the buffer type.
+    **/
     operator Buf() const
     {
         return buffer;
