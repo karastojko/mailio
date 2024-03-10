@@ -3057,6 +3057,12 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
 }
 
 
+/**
+Parsing the filename as a continued attribute with the charset and language.
+
+@pre  None.
+@post None.
+**/
 BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
@@ -3074,6 +3080,31 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\Program Files\\\xE8.xlsx");
+}
+
+
+/**
+Parsing the filename as a continued attribute without the language.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_invalid_continued_filename)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"C:\\Program Files\\\"; \r\n"
+        "  filename*1=UTF-8'%E8.xlsx; \r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse invalid continued filename\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 

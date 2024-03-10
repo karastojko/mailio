@@ -1117,10 +1117,12 @@ string_t mime::parse_header_value_attribute(const string& attr_value) const
         return string_t();
 
     size_t charset_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR);
-    // TODO: Report an error if only one single quote is given.
-    size_t language_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
     if (charset_pos == string::npos)
-        return string_t(attr_value.substr(language_pos + 1));
+        return string_t(attr_value);
+
+    size_t language_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
+    if (language_pos == string::npos)
+        throw mime_error("Parsing attribute value failure, no language parameter.");
 
     string_view attr_view(attr_value);
     auto attr_view_dec = boost::urls::decode_view(attr_view.substr(language_pos + 1));

@@ -565,6 +565,9 @@ protected:
     **/
     static const char ATTRIBUTE_MULTIPLE_NAME_INDICATOR{'*'};
 
+    /**
+    Attribute indicator for the charset and language parameters.
+    **/
     static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
 
     /**
