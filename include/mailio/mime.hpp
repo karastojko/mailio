@@ -226,6 +226,7 @@ public:
     @param mime_string String to parse.
     @param dot_escape  Flag if the leading dot should be escaped.
     @throw *           `parse_by_line(const std::string&, bool)`.
+    @todo              `std::string_view` instead of `string::substr()`.
     **/
     void parse(const std::string& mime_string, bool dot_escape = false);
 
@@ -302,14 +303,14 @@ public:
 
     @param mime_name Mime name to set.
     **/
-    void name(const std::string& mime_name);
+    void name(const string_t& mime_name);
 
     /**
     Getting the mime name.
 
     @return Mime name.
     **/
-    std::string name() const;
+    string_t name() const;
 
     /**
     Setting the content transfer encoding.
@@ -467,7 +468,7 @@ protected:
     /**
     Attributes map which used the appropriate comparator.
     **/
-    typedef std::map<std::string, std::string, attr_comp_t> attributes_t;
+    typedef std::map<std::string, string_t, attr_comp_t> attributes_t;
 
     /**
     Content type header name.
@@ -563,6 +564,11 @@ protected:
     Attribute indicator for the parameter continuation.
     **/
     static const char ATTRIBUTE_MULTIPLE_NAME_INDICATOR{'*'};
+
+    /**
+    Attribute indicator for the charset and language parameters.
+    **/
+    static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
 
     /**
     Attribute name part.
@@ -785,6 +791,8 @@ protected:
     **/
     void parse_header_value_attributes(const std::string& header, std::string& value, attributes_t& attributes) const;
 
+    string_t parse_header_value_attribute(const std::string& attr_value) const;
+
     /**
     Creating the random boundary for the mime part.
 
@@ -859,7 +867,7 @@ protected:
 
     @todo Should it contain filename of the attachment?
     **/
-    std::string name_;
+    string_t name_;
 
     /**
     Content ID.

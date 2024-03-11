@@ -56,14 +56,6 @@ struct MAILIO_EXPORT mail_address
     mail_address(const string_t& mail_name, const std::string& mail_address);
 
     /**
-    Setting a mail name and address.
-
-    @param mail_name    Name to set.
-    @param mail_address Address to set.
-    **/
-    mail_address(const std::string& mail_name, const std::string& mail_address);
-
-    /**
     Checking if a mail is empty, i.e. name and address are empty.
 
     @return True if empty, false if not.

@@ -54,7 +54,7 @@ generated password for all three protocols.
 
 # Requirements #
 
-*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, recent Boost libraries and CMake build tool.
+*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, ~~recent Boost libraries~~ Boost 1.81 or newer and CMake build tool.
 
 For Linux the following configuration is tested:
 * Ubuntu 20.04.3 LTS.

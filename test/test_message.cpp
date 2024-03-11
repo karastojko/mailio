@@ -1963,10 +1963,10 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address("маилио", "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("Tomislav Karastojković", "qwerty@gmail.com"));
-    msg.add_recipient(mail_address("Томислав Карастојковић", "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2000,10 +2000,10 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.from(mail_address("маилио", "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("Tomislav Karastojković", "qwerty@gmail.com"));
-    msg.add_recipient(mail_address("Томислав Карастојковић", "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2160,7 +2160,7 @@ BOOST_AUTO_TEST_CASE(format_utf8_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.from(mail_address("Tomislav Karastojković", "qwerty@hotmail.com"));
+    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Здраво, Свете!");
     msg.content("Hello, World!");
@@ -2400,10 +2400,10 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address("маилио", "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("Tomislav Karastojković", "qwerty@gmail.com"));
-    msg.add_recipient(mail_address("Томислав Карастојковић", "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -3054,6 +3054,57 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
+}
+
+
+/**
+Parsing the filename as a continued attribute with the charset and language.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"C:\\Program Files\\\"; \r\n"
+        "  filename*1=UTF-8'en-us'%E8.xlsx; \r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse encoded continued filename\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\Program Files\\\xE8.xlsx");
+}
+
+
+/**
+Parsing the filename as a continued attribute without the language.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_invalid_continued_filename)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"C:\\Program Files\\\"; \r\n"
+        "  filename*1=UTF-8'%E8.xlsx; \r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse invalid continued filename\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 
