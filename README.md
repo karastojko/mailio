@@ -52,52 +52,10 @@ Note for Zoho users: if 2FA is turned on, then instead of the primary password, 
 generated password for all three protocols.
 
 
-# Requirements #
-
-*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, ~~recent Boost libraries~~ Boost 1.81 or newer and CMake build tool.
-
-For Linux the following configuration is tested:
-* Ubuntu 20.04.3 LTS.
-* Gcc 8.3.0.
-* Boost 1.66 with Regex, Date Time available.
-* POSIX Threads, OpenSSL and Crypto libraries available on the system.
-* CMake 3.16.3
-
-For FreeBSD the following configuration is tested:
-* FreeBSD 13.
-* Clang 11.0.1.
-* Boost 1.72.0 (port).
-* CMake 3.21.3.
-
-For MacOS the following configuration is tested:
-* Apple LLVM 9.0.0.
-* Boost 1.66.
-* OpenSSL 1.0.2n available on the system.
-* CMake 3.16.3.
-
-For Microsoft Windows the following configuration is tested:
-* Windows 10.
-* Visual Studio 2019 Community Edition.
-* Boost 1.71.0.
-* OpenSSL 1.0.2t.
-* CMake 3.17.3.
-
-For Cygwin the following configuration is tested:
-* Cygwin 3.2.0 on Windows 10.
-* Gcc 10.2.
-* Boost 1.66.
-* CMake 3.20.
-* LibSSL 1.0.2t and LibSSL 1.1.1f development packages.
-
-For MinGW the following configuration is tested:
-* MinGW 17.1 on Windows 10 which comes with the bundled Gcc and Boost.
-* Gcc 9.2.
-* Boost 1.71.0.
-* OpenSSL 1.0.2t.
-* CMake 3.17.3.
-
-
 # Setup #
+
+*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, Boost 1.81 or newer and CMake build tool. Operating systems tested so far:
+Linux, Windows, FreeBSD, MacOS, Cygwin, MinGW; compilers: Gcc, Microsoft Visual C++ and Clang.
 
 There are two ways to build *mailio*: by cloning the [repo](https://github.com/karastojko/mailio.git) and using Cmake or by using Vcpkg.
 
