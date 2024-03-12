@@ -54,8 +54,8 @@ generated password for all three protocols.
 
 # Setup #
 
-*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, Boost 1.81 or newer and CMake build tool. Operating systems tested so far:
-Linux, Windows, FreeBSD, MacOS, Cygwin, MinGW; compilers: Gcc, Microsoft Visual C++ and Clang.
+*mailio* library is supposed to work on all platforms supporting C++ 17 compiler, Boost 1.81 or newer and CMake build tool. The platforms tested so far are
+Linux, Windows, FreeBSD, MacOS, Cygwin, MinGW and the compilers are Gcc, Microsoft Visual C++ and Clang.
 
 There are two ways to build *mailio*: by cloning the [repo](https://github.com/karastojko/mailio.git) and using Cmake or by using Vcpkg.
 
