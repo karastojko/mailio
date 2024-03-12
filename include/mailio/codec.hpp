@@ -46,14 +46,23 @@ struct String
     std::string charset;
 
 
+    /**
+    Default constructor.
+    **/
     String() : buffer(), charset("ASCII")
     {
     }
 
 
+    /**
+    Default copy constructor.
+    **/
     String(const String&) = default;
 
 
+    /**
+    Default move constructor.
+    **/
     String(String&&) = default;
 
 
@@ -79,9 +88,15 @@ struct String
     }
 
 
+    /**
+    Default copy assignment.
+    **/
     String& operator=(const String& other) = default;
 
 
+    /**
+    Default move assignment.
+    **/
     String& operator=(String&& other) = default;
 
 
@@ -101,7 +116,6 @@ Output stream standard insert operator.
 @param os  Output stream to insert into.
 @oaram str String to insert.
 @return    The output stream itself.
-@todo      Output of the charset too?
 **/
 template<typename Buf, typename Char>
 std::ostream& operator<<(std::ostream& os, const String<Buf, Char>& str)
@@ -110,9 +124,9 @@ std::ostream& operator<<(std::ostream& os, const String<Buf, Char>& str)
 }
 
 
-    using string_t = String<std::string, char>;
+using string_t = String<std::string, char>;
 #if defined(__cpp_char8_t)
-    using u8string_t = String<std::u8string, char8_t>;
+using u8string_t = String<std::u8string, char8_t>;
 #endif
 
 
@@ -121,6 +135,10 @@ std::ostream& operator<<(std::ostream& os, const String<Buf, Char>& str)
 
 /**
 Deals only with the buffers. The left character set is taken, the right is ignored.
+
+@param lhs First string to add.
+@param rhs Second string to add.
+@result    Concatenated given strings.
 **/
 template<typename Buf, typename Char>
 String<Buf, Char> operator+(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
@@ -134,6 +152,10 @@ String<Buf, Char> operator+(const String<Buf, Char>& lhs, const String<Buf, Char
 
 /**
 Deals only with the buffers. The left character set is taken, the right is ignored.
+
+@param lhs String to be added to.
+@param rhs String to add.
+@result    Second string concatenated to the first one.
 **/
 template<typename Buf, typename Char>
 String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
@@ -143,6 +165,13 @@ String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const String<Buf, Char>& r
 }
 
 
+/**
+Checking whether the strings are equal by the content and charset.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if they are equal, false if not.
+**/
 template<typename Buf, typename Char>
 bool operator==(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
@@ -150,6 +179,13 @@ bool operator==(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 }
 
 
+/**
+Checking whether the strings are not equal by the content or charset.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if they are not equal, false if they are.
+**/
 template<typename Buf, typename Char>
 bool operator!=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
@@ -157,6 +193,13 @@ bool operator!=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 }
 
 
+/**
+Checking whether the first string is less than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is less than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator<(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
@@ -164,6 +207,13 @@ bool operator<(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 }
 
 
+/**
+Checking whether the first string is greater than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is greater than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator>(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
@@ -171,6 +221,13 @@ bool operator>(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 }
 
 
+/**
+Checking whether the first string is less or equal than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is less or equal than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator<=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
@@ -178,6 +235,13 @@ bool operator<=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 }
 
 
+/**
+Checking whether the first string is greater or equal than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is greater or equal than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator>=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
@@ -188,6 +252,13 @@ bool operator>=(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 // String and std::string.
 
 
+/**
+Deals only with the buffers. The left character set is taken.
+
+@param lhs First string to add.
+@param rhs Second string to add.
+@result    Concatenated given strings.
+**/
 template<typename Buf, typename Char>
 String<Buf, Char> operator+(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -198,6 +269,13 @@ String<Buf, Char> operator+(const String<Buf, Char>& lhs, const std::string& rhs
 }
 
 
+/**
+Deals only with the buffers. The left character set is taken.
+
+@param lhs String to be added to.
+@param rhs String to add.
+@result    Second string concatenated to the first one.
+**/
 template<typename Buf, typename Char>
 String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -206,6 +284,13 @@ String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const std::string& rhs)
 }
 
 
+/**
+Checking whether the strings are equal by the content.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if they are equal, false if not.
+**/
 template<typename Buf, typename Char>
 bool operator==(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -213,6 +298,13 @@ bool operator==(const String<Buf, Char>& lhs, const std::string& rhs)
 }
 
 
+/**
+Checking whether the strings are not equal by the content.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if they are not equal, false if they are.
+**/
 template<typename Buf, typename Char>
 bool operator!=(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -220,6 +312,13 @@ bool operator!=(const String<Buf, Char>& lhs, const std::string& rhs)
 }
 
 
+/**
+Checking whether the first string is less than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is less than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator<(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -227,6 +326,13 @@ bool operator<(const String<Buf, Char>& lhs, const std::string& rhs)
 }
 
 
+/**
+Checking whether the first string is greater than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is greater than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator>(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -234,6 +340,13 @@ bool operator>(const String<Buf, Char>& lhs, const std::string& rhs)
 }
 
 
+/**
+Checking whether the first string is less or equal than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is less or equal than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator<=(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -241,6 +354,13 @@ bool operator<=(const String<Buf, Char>& lhs, const std::string& rhs)
 }
 
 
+/**
+Checking whether the first string is greater or equal than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is greater or equal than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator>=(const String<Buf, Char>& lhs, const std::string& rhs)
 {
@@ -253,6 +373,13 @@ bool operator>=(const String<Buf, Char>& lhs, const std::string& rhs)
 // String and std::u8string.
 
 
+/**
+Deals only with the buffers. The left character set is taken.
+
+@param lhs First string to add.
+@param rhs Second string to add.
+@result    Concatenated given strings.
+**/
 template<typename Buf, typename Char>
 String<Buf, Char> operator+(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -263,6 +390,13 @@ String<Buf, Char> operator+(const String<Buf, Char>& lhs, const std::u8string& r
 }
 
 
+/**
+Deals only with the buffers. The left character set is taken.
+
+@param lhs String to be added to.
+@param rhs String to add.
+@result    Second string concatenated to the first one.
+**/
 template<typename Buf, typename Char>
 String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -271,6 +405,13 @@ String<Buf, Char>& operator+=(String<Buf, Char>& lhs, const std::u8string& rhs)
 }
 
 
+/**
+Checking whether the strings are equal by the content.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if they are equal, false if not.
+**/
 template<typename Buf, typename Char>
 bool operator==(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -278,6 +419,13 @@ bool operator==(const String<Buf, Char>& lhs, const std::u8string& rhs)
 }
 
 
+/**
+Checking whether the strings are not equal by the content.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if they are not equal, false if they are.
+**/
 template<typename Buf, typename Char>
 bool operator!=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -285,6 +433,13 @@ bool operator!=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 }
 
 
+/**
+Checking whether the first string is less than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is less than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator<(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -292,6 +447,13 @@ bool operator<(const String<Buf, Char>& lhs, const std::u8string& rhs)
 }
 
 
+/**
+Checking whether the first string is greater than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is greater than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator>(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -299,6 +461,13 @@ bool operator>(const String<Buf, Char>& lhs, const std::u8string& rhs)
 }
 
 
+/**
+Checking whether the first string is less or equal than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is less or equal than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator<=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {
@@ -306,6 +475,13 @@ bool operator<=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 }
 
 
+/**
+Checking whether the first string is greater or equal than the second one.
+
+@param lhs First string to compare.
+@param rhs Second string to compare.
+@return    True if the first one is greater or equal than the second one, false otherwise.
+**/
 template<typename Buf, typename Char>
 bool operator>=(const String<Buf, Char>& lhs, const std::u8string& rhs)
 {

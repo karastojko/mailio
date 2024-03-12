@@ -166,7 +166,7 @@ public:
     enum class content_disposition_t {NONE, INLINE, ATTACHMENT};
 
     /**
-    Default default constructor.
+    Default constructor.
     **/
     mime();
 
