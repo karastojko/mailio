@@ -1852,7 +1852,7 @@ BOOST_AUTO_TEST_CASE(format_html_att)
     std::ifstream ifs1("cv.txt");
     std::list<std::tuple<std::istream&, string, message::content_type_t>> atts;
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = std::tie(ifs1, "TomislavKarastojkovic_CV.txt", ct);
+    auto tp = std::make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct);
     atts.push_back(tp);
     msg.attach(atts);
     string msg_str;
@@ -4362,10 +4362,10 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
 
     ifstream ifs1("cv.txt");
     message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
-    auto tp1 = std::tie(ifs1, "tkcv.txt", ct1);
+    auto tp1 = std::make_tuple(std::ref(ifs1), "tkcv.txt", ct1);
     ifstream ifs2("aleph0.png");
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
-    auto tp2 = std::tie(ifs2, "a0.png", ct2);
+    auto tp2 = std::make_tuple(std::ref(ifs2), "a0.png", ct2);
     list<tuple<std::istream&, string, message::content_type_t>> atts;
     atts.push_back(tp1);
     atts.push_back(tp2);
