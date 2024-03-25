@@ -805,10 +805,19 @@ void mime::parse_header_line(const string& header_line)
         if (filename_it != attributes.end())
         {
             q_codec qc(line_policy_, decoder_line_policy_);
+            string_t t_charset;
+            if(filename_it->second.charset != q_codec::CHARSET_ASCII){
+                t_charset.charset = filename_it->second.charset;
+            }
+            auto t_decode = qc.check_decode(filename_it->second.buffer);
+            if(get<1>(t_decode) != q_codec::CHARSET_ASCII){
+                t_charset.charset = get<1>(t_decode);
+            }
+            //added end
             name_ =
             {
                 get<0>(qc.check_decode(filename_it->second.buffer)),
-                filename_it->second.charset
+                t_charset.charset //filename_it->second.charset
             };
         }
     }
@@ -1161,7 +1170,7 @@ void mime::merge_attributes(attributes_t& attributes) const
                 throw mime_error("Parsing attribute failure at `" + attr_name + "`.");
             }
         }
-        else
+        // else  //for fixing the while loop 
             attr++;
     }
 
