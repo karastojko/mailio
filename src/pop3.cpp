@@ -283,6 +283,43 @@ void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
     }
 }
 
+void pop3::fetch(unsigned long message_no, std::vector<std::string> & msg, bool header_only)
+{
+    string line;
+    if (header_only)
+    {
+        dlg_->send("TOP " + to_string(message_no) + " 0");
+        line = dlg_->receive();
+        tuple<string, string> stat_msg = parse_status(line);
+        if (iequals(std::get<0>(stat_msg), "-ERR"))
+            return;
+    }
+    else
+    {
+        dlg_->send("RETR " + to_string(message_no));
+        line = dlg_->receive();
+        tuple<string, string> stat_msg = parse_status(line);
+        if (iequals(std::get<0>(stat_msg), "-ERR"))
+            throw pop3_error("Fetching message failure.");
+    }
+    //
+    
+    // end of message is marked with crlf+dot+crlf sequence
+    // empty_line marks the last empty line, so it could be used to detect end of message when dot is reached
+    bool empty_line = false;
+    while (true)
+    {
+        line = dlg_->receive();
+        // reading line by line ensures that crlf are the last characters read; so, reaching single dot in the line means that it's end of message
+        if (line == codec::END_OF_MESSAGE)
+        {
+            break;
+        }
+        else {
+            msg.append(line);
+        }
+    }
+}
 
 void pop3::remove(unsigned long message_no)
 {
