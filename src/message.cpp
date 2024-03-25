@@ -1520,7 +1520,35 @@ void message::all_data(const std::vector<std::string> & value){
 }
 
 void message::parse_all_data(){
-    
+    std::vector<std::string>::iterator t_iter = all_data_.begin();
+    bool empty_line = false;
+    while (t_iter!=all_data_.end())
+    {
+        line = *t_iter;
+        // reading line by line ensures that crlf are the last characters read; so, reaching single dot in the line means that it's end of message
+        if (line == codec::END_OF_MESSAGE)
+        {
+            // if header only, then mark the header end with the empty line
+            break;
+        }
+        else if (line.empty())
+        {
+            // ensure that sequence of empty lines are all included in the message; otherwise, mark that an empty line is reached
+            if (empty_line)
+                parse_by_line("");
+            else
+                empty_line = true;
+        }
+        else
+        {
+            // regular line with the content; if empty line was before this one, ensure that it is included
+            if (empty_line)
+                parse_by_line("");
+            parse_by_line(line, true);
+            empty_line = false;
+        }
+        t_iter++;
+    }
 }
 
 } // namespace mailio
