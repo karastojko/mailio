@@ -169,6 +169,20 @@ public:
     **/
     void fetch(unsigned long message_no, message& msg, bool header_only = false);
 
+     /**
+    Fetching a message.
+
+    The flag for fetching the header only uses a different POP3 command (than for retrieving the full messsage) which is not mandatory by POP3. In case the
+    command fails, the method will not report an error but rather the `msg` parameter will be empty.
+
+    @param message_no  Message number to fetch.
+    @param msg         Fetched message only with the text data but without any parsed actions.
+    @param header_only Flag if only the message header should be fetched.
+    @throw pop3_error  Fetching message failure.
+    @throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    void fetch(unsigned long message_no, std::vector<std::string> & msg, bool header_only = false);
+
     /**
     Removing a message in the mailbox.
 

@@ -512,6 +512,21 @@ public:
     **/
     std::multimap<std::string, std::string> headers() const;
 
+    /**
+    @return Message all of the data with no parsing actions
+    **/
+    std::vector<std::string> all_data() const;
+
+    /**
+    set the message from the text line by line.
+    **/
+    void all_data(const std::vector<std::string> & value); 
+
+    /**
+    For parsing the message from the whole data aka all_data_
+    **/
+    void parse_all_data();
+    
 protected:
 
     /**
@@ -775,6 +790,12 @@ protected:
     Other headers not included into the known ones.
     **/
     std::multimap<std::string, std::string> headers_;
+
+
+    /**
+    For getting the whole message from the server with no parsed actions
+    **/
+    std::vector<std::string> all_data_;
 };
 
 
