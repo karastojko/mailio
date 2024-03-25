@@ -311,12 +311,10 @@ void pop3::fetch(unsigned long message_no, std::vector<std::string> & msg, bool 
     {
         line = dlg_->receive();
         // reading line by line ensures that crlf are the last characters read; so, reaching single dot in the line means that it's end of message
+        msg.append(line);
         if (line == codec::END_OF_MESSAGE)
         {
             break;
-        }
-        else {
-            msg.append(line);
         }
     }
 }
