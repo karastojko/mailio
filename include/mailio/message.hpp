@@ -521,6 +521,11 @@ public:
     set the message from the text line by line.
     **/
     void all_data(const std::vector<std::string> & value); 
+
+    /**
+    For parsing the message from the whole data aka all_data_
+    **/
+    void parse_all_data();
     
 protected:
 
