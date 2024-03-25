@@ -1510,5 +1510,14 @@ vector<string> message::split_qc_string(const string& text)
     return parts;
 }
 
+std::vector<std::string> all_data() const
+{
+    return all_data_;
+}
+
+void all_data(const std::vector<std::string> & value){
+    all_data_ = value;
+}
+
 
 } // namespace mailio
