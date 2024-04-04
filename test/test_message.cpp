@@ -30,6 +30,7 @@ using std::ifstream;
 using std::ofstream;
 using std::list;
 using std::tuple;
+using std::make_tuple;
 using boost::posix_time::ptime;
 using boost::posix_time::time_from_string;
 using boost::local_time::time_zone_ptr;
@@ -281,7 +282,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
 }
 
 /**
-Formatting a message with bcc_headers set and format option `add_bcc_headers` set to true 
+Formatting a message with bcc_headers set and format option `add_bcc_headers` set to true
 adds BCC headers to the message
 
 @pre  None.
@@ -312,7 +313,7 @@ BOOST_AUTO_TEST_CASE(format_exports_bcc_headers_when_add_bcc_headers_is_set)
 }
 
 /**
-Formatting a message with bcc_headers set and format option `add_bcc_headers` set to false 
+Formatting a message with bcc_headers set and format option `add_bcc_headers` set to false
 does not add BCC headers to the message
 
 @pre  None.
@@ -1641,10 +1642,16 @@ BOOST_AUTO_TEST_CASE(format_attachment)
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format attachment");
-    std::ifstream ifs1("cv.txt");
-    msg.attach(ifs1, "TomislavKarastojkovic_CV.txt", message::media_type_t::APPLICATION, "txt");
-    std::ifstream ifs2("aleph0.png");
-    msg.attach(ifs2, "logo.png", message::media_type_t::IMAGE, "png");
+    ifstream ifs1("cv.txt");
+    message::content_type_t ct1{message::media_type_t::APPLICATION, "txt"};
+    auto tp1 = make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct1);
+    ifstream ifs2("aleph0.png");
+    message::content_type_t ct2(message::media_type_t::IMAGE, "png");
+    auto tp2 = make_tuple(std::ref(ifs2), "logo.png", ct2);
+    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    atts.push_back(tp1);
+    atts.push_back(tp2);
+    msg.attach(atts);
 
     BOOST_CHECK(msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "mixed" && msg.attachments_size() == 2);
     BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::APPLICATION && msg.parts().at(0).content_type().subtype == "txt" &&
@@ -1675,8 +1682,14 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format attachment utf8");
     msg.boundary("mybnd");
-    std::ifstream ifs1("cv.txt");
-    msg.attach(ifs1, "TomislavKarastojković_CV.txt", message::media_type_t::TEXT, "plain");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), "TomislavKarastojković_CV.txt", ct);
+    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
     string msg_str;
     msg.format(msg_str);
 
@@ -1736,8 +1749,13 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
         " а исто то треба проверити са парсирањем.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
-    std::ifstream ifs1("cv.txt");
-    msg.attach(ifs1, "TomislavKarastojkovic_CV.txt", message::media_type_t::TEXT, "plain");
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), "TomislavKarastojkovic_CV.txt", ct);
+    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str ==
@@ -1849,10 +1867,10 @@ BOOST_AUTO_TEST_CASE(format_html_att)
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
 
-    std::ifstream ifs1("cv.txt");
-    std::list<std::tuple<std::istream&, string, message::content_type_t>> atts;
+    ifstream ifs1("cv.txt");
+    list<tuple<std::istream&, string, message::content_type_t>> atts;
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = std::make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct);
+    auto tp = make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct);
     atts.push_back(tp);
     msg.attach(atts);
     string msg_str;
@@ -4312,9 +4330,15 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("parse attachment");
     ifstream ifs1("cv.txt");
-    msg.attach(ifs1, "tkcv.txt", message::media_type_t::APPLICATION, "txt");
+    message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
+    auto tp1 = make_tuple(std::ref(ifs1), "tkcv.txt", ct1);
     ifstream ifs2("aleph0.png");
-    msg.attach(ifs2, "a0.png", message::media_type_t::IMAGE, "png");
+    message::content_type_t ct2(message::media_type_t::IMAGE, "png");
+    auto tp2 = make_tuple(std::ref(ifs1), "a0.png", ct2);
+    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    atts.push_back(tp1);
+    atts.push_back(tp2);
+    msg.attach(atts);
 
     string msg_str;
     msg.format(msg_str);
