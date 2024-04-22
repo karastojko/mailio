@@ -466,7 +466,7 @@ public:
     @throw *           `mime::content_type(const content_type_t&)`, `mime::content_transfer_encoding(content_transfer_encoding_t)`,
                        `mime::content_disposition(content_disposition_t)`.
     **/
-    void attach(const std::list<std::tuple<std::istream&, std::string, content_type_t>>& attachments);
+    void attach(const std::list<std::tuple<std::istream&, string_t, content_type_t>>& attachments);
 
     /**
     Getting the number of attachments.
@@ -482,6 +482,7 @@ public:
     @param att_strm      Stream to write the attachment.
     @param att_name      Name of the attachment.
     @throw message_error Bad attachment index.
+    @todo                The attachment name should be also `string_t`.
     **/
     void attachment(std::size_t index, std::ostream& att_strm, std::string& att_name) const;
 

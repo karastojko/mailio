@@ -22,6 +22,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 using mailio::message;
+using mailio::string_t;
 using mailio::mail_address;
 using mailio::smtps;
 using mailio::smtp_error;
@@ -48,8 +49,8 @@ int main()
 
         ifstream ifs1("aleph0.png", std::ios::binary);
         ifstream ifs2("infinity.png", std::ios::binary);
-        list<tuple<std::istream&, string, message::content_type_t>> atts;
-        atts.push_back(make_tuple(std::ref(ifs1), string("aleph0.png"), message::content_type_t(message::media_type_t::IMAGE, "png")));
+        list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+        atts.push_back(make_tuple(std::ref(ifs1), "aleph0.png", message::content_type_t(message::media_type_t::IMAGE, "png")));
         atts.push_back(make_tuple(std::ref(ifs2), "infinity.png", message::content_type_t(message::media_type_t::IMAGE, "png")));
         msg.attach(atts);
 

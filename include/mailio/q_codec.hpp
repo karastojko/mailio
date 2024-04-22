@@ -66,6 +66,7 @@ public:
     @param text    String to encode.
     @param charset Charset used by the string.
     @return        Encoded string.
+    @todo          Merge text and charset into a single parameter of type `string_t`.
     **/
     std::vector<std::string> encode(const std::string& text, const std::string& charset, header_codec_t method) const;
 

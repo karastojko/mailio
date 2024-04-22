@@ -661,13 +661,13 @@ string mime::format_content_id() const
 }
 
 
-string mime::format_mime_name(const string& name) const
+string mime::format_mime_name(const string_t& name) const
 {
-    if (codec::is_utf8_string(name))
+    if (name.charset != "ASCII")
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
         q_codec qc(codec::line_len_policy_t::MANDATORY, decoder_line_policy_);
-        vector<string> hdr = qc.encode(name, codec::CHARSET_UTF8, header_codec_);
+        vector<string> hdr = qc.encode(name, name.charset, header_codec_);
         return hdr.at(0);
     }
 

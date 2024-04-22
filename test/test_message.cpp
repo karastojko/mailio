@@ -1648,7 +1648,7 @@ BOOST_AUTO_TEST_CASE(format_attachment)
     ifstream ifs2("aleph0.png");
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
     auto tp2 = make_tuple(std::ref(ifs2), "logo.png", ct2);
-    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp1);
     atts.push_back(tp2);
     msg.attach(atts);
@@ -1685,8 +1685,8 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), "TomislavKarastojković_CV.txt", ct);
-    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8"), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
 
@@ -1752,7 +1752,7 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
     auto tp = make_tuple(std::ref(ifs), "TomislavKarastojkovic_CV.txt", ct);
-    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
 
@@ -1868,7 +1868,7 @@ BOOST_AUTO_TEST_CASE(format_html_att)
     msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
 
     ifstream ifs1("cv.txt");
-    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
     auto tp = make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct);
     atts.push_back(tp);
@@ -4335,7 +4335,7 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     ifstream ifs2("aleph0.png");
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
     auto tp2 = make_tuple(std::ref(ifs1), "a0.png", ct2);
-    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp1);
     atts.push_back(tp2);
     msg.attach(atts);
@@ -4390,7 +4390,7 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
     ifstream ifs2("aleph0.png");
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
     auto tp2 = std::make_tuple(std::ref(ifs2), "a0.png", ct2);
-    list<tuple<std::istream&, string, message::content_type_t>> atts;
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp1);
     atts.push_back(tp2);
 

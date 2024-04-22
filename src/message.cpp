@@ -451,7 +451,7 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
 }
 
 
-void message::attach(const list<tuple<istream&, string, content_type_t>>& attachments)
+void message::attach(const list<tuple<istream&, string_t, content_type_t>>& attachments)
 {
     if (boundary_.empty())
         boundary_ = make_boundary();

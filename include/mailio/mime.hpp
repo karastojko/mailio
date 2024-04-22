@@ -697,7 +697,7 @@ protected:
     @param name Mime name to format.
     @return     Formatted name.
     **/
-    std::string format_mime_name(const std::string& name) const;
+    std::string format_mime_name(const string_t& name) const;
 
     /**
     Parsing header by going through header lines and calling `parse_header_line()`.
