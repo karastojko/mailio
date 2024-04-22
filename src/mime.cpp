@@ -663,7 +663,7 @@ string mime::format_content_id() const
 
 string mime::format_mime_name(const string_t& name) const
 {
-    if (name.charset != "ASCII")
+    if (name.charset != codec::CHARSET_ASCII)
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
         q_codec qc(codec::line_len_policy_t::MANDATORY, decoder_line_policy_);
