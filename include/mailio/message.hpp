@@ -484,7 +484,7 @@ public:
     @throw message_error Bad attachment index.
     @todo                The attachment name should be also `string_t`.
     **/
-    void attachment(std::size_t index, std::ostream& att_strm, std::string& att_name) const;
+    void attachment(std::size_t index, std::ostream& att_strm, string_t& att_name) const;
 
     /**
     Adding another header.

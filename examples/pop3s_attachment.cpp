@@ -24,6 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 
 using mailio::message;
+using mailio::string_t;
 using mailio::codec;
 using mailio::pop3s;
 using mailio::pop3_error;
@@ -51,10 +52,10 @@ int main()
         conn.fetch(1, msg);
         
         ofstream ofs1("alepho.png", std::ios::binary);
-        string att1;
+        string_t att1;
         msg.attachment(1, ofs1, att1);
         ofstream ofs2("infiniti.png", std::ios::binary);
-        string att2;
+        string_t att2;
         msg.attachment(2, ofs2, att2);
         cout << "Received message with subject `" << msg.subject() << "` and attached files `" <<
             att1 << "` and `" << att2 << "` saved as `alepho.png` and `infiniti.png`." << endl;

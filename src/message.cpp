@@ -502,7 +502,7 @@ size_t message::attachments_size() const
 }
 
 
-void message::attachment(size_t index, ostream& att_strm, string& att_name) const
+void message::attachment(size_t index, ostream& att_strm, string_t& att_name) const
 {
     if (index == 0)
         throw message_error("Bad attachment index.");

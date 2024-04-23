@@ -4352,11 +4352,11 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
         msg_msg.parts().at(1).content_type().subtype == "png");
 
     ofstream ofs1("tkcv.txt");
-    string ofs1_name;
+    string_t ofs1_name;
     msg_msg.attachment(1, ofs1, ofs1_name);
     BOOST_CHECK(ofs1_name == "tkcv.txt");
     ofstream ofs2("a0.png");
-    string ofs2_name;
+    string_t ofs2_name;
     msg_msg.attachment(2, ofs2, ofs2_name);
     BOOST_CHECK(ofs2_name == "a0.png");
 }
