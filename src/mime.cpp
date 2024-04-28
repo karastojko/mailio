@@ -20,7 +20,9 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <random>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#if BOOST_URL_AVAILABLE
 #include <boost/url/decode_view.hpp>
+#endif
 #include <mailio/base64.hpp>
 #include <mailio/quoted_printable.hpp>
 #include <mailio/bit7.hpp>
@@ -1124,11 +1126,15 @@ string_t mime::parse_header_value_attribute(const string& attr_value) const
     if (language_pos == string::npos)
         throw mime_error("Parsing attribute value failure, no language parameter.");
 
+#if BOOST_URL_AVAILABLE
     string_view attr_view(attr_value);
     auto attr_view_dec = boost::urls::decode_view(attr_view.substr(language_pos + 1));
     stringstream dec_ss;
     dec_ss << attr_view_dec;
     return string_t(dec_ss.str(), attr_value.substr(0, charset_pos));
+#else
+    return string_t(attr_value.substr(language_pos + 1), attr_value.substr(0, charset_pos));
+#endif
 }
 
 

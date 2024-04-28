@@ -61,7 +61,10 @@ if(WIN32)
     set(Boost_USE_STATIC_LIBS ON)
 endif(WIN32)
 
-find_package(Boost REQUIRED COMPONENTS system date_time regex url)
+find_package(Boost REQUIRED COMPONENTS system date_time regex OPTIONAL_COMPONENTS url)
+if(Boost_url_FOUND)
+  add_definitions(-DBOOST_URL_AVAILABLE=1)
+endif(Boost_url_FOUND)
 find_package(OpenSSL)
 set(CMAKE_THREAD_PREFER_PTHREAD)
 # "Use of both the imported target as well as this switch is highly recommended for new code."
