@@ -4411,6 +4411,54 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
 
 
 /**
+Parsing attachments with UTF-8 names.
+
+@pre  None.
+@post None.
+@todo Shows that the attachment name charset is not properly set.
+**/
+BOOST_AUTO_TEST_CASE(parse_attachment_utf8)
+{
+    string msg_str =
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format attachment utf8\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
+        "\r\n"
+        "VGhpcyBpcyBteSByZXN1bWUuIAo=\r\n"
+        "\r\n"
+        "--mybnd--\r\n";
+    message msg;
+    msg.parse(msg_str);
+
+    const char* CV_FILE = "cv.txt";
+    ofstream att_file(CV_FILE);
+    string_t att_name;
+    msg.attachment(1, att_file, att_name);
+    att_file.close();
+
+    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt");
+    // TODO: Charset should be UTF8.
+    BOOST_CHECK(att_name.charset == "ASCII");
+
+    ofstream ofs(CV_FILE);
+    BOOST_CHECK_EQUAL(!ofs, false);
+    ofs.close();
+    std::remove(CV_FILE);
+}
+
+
+/**
 Parsing a message with the recipents and CC recipients in several lines.
 
 @pre  None.

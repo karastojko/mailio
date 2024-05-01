@@ -841,13 +841,9 @@ void mime::parse_header_name_value(const string& header_line, string& header_nam
     if (header_value.empty())
     {
         if (strict_mode_)
-        {
             throw mime_error("Parsing failure, header name or value empty: " + header_line);
-        }
         else
-        {
             return;
-        }
     }
 
     if (!codec::is_utf8_string(header_value) && !regex_match(header_value, m, HEADER_VALUE_REGEX))
