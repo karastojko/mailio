@@ -196,7 +196,7 @@ void mime::parse(const u8string& mime_string, bool dot_escape)
 
 mime& mime::parse_by_line(const string& line, bool dot_escape)
 {
-    if (line.length() > string::size_type(decoder_line_policy_))
+    if (line.length() > string::size_type(mailio::codec::line_len_policy_t::MANDATORY))
         throw mime_error("Line policy overflow in a header.");
 
     // mark end of header and parse it
