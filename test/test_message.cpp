@@ -1645,7 +1645,7 @@ BOOST_AUTO_TEST_CASE(format_attachment)
     ifstream ifs1("cv.txt");
     message::content_type_t ct1{message::media_type_t::APPLICATION, "txt"};
     auto tp1 = make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct1);
-    ifstream ifs2("aleph0.png");
+    ifstream ifs2("aleph0.png", std::ios_base::binary);
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
     auto tp2 = make_tuple(std::ref(ifs2), "logo.png", ct2);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
@@ -4332,7 +4332,7 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     ifstream ifs1("cv.txt");
     message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
     auto tp1 = make_tuple(std::ref(ifs1), "tkcv.txt", ct1);
-    ifstream ifs2("aleph0.png");
+    ifstream ifs2("aleph0.png", std::ios_base::binary);
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
     auto tp2 = make_tuple(std::ref(ifs1), "a0.png", ct2);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
@@ -4355,7 +4355,7 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     string_t ofs1_name;
     msg_msg.attachment(1, ofs1, ofs1_name);
     BOOST_CHECK(ofs1_name == "tkcv.txt");
-    ofstream ofs2("a0.png");
+    ofstream ofs2("a0.png", std::ios_base::binary);
     string_t ofs2_name;
     msg_msg.attachment(2, ofs2, ofs2_name);
     BOOST_CHECK(ofs2_name == "a0.png");
@@ -4387,7 +4387,7 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
     ifstream ifs1("cv.txt");
     message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
     auto tp1 = std::make_tuple(std::ref(ifs1), "tkcv.txt", ct1);
-    ifstream ifs2("aleph0.png");
+    ifstream ifs2("aleph0.png", std::ios_base::binary);
     message::content_type_t ct2(message::media_type_t::IMAGE, "png");
     auto tp2 = std::make_tuple(std::ref(ifs2), "a0.png", ct2);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
