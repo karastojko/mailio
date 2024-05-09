@@ -791,7 +791,15 @@ protected:
     **/
     void parse_header_value_attributes(const std::string& header, std::string& value, attributes_t& attributes) const;
 
-    string_t parse_header_value_attribute(const std::string& attr_value) const;
+    /**
+    Decoding header value attribute.
+
+    @param attr_value Attribute to decode.
+    @return           Attribute decoded as string and its charset.
+    @throw mime_error Parsing attribute value failure, no language parameter.
+    @todo             URL decoding into a separate function.
+    **/
+    string_t decode_value_attribute(const std::string& attr_value) const;
 
     /**
     Creating the random boundary for the mime part.

@@ -781,14 +781,7 @@ void mime::parse_header_line(const string& header_line)
         attributes_t::iterator name_it = attributes.find(ATTRIBUTE_NAME);
         // name is set if not already set by content disposition
         if (name_it != attributes.end() && name_.buffer.empty())
-        {
-            q_codec qc(line_policy_, decoder_line_policy_);
-            name_ =
-            {
-                get<0>(qc.check_decode(name_it->second.buffer)),
-                name_it->second.charset
-            };
-        }
+            name_ = name_it->second;
     }
     else if (iequals(header_name, CONTENT_TRANSFER_ENCODING_HEADER))
     {
@@ -803,14 +796,7 @@ void mime::parse_header_line(const string& header_line)
         // filename is stored no matter if name is already set by content type
         attributes_t::iterator filename_it = attributes.find(ATTRIBUTE_FILENAME);
         if (filename_it != attributes.end())
-        {
-            q_codec qc(line_policy_, decoder_line_policy_);
-            name_ =
-            {
-                get<0>(qc.check_decode(filename_it->second.buffer)),
-                filename_it->second.charset
-            };
-        }
+            name_ = filename_it->second;
     }
     else if (iequals(header_name, CONTENT_ID_HEADER))
     {
@@ -1059,7 +1045,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
                 {
-                    attributes[attribute_name] = parse_header_value_attribute(attribute_value);
+                    attributes[attribute_name] = decode_value_attribute(attribute_value);
                 }
                 break;
 
@@ -1073,7 +1059,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 else if (*ch == ATTRIBUTES_SEPARATOR_CHAR)
                 {
                     state = state_t::ATTR_BEGIN;
-                    attributes[attribute_name] = parse_header_value_attribute(attribute_value);
+                    attributes[attribute_name] = decode_value_attribute(attribute_value);
                     attribute_name.clear();
                     attribute_value.clear();
                 }
@@ -1081,13 +1067,13 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
                 {
-                    attributes[attribute_name] = parse_header_value_attribute(attribute_value);
+                    attributes[attribute_name] = decode_value_attribute(attribute_value);
                 }
                 break;
 
             case state_t::ATTR_VALUE_END:
             {
-                attributes[attribute_name] = parse_header_value_attribute(attribute_value);
+                attributes[attribute_name] = decode_value_attribute(attribute_value);
                 attribute_name.clear();
                 attribute_value.clear();
 
@@ -1107,24 +1093,32 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
 }
 
 
-string_t mime::parse_header_value_attribute(const string& attr_value) const
+string_t mime::decode_value_attribute(const string& attr_value) const
 {
     if (attr_value.empty())
         return string_t();
 
+    // URL decoding
+
     size_t charset_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR);
-    if (charset_pos == string::npos)
-        return string_t(attr_value);
+    if (charset_pos != string::npos)
+    {
+        size_t language_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
+        if (language_pos == string::npos)
+            throw mime_error("Parsing attribute value failure, no language parameter.");
 
-    size_t language_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
-    if (language_pos == string::npos)
-        throw mime_error("Parsing attribute value failure, no language parameter.");
+        string_view attr_view(attr_value);
+        auto attr_view_dec = boost::urls::decode_view(attr_view.substr(language_pos + 1));
+        stringstream dec_ss;
+        dec_ss << attr_view_dec;
+        return string_t(dec_ss.str(), attr_value.substr(0, charset_pos));
+    }
 
-    string_view attr_view(attr_value);
-    auto attr_view_dec = boost::urls::decode_view(attr_view.substr(language_pos + 1));
-    stringstream dec_ss;
-    dec_ss << attr_view_dec;
-    return string_t(dec_ss.str(), attr_value.substr(0, charset_pos));
+    // Q decoding
+
+    q_codec qc(line_policy_, decoder_line_policy_);
+    auto av = qc.check_decode(attr_value);
+    return string_t(std::get<0>(av), std::get<1>(av));
 }
 
 

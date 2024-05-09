@@ -89,6 +89,7 @@ public:
     @param text        String to decode.
     @return            Decoded string, its charset and its codec method.
     @throw codec_error Bad Q codec format.
+    @todo              Returning value to hold `string_t` instead of two `std::string`.
     **/
     std::tuple<std::string, std::string, header_codec_t> check_decode(const std::string& text) const;
 

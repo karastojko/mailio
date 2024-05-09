@@ -4446,10 +4446,7 @@ BOOST_AUTO_TEST_CASE(parse_attachment_utf8)
     string_t att_name;
     msg.attachment(1, att_file, att_name);
     att_file.close();
-
-    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt");
-    // TODO: Charset should be UTF8.
-    BOOST_CHECK(att_name.charset == codec::CHARSET_ASCII);
+    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt" && att_name.charset == codec::CHARSET_UTF8);
 
     ofstream ofs(CV_FILE);
     BOOST_CHECK_EQUAL(!ofs, false);
