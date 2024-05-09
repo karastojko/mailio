@@ -4351,14 +4351,22 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     BOOST_CHECK(msg_msg.parts().at(1).name() == "a0.png" && msg_msg.parts().at(1).content_type().type == message::media_type_t::IMAGE &&
         msg_msg.parts().at(1).content_type().subtype == "png");
 
-    ofstream ofs1("tkcv.txt");
+    const char* CV_FILE = "tkcv.txt";
+    ofstream ofs1(CV_FILE);
     string_t ofs1_name;
     msg_msg.attachment(1, ofs1, ofs1_name);
+    ofs1.close();
     BOOST_CHECK(ofs1_name == "tkcv.txt");
-    ofstream ofs2("a0.png", std::ios_base::binary);
+
+    const char* A0_FILE = "a0.png";
+    ofstream ofs2(A0_FILE, std::ios_base::binary);
     string_t ofs2_name;
     msg_msg.attachment(2, ofs2, ofs2_name);
+    ofs2.close();
     BOOST_CHECK(ofs2_name == "a0.png");
+
+    std::remove(CV_FILE);
+    std::remove(A0_FILE);
 }
 
 
