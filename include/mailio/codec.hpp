@@ -540,6 +540,11 @@ public:
     static bool is_utf8_string(const std::string& txt);
 
     /**
+    Decoding a percent encoded string as described in RFC 2231 section 4.
+    **/
+    static std::string decode_percent(const std::string& txt);
+
+    /**
     Nil character.
     **/
     static const char NIL_CHAR = '\0';
@@ -563,6 +568,11 @@ public:
     Minus character.
     **/
     static const char MINUS_CHAR = '-';
+
+    /**
+    Percent character.
+    **/
+    static const char PERCENT_CHAR = '%';
 
     /**
     Asterisk character.

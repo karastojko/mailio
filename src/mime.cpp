@@ -20,7 +20,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <random>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/url/decode_view.hpp>
 #include <mailio/base64.hpp>
 #include <mailio/quoted_printable.hpp>
 #include <mailio/bit7.hpp>
@@ -1098,7 +1097,7 @@ string_t mime::decode_value_attribute(const string& attr_value) const
     if (attr_value.empty())
         return string_t();
 
-    // URL decoding
+    // percent decoding
 
     size_t charset_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR);
     if (charset_pos != string::npos)
@@ -1107,11 +1106,7 @@ string_t mime::decode_value_attribute(const string& attr_value) const
         if (language_pos == string::npos)
             throw mime_error("Parsing attribute value failure, no language parameter.");
 
-        string_view attr_view(attr_value);
-        auto attr_view_dec = boost::urls::decode_view(attr_view.substr(language_pos + 1));
-        stringstream dec_ss;
-        dec_ss << attr_view_dec;
-        return string_t(dec_ss.str(), attr_value.substr(0, charset_pos));
+        return string_t(codec::decode_percent(attr_value.substr(language_pos + 1)), attr_value.substr(0, charset_pos));
     }
 
     // Q decoding
