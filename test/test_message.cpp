@@ -3102,6 +3102,34 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
 
 
 /**
+Parsing the content type as a continued attribute.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_encoded_continued_content_type)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: multipart/related; boundary*0=\"my_boundary_which_is_\"; \r\n"
+        "  boundary*1=\"very_long_id_and_should_test_the_continuation\";\r\n"
+        "  boundary*2=\"_of_the_attribute_in_headers\"; \r\n"
+        "  name*1=\"veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_\"; \r\n"
+        "  name*2=\"u_dva_reda\"\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse encoded continued content type\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" &&
+                msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+}
+
+
+/**
 Parsing the filename as a continued attribute without the language.
 
 @pre  None.

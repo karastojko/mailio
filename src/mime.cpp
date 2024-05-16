@@ -768,6 +768,7 @@ void mime::parse_header_line(const string& header_line)
         string media_subtype;
         attributes_t attributes;
         parse_content_type(header_value, media_type, media_subtype, attributes);
+        merge_attributes(attributes);
 
         content_type_.type = media_type;
         content_type_.subtype = to_lower_copy(media_subtype);
@@ -792,6 +793,7 @@ void mime::parse_header_line(const string& header_line)
         attributes_t attributes;
         parse_content_disposition(header_value, disposition_, attributes);
         merge_attributes(attributes);
+
         // filename is stored no matter if name is already set by content type
         attributes_t::iterator filename_it = attributes.find(ATTRIBUTE_FILENAME);
         if (filename_it != attributes.end())
