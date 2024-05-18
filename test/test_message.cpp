@@ -1716,6 +1716,47 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 
 
 /**
+Attaching a file with the very longUTF-8 name.
+
+The test shows inproper formatting of the filename attribut which is not split into several lines. For that reason, parsing the same message
+throws the exception.
+
+@pre  File `TomislavKarastojkovic_CV.txt` in the current directory.
+@post None.
+@todo No exception thrown once the bug is fixed.
+**/
+BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
+{
+    message msg;
+    msg.header_codec(message::header_codec_t::BASE64);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long attachment name utf8");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+
+    message msg_same;
+    msg_same.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+
+    BOOST_CHECK_THROW(msg_same.parse(msg_str); , mime_error);
+}
+
+
+/**
 Attaching a file with long UTF-8 message content.
 
 @pre  File `cv.txt` in the current directory.
