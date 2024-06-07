@@ -2206,6 +2206,59 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
 
 
 /**
+Formatting the filename as a continued attribute.
+
+Showing the bug of having no attribute continuation like there is for the subject.
+
+@pre  None.
+@post None.
+@todo Fix the test when the bug is fixed.
+**/
+BOOST_AUTO_TEST_CASE(format_continued_filename)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.strict_mode(false);
+    msg.boundary("mybnd");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.subject("format continued filename format continued filename format continued filename format continued filename");
+    ifstream ifs1("cv.txt");
+    message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
+    auto tp1 = make_tuple(std::ref(ifs1), "C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt", ct1);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp1);
+    msg.attach(atts);
+    string msg_str;
+    msg.format(msg_str);
+
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format continued filename format continued filename format continued filename\r\n"
+        "  format continued filename\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: application/txt; \r\n"
+        "  name=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
+        "\r\n"
+        "\r\n"
+        "--mybnd--\r\n"
+   );
+}
+
+
+/**
 Formatting UTF8 subject in 8bit encoding.
 
 @pre  None.
