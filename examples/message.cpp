@@ -43,6 +43,7 @@ int main()
         string msg_str;
         msg.format(msg_str);
         cout << msg_str << endl;
+        // The subject is printed as `=?UTF-8?Q?=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE,_=D0=A1=D0=B2=D0=B5=D1=82=D0?=\r\n =?UTF-8?Q?=B5!?=`
     }
 
     // Set the file encoding to UTF-8 to properly see the letters in this snippet.
@@ -84,12 +85,12 @@ int main()
         string msg_str;
         msg.format(msg_str);
         cout << msg_str << endl;
-        // The subject is printed as `=?ISO-8859-5?Q?=B7=D4=E0=D0=D2=DE,_=C1=D2=D5=E2=D5?=`.
     }
 
     // Set the file encoding to UTF-8 to properly see the letters in this snippet.
     {
         message msg;
+        msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);

@@ -4503,7 +4503,7 @@ BOOST_AUTO_TEST_CASE(parse_attachment_utf8)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format attachment utf8\r\n"
+        "Subject: parse attachment utf8\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
