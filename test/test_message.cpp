@@ -2501,6 +2501,48 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
 }
 
 
+/*
+Formatting long message IDs.
+
+Showing the bug of having no line folding for message ID headers. The test should throw an exception.
+
+@pre  None.
+@post None.
+@todo Fix the test when the bug is fixed.
+*/
+BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject("Proba");
+    msg.content("Zdravo, Svete!");
+    msg.add_in_reply_to("1@mailio.dev");
+    msg.add_in_reply_to("22@mailio.dev");
+    msg.add_in_reply_to("333@mailio.dev");
+    msg.add_in_reply_to("44444444444444444444444444@mailio.dev");
+    msg.add_in_reply_to("5555555555555555@mailio.dev");
+    msg.add_in_reply_to("666666666666666666666666666666666666@mailio.dev");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev> <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> "
+        "<666666666666666666666666666666666666@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n");
+}
+
+
 /**
 Formatting oversized recipient with the recommended line policy.
 
