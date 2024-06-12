@@ -2252,6 +2252,7 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
         "Content-Disposition: attachment; \r\n"
         "  filename=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
         "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
         "--mybnd--\r\n"
    );
