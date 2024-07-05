@@ -2242,8 +2242,8 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format continued filename format continued filename format continued filename \r\n"
-        "  format continued filename\r\n"
+        "Subject: format continued filename format continued filename format continued \r\n"
+        "  filename format continued filename\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: application/txt; \r\n"
@@ -2587,7 +2587,6 @@ In case there is no delimiter, then there is no folding which is a bug.
 
 @pre  None.
 @post None.
-@todo Correct the second case when the bug fixed.
 */
 BOOST_AUTO_TEST_CASE(format_long_subject)
 {
@@ -2600,28 +2599,28 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!"
-        "Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo, Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!");
+        "Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!");
     msg.content("Hello, World!");
     string msg_str;
     msg.format(msg_str);
-
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "   Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
+        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 
-    msg.subject("ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!");
+    msg.subject("ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!Zdravo Svete!ZdravoSvete!ZdravoSvete!");
     msg_str.clear();
     msg.format(msg_str);
-
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!\r\n"
+        "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSve\r\n"
+        "  te!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 }
@@ -2647,12 +2646,12 @@ BOOST_AUTO_TEST_CASE(format_long_header)
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.add_header("Proba", "1234567890123456789 01234567890123456789012345678901234567890123456789012345678901234567890 12345678901234567890@mailio.dev");
+    msg.add_header("Proba", "12345678901234567890 1234567890123456789012345678901234567890123456789012345678901234567890 12345678901234567890@mailio.dev");
 
     string msg_str;
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "Proba: 1234567890123456789 \r\n"
-        "  01234567890123456789012345678901234567890123456789012345678901234567890 \r\n"
+    BOOST_CHECK(msg_str == "Proba: 12345678901234567890 \r\n"
+        "  1234567890123456789012345678901234567890123456789012345678901234567890 \r\n"
         "  12345678901234567890@mailio.dev\r\n"
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"

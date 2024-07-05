@@ -1388,33 +1388,34 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-string message::fold_header_line(const string& header_line) const
+string message::fold_header_line(const string& header_line, string::size_type name_len) const
 {
     const string DELIMITERS = " ,;";
+    const string::size_type hl_len = header_line.length();
     string folded_line;
-    string::size_type pos = 0, pos_len = 0;
+    string::size_type pos_beg = 0;
+    string::size_type pos_end = 0;
+    // In the first pass, the chunk of line is reduced by the size of header name, afterwards it follows the line policy.
+    string::size_type line_len = string::size_type(line_policy_) - name_len;
 
-    do
+    while (hl_len - pos_end > line_len)
     {
-        string line = header_line.substr(pos, string::size_type(line_policy_));
-        if (line.length() < string::size_type(line_policy_))
+        pos_beg = pos_end;
+        string::size_type pos = header_line.substr(pos_beg, line_len).find_last_of(DELIMITERS);
+        if (pos == string::npos)
         {
-            folded_line += line;
-            break;
-        }
-
-        pos_len = line.find_last_of(DELIMITERS);
-        if (pos_len == string::npos)
-        {
-            if (strict_mode_)
-                throw message_error("Header folding failure.");
-            folded_line += header_line.substr(pos, string::npos);
+            folded_line += header_line.substr(pos_beg, line_len);
+            pos_end += line_len;
         }
         else
-            folded_line += header_line.substr(pos, pos_len + 1) + codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR;
-        pos += pos_len + 1;
+        {
+            folded_line += header_line.substr(pos_beg, pos + 1);
+            pos_end += pos + 1;
+        }
+        folded_line += codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR;
+        line_len = string::size_type(line_policy_) - 2 * codec::SPACE_STR.length();
     }
-    while (pos_len != string::npos);
+    folded_line += header_line.substr(pos_end, hl_len - pos_end);
 
     return folded_line;
 }
@@ -1434,7 +1435,7 @@ string_t message::format_subject() const
                 subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject.buffer += fold_header_line(subject_.buffer) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(subject_.buffer, SUBJECT_HEADER.length() + HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
 
     return subject;
 }

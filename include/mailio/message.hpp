@@ -673,11 +673,10 @@ protected:
     Folding a long header.
 
     @param header_line   Line of a header to be split into multiple lines by folding.
+    @param name_len      Header name length which is also part of the line policy.
     @return              Header split into multiple lines.
-    @throw message_error Header folding failure.
-
     **/
-    std::string fold_header_line(const std::string& header_line) const;
+    std::string fold_header_line(const std::string& header_line, std::string::size_type name_len = 0) const;
 
     /**
     Formatting the subject which can be ASCII or UTF-8.
