@@ -675,6 +675,7 @@ protected:
     @param header_line   Line of a header to be split into multiple lines by folding.
     @param name_len      Header name length which is also part of the line policy.
     @return              Header split into multiple lines.
+    @todo                Consider using `string_view` to deal with substrings.
     **/
     std::string fold_header_line(const std::string& header_line, std::string::size_type name_len = 0) const;
 

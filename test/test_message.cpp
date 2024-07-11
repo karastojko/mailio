@@ -2242,8 +2242,8 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format continued filename format continued filename format continued \r\n"
-        "  filename format continued filename\r\n"
+        "Subject: format continued filename format continued filename format \r\n"
+        "  continued filename format continued filename\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: application/txt; \r\n"
@@ -2619,8 +2619,8 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSve\r\n"
-        "  te!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
+        "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoS\r\n"
+        "  vete!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 }

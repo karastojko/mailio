@@ -563,7 +563,8 @@ string message::format_header(bool add_bcc_header) const
     for_each(headers_.begin(), headers_.end(),
         [&header, this](const auto& hdr)
         {
-            header += fold_header_line(hdr.first + HEADER_SEPARATOR_STR + hdr.second) + codec::END_OF_LINE;
+            header += hdr.first + HEADER_SEPARATOR_STR + fold_header_line(hdr.first + HEADER_SEPARATOR_STR + hdr.second, hdr.first.length() +
+                HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
         }
     );
 
@@ -1393,10 +1394,10 @@ string message::fold_header_line(const string& header_line, string::size_type na
     const string DELIMITERS = " ,;";
     const string::size_type hl_len = header_line.length();
     string folded_line;
-    string::size_type pos_beg = 0;
-    string::size_type pos_end = 0;
+    string::size_type pos_beg = name_len;
+    string::size_type pos_end = name_len;
     // In the first pass, the chunk of line is reduced by the size of header name, afterwards it follows the line policy.
-    string::size_type line_len = string::size_type(line_policy_) - name_len;
+    string::size_type line_len = string::size_type(line_policy_) - name_len - codec::END_OF_LINE.length();
 
     while (hl_len - pos_end > line_len)
     {
@@ -1435,7 +1436,8 @@ string_t message::format_subject() const
                 subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject.buffer += fold_header_line(subject_.buffer, SUBJECT_HEADER.length() + HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(SUBJECT_HEADER + HEADER_SEPARATOR_STR + subject_.buffer,
+            SUBJECT_HEADER.length() + HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
 
     return subject;
 }
