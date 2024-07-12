@@ -2662,6 +2662,105 @@ BOOST_AUTO_TEST_CASE(format_long_header)
         "Subject: Hello, World!\r\n"
         "\r\n"
         "Hello, World!\r\n");
+
+    msg.remove_header("Proba");
+    msg.add_header("Proba", "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 12345678901234567890@mailio.dev");
+    msg_str.clear();
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "Proba: 123456789012345678901234567890123456789012345678901234567890123456789\r\n"
+        "  012345678901234567890 12345678901234567890@mailio.dev\r\n"
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
+        "To: contact <kontakt@mailio.dev>,\r\n"
+        "  mailio <adresa@mailio.dev>,\r\n"
+        "  all: Tomislav <qwerty@hotmail.com>;\r\n"
+        "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+        "Subject: Hello, World!\r\n"
+        "\r\n"
+        "Hello, World!\r\n");
+}
+
+
+/**
+Showing a bug with the line folding for the long sender header.
+
+@pre  None.
+@post None.
+@todo Fix the test when the bug is fixed.
+**/
+BOOST_AUTO_TEST_CASE(format_long_from)
+{
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+        msg.header_codec(mailio::mime::header_codec_t::BASE64);
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.date_time(ldt);
+        msg.from(mail_address(string_t("Томислав      Карастојковић", codec::CHARSET_UTF8), "tomislavkarastojkovic@hotmail.com"));
+        msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+        msg.subject("Zdravo,Svete!");
+        msg.content("Hello, World!");
+        string msg_str;
+        msg.format(msg_str);
+        BOOST_CHECK(msg_str ==
+            "From: =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiAgICAgINCa0LDRgNCw0YHRgtC+0ZjQutC+0LLQuNGb?=\r\n"
+            "   <tomislavkarastojkovic@hotmail.com>\r\n"
+            "To: mailio <adresa@mailio.dev>\r\n"
+            "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+            "Subject: Zdravo,Svete!\r\n"
+            "\r\n"
+            "Hello, World!\r\n");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+        msg.header_codec(mailio::mime::header_codec_t::BASE64);
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.date_time(ldt);
+        msg.from(mail_address(string_t("Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete!"), "zdravosvete@hotmail.com"));
+        msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+        msg.subject("Zdravo,Svete!");
+        msg.content("Hello, World!");
+        string msg_str;
+        msg.format(msg_str);
+
+        BOOST_CHECK(msg_str ==
+            "From: \"Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
+            "  Zdravo,Svete!\" <zdravosvete@hotmail.com>\r\n"
+            "To: mailio <adresa@mailio.dev>\r\n"
+            "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+            "Subject: Zdravo,Svete!\r\n"
+            "\r\n"
+           "Hello, World!\r\n");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+        msg.header_codec(mailio::mime::header_codec_t::BASE64);
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.date_time(ldt);
+        msg.from(mail_address(string_t("ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo"), "zdravosvete@hotmail.com"));
+        msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+        msg.subject("Zdravo,Svete!");
+        msg.content("Hello, World!");
+        string msg_str;
+        msg.format(msg_str);
+
+        BOOST_CHECK(msg_str ==
+            "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSvet\r\n"
+            "  eZdravo <zdravosvete@hotmail.com>\r\n"
+            "To: mailio <adresa@mailio.dev>\r\n"
+            "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+            "Subject: Zdravo,Svete!\r\n"
+            "\r\n"
+            "Hello, World!\r\n");
+    }
 }
 
 

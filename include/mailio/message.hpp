@@ -635,6 +635,7 @@ protected:
     @throw message_error Formatting failure of name.
     @throw message_error Formatting failure of address.
     @todo                Deal with the line policy.
+    @todo                Using `q_codec` does not deal with the line folding.
     **/
     std::string format_address(const string_t& name, const std::string& address) const;
 
