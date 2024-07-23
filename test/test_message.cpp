@@ -3358,6 +3358,36 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
 
 
 /**
+Parsing the UTF8 filename as a continued attribute.
+
+The test shows a problem with decoding of a continued attribute.
+
+@pre  None.
+@post None.
+@todo Change the check criteria when the bug is resolved.
+**/
+BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain; name*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
+        "  name*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
+        "  filename*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse continued filename\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.name() == "Томислав %D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B");
+}
+
+
+/**
 Parsing the filename as a continued attribute with the charset and language.
 
 @pre  None.
