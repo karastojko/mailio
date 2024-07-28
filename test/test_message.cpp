@@ -3364,7 +3364,6 @@ The test shows a problem with decoding of a continued attribute.
 
 @pre  None.
 @post None.
-@todo Change the check criteria when the bug is resolved.
 **/
 BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
 {
@@ -3375,7 +3374,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
         "  filename*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
         "  filename*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse continued filename\r\n"
+        "Subject: parse continued utf8 filename\r\n"
         "\r\n"
         "Hello, World!";
 
@@ -3383,7 +3382,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "Томислав %D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B");
+    BOOST_CHECK(msg.name() == "Томислав Карастојковић");
 }
 
 
@@ -3398,8 +3397,8 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: text/plain\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0=\"C:\\Program Files\\\"; \r\n"
-        "  filename*1=UTF-8'en-us'%E8.xlsx; \r\n"
+        "  filename*0=UTF-8'en-us'C%3A\\Program%20Files\\; \r\n"
+        "  filename*1=%E8.xlsx; \r\n"
         "To: adresa@mailio.dev\r\n"
         "Subject: parse encoded continued filename\r\n"
         "\r\n"
@@ -3419,7 +3418,7 @@ Parsing the content type as a continued attribute.
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_encoded_continued_content_type)
+BOOST_AUTO_TEST_CASE(parse_continued_content_type)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: multipart/related; boundary*0=\"my_boundary_which_is_\"; \r\n"
@@ -3428,7 +3427,7 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_content_type)
         "  name*1=\"veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_\"; \r\n"
         "  name*2=\"u_dva_reda\"\r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse encoded continued content type\r\n"
+        "Subject: parse continued content type\r\n"
         "\r\n"
         "Hello, World!";
 
@@ -3437,7 +3436,7 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_content_type)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" &&
-                msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+        msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
 }
 
 

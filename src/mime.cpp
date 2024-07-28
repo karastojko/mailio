@@ -59,7 +59,6 @@ using boost::algorithm::is_any_of;
 namespace mailio
 {
 
-
 const string mime::CONTENT_ID_HEADER{"Content-ID"};
 const string mime::ADDRESS_BEGIN_STR(1, ADDRESS_BEGIN_CHAR);
 const string mime::ADDRESS_END_STR(1, ADDRESS_END_CHAR);
@@ -1046,7 +1045,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
                 {
-                    attributes[attribute_name] = decode_value_attribute(attribute_value);
+                    attributes[attribute_name] = attribute_value;
                 }
                 break;
 
@@ -1060,7 +1059,7 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 else if (*ch == ATTRIBUTES_SEPARATOR_CHAR)
                 {
                     state = state_t::ATTR_BEGIN;
-                    attributes[attribute_name] = decode_value_attribute(attribute_value);
+                    attributes[attribute_name] = attribute_value;
                     attribute_name.clear();
                     attribute_value.clear();
                 }
@@ -1068,13 +1067,13 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                     throw mime_error("Parsing attribute value failure at `" + string(1, *ch) + "`.");
                 if (ch == header.end() - 1)
                 {
-                    attributes[attribute_name] = decode_value_attribute(attribute_value);
+                    attributes[attribute_name] = attribute_value;
                 }
                 break;
 
             case state_t::ATTR_VALUE_END:
             {
-                attributes[attribute_name] = decode_value_attribute(attribute_value);
+                attributes[attribute_name] = attribute_value;
                 attribute_name.clear();
                 attribute_value.clear();
 
@@ -1149,7 +1148,11 @@ void mime::merge_attributes(attributes_t& attributes) const
             }
         }
         else
-            attr++;
+        {
+            // No attribute continuations means only one part.
+            attribute_parts[full_attr_name][1] = attr_value;
+            attr = attributes.erase(attr);
+        }
     }
 
     for (auto attr = attribute_parts.begin(); attr != attribute_parts.end(); attr++)
@@ -1158,12 +1161,18 @@ void mime::merge_attributes(attributes_t& attributes) const
         string_t attr_value;
         for (auto part = attr->second.begin(); part != attr->second.end(); part++)
         {
-            // If any part has a non-ascii charset, then set it.
-            if (attr_value.charset == codec::CHARSET_ASCII && !part->second.charset.empty())
-                attr_value.charset = part->second.charset;
+            // Take the charset from the first attribute part, or set it to ASCII if not available.
+            // In case the other parts have the charset set, they are ignored.
+            if (attr_value.charset.empty())
+            {
+                if (!part->second.charset.empty())
+                    attr_value.charset = part->second.charset;
+                else
+                    attr_value.charset = "ASCII";
+            }
             attr_value += part->second;
         }
-        attributes[attr_name] = attr_value;
+        attributes[attr_name] = decode_value_attribute(attr_value);
     }
 }
 
