@@ -27,6 +27,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 namespace mailio
 {
 
+class codec;
+
 
 /**
 String which contains charset together with the representation.
@@ -49,7 +51,7 @@ struct String
     /**
     Default constructor.
     **/
-    String() : buffer(), charset("ASCII")
+    String() : buffer(), charset(codec::CHARSET_ASCII)
     {
     }
 
@@ -73,7 +75,7 @@ struct String
     @param charset_s Charset of the string.
     @todo  Hardcoded string is available as static in `codec`.
     **/
-    String(const Buf& buffer_s, const std::string& charset_s = "ASCII") : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
+    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII) : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
     {
     }
 

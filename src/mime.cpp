@@ -1168,7 +1168,7 @@ void mime::merge_attributes(attributes_t& attributes) const
                 if (!part->second.charset.empty())
                     attr_value.charset = part->second.charset;
                 else
-                    attr_value.charset = "ASCII";
+                    attr_value.charset = codec::CHARSET_ASCII;
             }
             attr_value += part->second;
         }
