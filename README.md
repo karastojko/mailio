@@ -162,6 +162,24 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Leonhard Kipp](mailto:Leonhard.Kipp@ppro.com): Proper way to build the shared library. Message formatting options.
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
 
+
+# References #
+
+* [RFC 822](www.rfc-editor.org/rfc/rfc822): Standard for the Format of ARPA Internet Text Messages.
+* [RFC 1939](www.rfc-editor.org/rfc/rfc1939): Post Office Protocol - Version 3
+* [RFC 2045](www.rfc-editor.org/rfc/rfc2045): Multipurpose Internet Mail Extensions (MIME) Part One: Format of Internet Message Bodies
+* [RFC 2046](www.rfc-editor.org/rfc/rfc2046): Multipurpose Internet Mail Extensions (MIME) Part Two: Media Types
+* [RFC 2047](www.rfc-editor.org/rfc/rfc2047): MIME (Multipurpose Internet Mail Extensions) Part Three: Message Header Extensions for Non-ASCII Text
+* [RFC 2183](www.rfc-editor.org/rfc/rfc2183): Communicating Presentation Information in Internet Messages: The Content-Disposition Header Field
+* [RFC 2231](www.rfc-editor.org/rfc/rfc2231): MIME Parameter Value and Encoded Word Extensions: Sets, Languages, and Continuations
+* [RFC 2449](www.rfc-editor.org/rfc/rfc2449): Extension Mechanism
+* [RFC 3501](www.rfc-editor.org/rfc/rfc3501): Message Access Protocol - Version 4rev1
+* [RFC 5321](www.rfc-editor.org/rfc/rfc5321): Simple Mail Transfer Protocol
+* [RFC 5322](www.rfc-editor.org/rfc/rfc5322): Internet Message Format
+* [RFC 5987](www.rfc-editor.org/rfc/rfc5987): Character Set and Language Encoding for Hypertext Transfer Protocol (HTTP) Header Field Parameters
+* [RFC 6532](www.rfc-editor.org/rfc/rfc6532): Internationalized Email Headers
+
+
 # Contact #
 
 In case you find a bug, please drop me a mail to contact (at) alepho.com. Since this is my side project, I'll do my best to be responsive.
