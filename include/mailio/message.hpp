@@ -59,7 +59,7 @@ Mail message and applied parsing/formatting algorithms.
 class MAILIO_EXPORT message : public mime
 {
 public:
-
+       
     /**
     Character to separate mail addresses in a list.
     **/
@@ -108,6 +108,12 @@ public:
     @todo Default implementation is probably a bug, but not manifested yet.
     **/
     message& operator=(message&&) = default;
+
+    /**
+    IMAP Flags of the message.
+
+    **/
+    std::vector<std::string> flags;
 
     /**
     Formatting the message to a string.
@@ -232,6 +238,22 @@ public:
     **/
     std::string reply_address_to_string() const;
 
+
+    /**
+     Sets or clears a specific flag.
+     
+     @param flag The flag to set or clear.
+     @param value True to set the flag, false to clear it.
+     
+     @return None
+     @throws None
+     */
+    void set_flag(const std::string &flag) {
+        if (std::find(flags.begin(), flags.end(), flag) == flags.end()) {
+            flags.emplace_back(flag);
+        }
+    }
+    
     /**
     Adding a recipent name and address.
 
