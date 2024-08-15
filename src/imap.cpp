@@ -359,7 +359,9 @@ void imap::fetch_flags(unsigned long message_no, std::vector<std::string>& flags
     std::map<unsigned long, std::vector<std::string>> found_flags;
     messages_range.push_back(imap::messages_range_t(message_no, message_no));
     fetch_flags(messages_range, found_flags, is_uids);
-    flags = found_flags.begin()->second;
+    if (found_flags.begin() != found_flags.end()) {
+        flags = found_flags.begin()->second;
+    }
 }
 
 void imap::fetch_flags(const std::string& mailbox, unsigned long message_no, std::vector<std::string>& flags, bool is_uids) {
