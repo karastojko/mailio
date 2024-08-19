@@ -30,6 +30,7 @@ using std::tuple;
 using std::stoi;
 using std::move;
 using std::make_shared;
+using std::shared_ptr;
 using std::runtime_error;
 using std::out_of_range;
 using std::invalid_argument;
@@ -304,23 +305,23 @@ smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp
     ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
-            boost::asio::ssl::verify_none
+            boost::asio::ssl::verify_peer
         };
 }
 
 
-string smtps::authenticate(const string& username, const string& password, auth_method_t method)
+string smtps::authenticate(const string& username, const string& password, auth_method_t method, shared_ptr<dialog_ssl::ssl_context> ssl_context)
 {
     string greeting;
     if (method == auth_method_t::NONE)
     {
-        switch_to_ssl();
+        switch_to_ssl(ssl_context);
         greeting = connect();
         ehlo();
     }
     else if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
+        switch_to_ssl(ssl_context);
         greeting = connect();
         ehlo();
         auth_login(username, password);
@@ -329,7 +330,7 @@ string smtps::authenticate(const string& username, const string& password, auth_
     {
         greeting = connect();
         ehlo();
-        start_tls();
+        start_tls(ssl_context);
         auth_login(username, password);
     }
     return greeting;
@@ -342,7 +343,7 @@ void smtps::ssl_options(const dialog_ssl::ssl_options_t& options)
 }
 
 
-void smtps::start_tls()
+void smtps::start_tls(shared_ptr<dialog_ssl::ssl_context> ssl_context)
 {
     dlg_->send("STARTTLS");
     string line = dlg_->receive();
@@ -350,14 +351,17 @@ void smtps::start_tls()
     if (std::get<1>(tokens) && std::get<0>(tokens) != SERVICE_READY_STATUS)
         throw smtp_error("Start tls refused by server.");
 
-    switch_to_ssl();
+    switch_to_ssl(ssl_context);
     ehlo();
 }
 
 
-void smtps::switch_to_ssl()
+void smtps::switch_to_ssl(shared_ptr<dialog_ssl::ssl_context> ssl_context)
 {
-    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
+    if (ssl_context != nullptr)
+        dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_context);
+    else
+        dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 
