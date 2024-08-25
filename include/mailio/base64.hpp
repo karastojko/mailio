@@ -32,6 +32,7 @@ namespace mailio
 Base64 codec.
 
 @todo Add static method `string encode(string)` to be used by `smtp`?
+@todo Does it need the first line policy?
 **/
 class MAILIO_EXPORT base64 : public codec
 {
@@ -41,15 +42,8 @@ public:
     Base64 character set.
     **/
     static const std::string CHARSET;
-    
-    /**
-    Setting the encoder and decoder line policy.
 
-    @param encoder_line_policy Encoder line length policy to set.
-    @param decoder_line_policy Decoder line length policy to set.
-    **/
-    base64(codec::line_len_policy_t encoder_line_policy = codec::line_len_policy_t::NONE,
-        codec::line_len_policy_t decoder_line_policy = codec::line_len_policy_t::NONE);
+    base64(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     base64(const base64&) = delete;
 
@@ -101,6 +95,10 @@ private:
     @return   True if it is, false if not.
     **/
     bool is_allowed(char ch) const;
+
+    std::string::size_type line1_policy_;
+
+    std::string::size_type lines_policy_;
 };
 
 

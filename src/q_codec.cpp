@@ -48,7 +48,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, header
     if (method == header_codec_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
-        base64 b64(line_policy_, decoder_line_policy_);
+        base64 b64(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         text_c = b64.encode(text, Q_FLAGS_LEN);
     }
     else
@@ -88,7 +88,7 @@ tuple<string, string, codec::header_codec_t> q_codec::decode(const string& text)
     string dec_text;
     if (iequals(method, BASE64_CODEC_STR))
     {
-        base64 b64(line_policy_, decoder_line_policy_);
+        base64 b64(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         dec_text = b64.decode(text_c);
         method_type = header_codec_t::BASE64;
     }
