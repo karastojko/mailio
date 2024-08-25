@@ -513,7 +513,7 @@ string mime::format_content(bool dot_escape) const
         // TODO: check how to handle 8bit chars, see [rfc 2045, section 2.8]
         case content_transfer_encoding_t::BIT_8:
         {
-            bit8 b8(line_policy_, decoder_line_policy_);
+            bit8 b8(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             b8.strict_mode(strict_codec_mode_);
             content_lines = b8.encode(content_);
             break;
@@ -719,7 +719,7 @@ void mime::parse_content()
 
         case content_transfer_encoding_t::BIT_8:
         {
-            bit8 b8(line_policy_, decoder_line_policy_);
+            bit8 b8(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             b8.strict_mode(strict_codec_mode_);
             content_ = b8.decode(parsed_body_);
             break;

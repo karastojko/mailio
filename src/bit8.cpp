@@ -26,8 +26,10 @@ namespace mailio
 {
 
 
-bit8::bit8(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
-  : codec(encoder_line_policy, decoder_line_policy)
+// TODO: `codec` constructor is to satisfy compiler. Once these policies are removed, no need to set them.
+bit8::bit8(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line_len_policy_t::RECOMMENDED, line_len_policy_t::RECOMMENDED),
+    line1_policy_(line1_policy), lines_policy_(lines_policy)
 {
 }
 
@@ -37,6 +39,17 @@ vector<string> bit8::encode(const string& text) const
     vector<string> enc_text;
     string line;
     string::size_type line_len = 0;
+    bool is_first_line = true;
+    const bool is_folding = (line1_policy_ != lines_policy_);
+    const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
+
+    auto add_new_line = [&enc_text, &line_len](string& line)
+    {
+        enc_text.push_back(line);
+        line.clear();
+        line_len = 0;
+    };
+
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
         if (is_allowed(*ch))
@@ -46,39 +59,46 @@ vector<string> bit8::encode(const string& text) const
         }
         else if (*ch == '\r' && (ch + 1) != text.end() && *(ch + 1) == '\n')
         {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
+            line = FOLD_STR + line;
+            add_new_line(line);
             // skip both crlf characters
             ch++;
         }
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
-        
-        if (line_len == string::size_type(line_policy_))
+
+        if (is_first_line)
         {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
+            if (line_len == line1_policy_)
+            {
+                is_first_line = false;
+                add_new_line(line);
+            }
+        }
+        else if (line_len == lines_policy_ - FOLD_STR.length())
+        {
+            line = FOLD_STR + line;
+            add_new_line(line);
         }
     }
     if (!line.empty())
         enc_text.push_back(line);
     while (!enc_text.empty() && enc_text.back().empty())
         enc_text.pop_back();
-    
+
     return enc_text;
 }
 
 
+// TODO: Consider the first line policy.
 string bit8::decode(const vector<string>& text) const
 {
     string dec_text;
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(decoder_line_policy_))
+        if (line.length() > lines_policy_)
             throw codec_error("Line policy overflow.");
-        
+
         for (auto ch : line)
         {
             if (!is_allowed(ch))
@@ -89,7 +109,7 @@ string bit8::decode(const vector<string>& text) const
         dec_text += "\r\n";
     }
     trim_right(dec_text);
-    
+
     return dec_text;
 }
 
