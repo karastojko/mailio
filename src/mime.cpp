@@ -523,7 +523,7 @@ string mime::format_content(bool dot_escape) const
         case content_transfer_encoding_t::BIT_7:
         case content_transfer_encoding_t::NONE:
         {
-            bit7 b7(line_policy_, decoder_line_policy_);
+            bit7 b7(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             b7.strict_mode(strict_codec_mode_);
             content_lines = b7.encode(content_);
             break;
@@ -728,7 +728,7 @@ void mime::parse_content()
         case content_transfer_encoding_t::BIT_7:
         case content_transfer_encoding_t::NONE:
         {
-            bit7 b7(line_policy_, decoder_line_policy_);
+            bit7 b7(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             b7.strict_mode(strict_codec_mode_);
             content_ = b7.decode(parsed_body_);
             break;
