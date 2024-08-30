@@ -504,7 +504,7 @@ string mime::format_content(bool dot_escape) const
 
         case content_transfer_encoding_t::QUOTED_PRINTABLE:
         {
-            quoted_printable qp(line_policy_, decoder_line_policy_);
+            quoted_printable qp(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             qp.strict_mode(strict_codec_mode_);
             content_lines = qp.encode(content_);
             break;
@@ -711,7 +711,7 @@ void mime::parse_content()
 
         case content_transfer_encoding_t::QUOTED_PRINTABLE:
         {
-            quoted_printable qp(line_policy_, decoder_line_policy_);
+            quoted_printable qp(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             qp.strict_mode(strict_codec_mode_);
             content_ = qp.decode(parsed_body_);
             break;

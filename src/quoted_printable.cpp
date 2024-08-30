@@ -28,8 +28,10 @@ namespace mailio
 {
 
 
-quoted_printable::quoted_printable(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
-  : codec(encoder_line_policy, decoder_line_policy), q_codec_mode_(false)
+// TODO: `codec` constructor is to satisfy compiler. Once these policies are removed, no need to set them.
+quoted_printable::quoted_printable(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line_len_policy_t::RECOMMENDED, line_len_policy_t::RECOMMENDED), q_codec_mode_(false),
+    line1_policy_(line1_policy), lines_policy_(lines_policy)
 {
 }
 
@@ -39,28 +41,43 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
     vector<string> enc_text;
     string line;
     string::size_type line_len = 0;
+
+    bool is_first_line = true;
+    const bool is_folding = (line1_policy_ != lines_policy_);
+    const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
+    // Soon as the first line is added, switch the policy to the other lines policy.
+    string::size_type policy = line1_policy_;
+
+    auto add_new_line = [&enc_text, &line_len](string& line)
+    {
+        enc_text.push_back(line);
+        line.clear();
+        line_len = 0;
+    };
+
+
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
         if (*ch > SPACE_CHAR && *ch <= TILDE_CHAR && *ch != EQUAL_CHAR && *ch != QUESTION_MARK_CHAR)
         {
-            // add soft break when not q encoding
-            if (line_len >= string::size_type(line_policy_) - reserved - 3)
+            // Add soft break when not q encoding.
+            if (line_len >= lines_policy_ - reserved - 3)
             {
                 if (q_codec_mode_)
                 {
                     line += *ch;
-                    enc_text.push_back(line);
-                    line.clear();
-                    line_len = 0;
+                    line = FOLD_STR + line;
+                    add_new_line(line);
+                    policy = lines_policy_;
                 }
                 else
                 {
                     line += EQUAL_CHAR;
-                    enc_text.push_back(line);
-                    line.clear();
-                    line_len = 0;
+                    line = FOLD_STR + line;
+                    add_new_line(line);
                     line += *ch;
                     line_len++;
+                    policy = lines_policy_;
                 }
             }
             else
@@ -71,8 +88,8 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         }
         else if (*ch == SPACE_CHAR)
         {
-            // add soft break after the current space character if not q encoding
-            if (line_len >= string::size_type(line_policy_) - reserved - 4)
+            // Add soft break after the current space character if not q encoding.
+            if (line_len >= lines_policy_ - reserved - 4)
             {
                 if (q_codec_mode_)
                 {
@@ -83,13 +100,13 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
                 {
                     line += SPACE_CHAR;
                     line += EQUAL_CHAR;
-                    enc_text.push_back(line);
-                    line.clear();
-                    line_len = 0;
+                    line = FOLD_STR + line;
+                    add_new_line(line);
+                    policy = lines_policy_;
                 }
             }
-            // add soft break before the current space character if not q encoding
-            else if (line_len >= string::size_type(line_policy_) - reserved - 3)
+            // Add soft break before the current space character if not q encoding.
+            else if (line_len >= lines_policy_ - reserved - 3)
             {
                 if (q_codec_mode_)
                 {
@@ -99,10 +116,12 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
                 else
                 {
                     line += EQUAL_CHAR;
+                    line = FOLD_STR + line;
                     enc_text.push_back(line);
                     line.clear();
                     line += SPACE_CHAR;
                     line_len = 1;
+                    policy = lines_policy_;
                 }
             }
             else
@@ -116,14 +135,16 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         }
         else if (*ch == QUESTION_MARK_CHAR)
         {
-            if (line_len >= string::size_type(line_policy_) - reserved - 2)
+            if (line_len >= lines_policy_ - reserved - 2)
             {
                 if (q_codec_mode_)
                 {
+                    line = FOLD_STR + line;
                     enc_text.push_back(line);
                     line.clear();
                     line += "=3F";
                     line_len = 3;
+                    policy = lines_policy_;
                 }
                 else
                 {
@@ -153,33 +174,37 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
 
             if (ch + 1 == text.end() || (ch + 1 != text.end() && *(ch + 1) != LF_CHAR))
                 throw codec_error("Bad CRLF sequence.");
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
-            // two characters have to be skipped
+            line = FOLD_STR + line;
+            add_new_line(line);
+            // Two characters have to be skipped.
             ch++;
+            policy = lines_policy_;
         }
         else
         {
-            // add soft break before the current character
-            if (line_len >= string::size_type(line_policy_) - reserved - 5 && !q_codec_mode_)
+            // Add soft break before the current character.
+            if (line_len >= lines_policy_ - reserved - 5 && !q_codec_mode_)
             {
                 line += EQUAL_CHAR;
+                line = FOLD_STR + line;
                 enc_text.push_back(line);
                 line.clear();
                 line += EQUAL_CHAR;
                 line += HEX_DIGITS[((*ch >> 4) & 0x0F)];
                 line += HEX_DIGITS[(*ch & 0x0F)];
                 line_len = 3;
+                policy = lines_policy_;
             }
-            else if (line_len >= string::size_type(line_policy_) - reserved - 2 && q_codec_mode_)
+            else if (line_len >= lines_policy_ - reserved - 2 && q_codec_mode_)
             {
+                line = FOLD_STR + line;
                 enc_text.push_back(line);
                 line.clear();
                 line += EQUAL_CHAR;
                 line += HEX_DIGITS[((*ch >> 4) & 0x0F)];
                 line += HEX_DIGITS[(*ch & 0x0F)];
                 line_len = 3;
+                policy = lines_policy_;
             }
             else
             {
@@ -194,7 +219,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         enc_text.push_back(line);
     while (!enc_text.empty() && enc_text.back().empty())
         enc_text.pop_back();
-    
+
     return enc_text;
 }
 
@@ -204,7 +229,7 @@ string quoted_printable::decode(const vector<string>& text) const
     string dec_text;
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(decoder_line_policy_) - 2)
+        if (line.length() > lines_policy_ - 2)
             throw codec_error("Bad line policy.");
 
         bool soft_break = false;
@@ -246,7 +271,7 @@ string quoted_printable::decode(const vector<string>& text) const
             dec_text += END_OF_LINE;
     }
     trim_right(dec_text);
-    
+
     return dec_text;
 }
 

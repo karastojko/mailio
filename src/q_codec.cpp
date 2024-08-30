@@ -54,7 +54,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, header
     else
     {
         codec_flag = QP_CODEC_STR;
-        quoted_printable qp(line_policy_, decoder_line_policy_);
+        quoted_printable qp(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         qp.q_codec_mode(true);
         text_c = qp.encode(text, Q_FLAGS_LEN);
     }
@@ -148,7 +148,7 @@ tuple<string, string, codec::header_codec_t> q_codec::check_decode(const string&
 
 string q_codec::decode_qp(const string& text) const
 {
-    quoted_printable qp(line_policy_, decoder_line_policy_);
+    quoted_printable qp(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
     qp.q_codec_mode(true);
     vector<string> lines;
     lines.push_back(text);

@@ -30,14 +30,7 @@ class MAILIO_EXPORT quoted_printable : public codec
 {
 public:
 
-    /**
-    Setting the encoder and decoder line policy.
-
-    @param encoder_line_policy Encoder line length policy to set.
-    @param decoder_line_policy Decoder line length policy to set.
-    **/
-    quoted_printable(codec::line_len_policy_t encoder_line_policy = codec::line_len_policy_t::NONE,
-                     codec::line_len_policy_t decoder_line_policy = codec::line_len_policy_t::NONE);
+    quoted_printable(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     quoted_printable(const quoted_printable&) = delete;
 
@@ -80,6 +73,10 @@ public:
     @param mode True to set, false to unset.
     **/
     void q_codec_mode(bool mode);
+
+    std::string::size_type line1_policy_;
+
+    std::string::size_type lines_policy_;
 
 private:
 
