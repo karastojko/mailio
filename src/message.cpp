@@ -1436,8 +1436,11 @@ string_t message::format_subject() const
                 subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
     else
-        subject.buffer += fold_header_line(SUBJECT_HEADER + HEADER_SEPARATOR_STR + subject_.buffer,
-            SUBJECT_HEADER.length() + HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
+    {
+        string::size_type l1p = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
+        bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
+        subject.buffer += b7.encode_str(subject_.buffer);
+    }
 
     return subject;
 }

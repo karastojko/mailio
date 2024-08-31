@@ -42,16 +42,31 @@ vector<string> bit7::encode(const string& text) const
     bool is_first_line = true;
     const bool is_folding = (line1_policy_ != lines_policy_);
     const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
+    const string DELIMITERS = " ,;";
+    string::size_type delim_pos = 0;
 
-    auto add_new_line = [&enc_text, &line_len](string& line)
+    auto add_new_line = [&enc_text, &line_len, &delim_pos](bool is_folding, string& line)
     {
-        enc_text.push_back(line);
-        line.clear();
-        line_len = 0;
+        if (is_folding && delim_pos > 0)
+        {
+            enc_text.push_back(line.substr(0, delim_pos + 1));
+            line = line.substr(delim_pos + 1);
+            line_len -= delim_pos - 1;
+            delim_pos = 0;
+        }
+        else
+        {
+            enc_text.push_back(line);
+            line.clear();
+            line_len = 0;
+        }
     };
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
+        if (DELIMITERS.find(*ch) != string::npos)
+            delim_pos = line_len;
+
         if (is_allowed(*ch))
         {
             line += *ch;
@@ -60,8 +75,8 @@ vector<string> bit7::encode(const string& text) const
         else if (*ch == '\r' && (ch + 1) != text.end() && *(ch + 1) == '\n')
         {
             line = FOLD_STR + line;
-            add_new_line(line);
-            // skip both crlf characters
+            add_new_line(is_folding, line);
+            // Skip both crlf characters.
             ch++;
         }
         else
@@ -72,22 +87,37 @@ vector<string> bit7::encode(const string& text) const
             if (line_len == line1_policy_)
             {
                 is_first_line = false;
-                add_new_line(line);
+                add_new_line(is_folding, line);
             }
         }
         else if (line_len == lines_policy_ - FOLD_STR.length())
         {
             line = FOLD_STR + line;
-            add_new_line(line);
+            add_new_line(is_folding, line);
         }
     }
     if (!line.empty())
+    {
+        if (is_folding && !is_first_line)
+            line = FOLD_STR + line;
         enc_text.push_back(line);
+    }
     while (!enc_text.empty() && enc_text.back().empty())
         enc_text.pop_back();
 
     return enc_text;
 }
+
+
+string bit7::encode_str(const std::string& text) const
+{
+    std::vector<std::string> v = encode(text);
+    string s;
+    for (const auto& l : v)
+        s += l + codec::END_OF_LINE;
+    return s;
+}
+
 
 
 // TODO: Consider the first line policy.
