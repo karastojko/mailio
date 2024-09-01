@@ -46,24 +46,12 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
     bool is_first_line = true;
     const bool is_folding = (line1_policy_ != lines_policy_);
     const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
-    const string DELIMITERS = " ,;";
-    string::size_type delim_pos = 0;
 
-    auto add_new_line = [&enc_text, &line_len, &delim_pos](bool is_folding, string& line)
+    auto add_new_line = [&enc_text, &line_len](string& line)
     {
-        if (is_folding && delim_pos > 0)
-        {
-            enc_text.push_back(line.substr(0, delim_pos + 1));
-            line = line.substr(delim_pos + 1);
-            line_len -= delim_pos - 1;
-            delim_pos = 0;
-        }
-        else
-        {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
-        }
+        enc_text.push_back(line);
+        line.clear();
+        line_len = 0;
     };
 
     for (string::size_type cur_char = 0; cur_char < text.length(); cur_char++)
@@ -85,12 +73,12 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
         if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
         {
             is_first_line = false;
-            add_new_line(is_folding, line);
+            add_new_line(line);
         }
         else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
         {
             line = FOLD_STR + line;
-            add_new_line(is_folding, line);
+            add_new_line(line);
         }
     }
 
@@ -111,12 +99,12 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
             {
                 is_first_line = false;
-                add_new_line(is_folding, line);
+                add_new_line(line);
             }
             else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
             {
                 line = FOLD_STR + line;
-                add_new_line(is_folding, line);
+                add_new_line(line);
             }
             line += CHARSET[group_6bit[i]];
             line_len++;
@@ -127,12 +115,12 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
             {
                 is_first_line = false;
-                add_new_line(is_folding, line);
+                add_new_line(line);
             }
             else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
             {
                 line = FOLD_STR + line;
-                add_new_line(is_folding, line);
+                add_new_line(line);
             }
             line += EQUAL_CHAR;
             line_len++;
