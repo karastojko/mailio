@@ -82,13 +82,10 @@ vector<string> bit7::encode(const string& text) const
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
 
-        if (is_first_line)
+        if (is_first_line && line_len == line1_policy_)
         {
-            if (line_len == line1_policy_)
-            {
-                is_first_line = false;
-                add_new_line(is_folding, line);
-            }
+            is_first_line = false;
+            add_new_line(is_folding, line);
         }
         else if (line_len == lines_policy_ - FOLD_STR.length())
         {
