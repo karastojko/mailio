@@ -180,33 +180,33 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         }
         else
         {
-            // Add soft break before the current character.
-            // TODO: These two block differ only in one line.
-            if (line_len >= policy - reserved - 5 && !q_codec_mode_)
+            // Encode the character.
+
+            auto encode_char = [this, &policy, &line_len, &enc_text](char ch, string fold_str, string& line)
             {
-                line += EQUAL_CHAR;
-                line = (policy == line1_policy_ ? "" : FOLD_STR) + line;
+                line = (policy == line1_policy_ ? "" : fold_str) + line;
                 enc_text.push_back(line);
                 line.clear();
                 line += EQUAL_CHAR;
-                line += HEX_DIGITS[((*ch >> 4) & 0x0F)];
-                line += HEX_DIGITS[(*ch & 0x0F)];
+                line += HEX_DIGITS[((ch >> 4) & 0x0F)];
+                line += HEX_DIGITS[(ch & 0x0F)];
                 line_len = 3;
                 policy = lines_policy_;
+            };
+
+            if (line_len >= policy - reserved - 5 && !q_codec_mode_)
+            {
+                // Add soft break before the current character.
+                line += EQUAL_CHAR;
+                encode_char(*ch, FOLD_STR, line);
             }
             else if (line_len >= policy - reserved - 2 && q_codec_mode_)
             {
-                line = (policy == line1_policy_ ? "" : FOLD_STR) + line;
-                enc_text.push_back(line);
-                line.clear();
-                line += EQUAL_CHAR;
-                line += HEX_DIGITS[((*ch >> 4) & 0x0F)];
-                line += HEX_DIGITS[(*ch & 0x0F)];
-                line_len = 3;
-                policy = lines_policy_;
+                encode_char(*ch, FOLD_STR, line);
             }
             else
             {
+                // TODO: This encoding is same as in the lambda above.
                 line += EQUAL_CHAR;
                 line += HEX_DIGITS[((*ch >> 4) & 0x0F)];
                 line += HEX_DIGITS[(*ch & 0x0F)];
