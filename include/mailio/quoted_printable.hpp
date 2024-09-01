@@ -25,6 +25,8 @@ namespace mailio
 
 /**
 Quoted Printable codec.
+
+@todo Remove the Q codec flag.
 **/
 class MAILIO_EXPORT quoted_printable : public codec
 {
@@ -89,7 +91,7 @@ private:
     bool is_allowed(char ch) const;
 
     /**
-    Flag for Q codec mode.
+    Flag for the Q codec mode.
     **/
     bool q_codec_mode_;
 };
