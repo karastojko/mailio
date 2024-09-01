@@ -43,12 +43,27 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
     int count_3_chars = 0;
     string line;
     string::size_type line_len = 0;
+    bool is_first_line = true;
+    const bool is_folding = (line1_policy_ != lines_policy_);
+    const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
+    const string DELIMITERS = " ,;";
+    string::size_type delim_pos = 0;
 
-    auto add_new_line = [&enc_text, &line_len](string& line)
+    auto add_new_line = [&enc_text, &line_len, &delim_pos](bool is_folding, string& line)
     {
-        enc_text.push_back(line);
-        line.clear();
-        line_len = 0;
+        if (is_folding && delim_pos > 0)
+        {
+            enc_text.push_back(line.substr(0, delim_pos + 1));
+            line = line.substr(delim_pos + 1);
+            line_len -= delim_pos - 1;
+            delim_pos = 0;
+        }
+        else
+        {
+            enc_text.push_back(line);
+            line.clear();
+            line_len = 0;
+        }
     };
 
     for (string::size_type cur_char = 0; cur_char < text.length(); cur_char++)
@@ -66,9 +81,17 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             count_3_chars = 0;
             line_len += 4;
         }
-        
-        if (line_len >= lines_policy_ - reserved - 2)
-            add_new_line(line);
+
+        if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
+        {
+            is_first_line = false;
+            add_new_line(is_folding, line);
+        }
+        else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
+        {
+            line = FOLD_STR + line;
+            add_new_line(is_folding, line);
+        }
     }
 
     // encode remaining characters if any
@@ -85,16 +108,32 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         for (int i = 0; i < count_3_chars + 1; i++)
         {
-            if (line_len >= lines_policy_ - reserved - 2)
-                add_new_line(line);
+            if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
+            {
+                is_first_line = false;
+                add_new_line(is_folding, line);
+            }
+            else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
+            {
+                line = FOLD_STR + line;
+                add_new_line(is_folding, line);
+            }
             line += CHARSET[group_6bit[i]];
             line_len++;
         }
 
         while (count_3_chars++ < 3)
         {
-            if (line_len >= lines_policy_ - reserved - 2)
-                add_new_line(line);
+            if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
+            {
+                is_first_line = false;
+                add_new_line(is_folding, line);
+            }
+            else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
+            {
+                line = FOLD_STR + line;
+                add_new_line(is_folding, line);
+            }
             line += EQUAL_CHAR;
             line_len++;
         }
