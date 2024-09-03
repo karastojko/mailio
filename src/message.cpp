@@ -563,8 +563,9 @@ string message::format_header(bool add_bcc_header) const
     for_each(headers_.begin(), headers_.end(),
         [&header, this](const auto& hdr)
         {
-            header += hdr.first + HEADER_SEPARATOR_STR + fold_header_line(hdr.first + HEADER_SEPARATOR_STR + hdr.second, hdr.first.length() +
-                HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
+            string::size_type l1p = static_cast<string::size_type>(line_policy_) - hdr.first.length() - HEADER_SEPARATOR_STR.length();
+            bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
+            header += hdr.first + HEADER_SEPARATOR_STR + b7.encode_str(hdr.second);
         }
     );
 
@@ -576,7 +577,7 @@ string message::format_header(bool add_bcc_header) const
     if(add_bcc_header)
         header += bcc_recipients_.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
     header += disposition_notification_.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
-        format_address(disposition_notification_.name,disposition_notification_.address) + codec::END_OF_LINE;
+        format_address(disposition_notification_.name, disposition_notification_.address) + codec::END_OF_LINE;
     string msg_id = format_many_ids(message_id_);
     header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
     string in_reply = format_many_ids(in_reply_to_);

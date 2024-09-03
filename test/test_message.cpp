@@ -2667,8 +2667,8 @@ BOOST_AUTO_TEST_CASE(format_long_header)
     msg.add_header("Proba", "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 12345678901234567890@mailio.dev");
     msg_str.clear();
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "Proba: 123456789012345678901234567890123456789012345678901234567890123456789\r\n"
-        "  012345678901234567890 12345678901234567890@mailio.dev\r\n"
+    BOOST_CHECK(msg_str == "Proba: 12345678901234567890123456789012345678901234567890123456789012345678901\r\n"
+        "  2345678901234567890 12345678901234567890@mailio.dev\r\n"
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>,\r\n"
