@@ -211,7 +211,7 @@ mail_address message::sender() const
 
 string message::sender_to_string() const
 {
-    return format_address(sender_.name, sender_.address);
+    return format_address(sender_.name, sender_.address, SENDER_HEADER + HEADER_SEPARATOR_STR);
 }
 
 void message::reply_address(const mail_address& mail)
@@ -228,7 +228,7 @@ mail_address message::reply_address() const
 
 string message::reply_address_to_string() const
 {
-    return format_address(reply_address_.name, reply_address_.address);
+    return format_address(reply_address_.name, reply_address_.address, REPLY_TO_HEADER + HEADER_SEPARATOR_STR);
 }
 
 
@@ -318,7 +318,7 @@ mail_address message::disposition_notification() const
 
 string message::disposition_notification_to_string() const
 {
-    return format_address(disposition_notification_.name, disposition_notification_.address);
+    return format_address(disposition_notification_.name, disposition_notification_.address, DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR);
 }
 
 
@@ -565,7 +565,7 @@ string message::format_header(bool add_bcc_header) const
         {
             string::size_type l1p = static_cast<string::size_type>(line_policy_) - hdr.first.length() - HEADER_SEPARATOR_STR.length();
             bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
-            header += hdr.first + HEADER_SEPARATOR_STR + b7.encode_str(hdr.second);
+            header += hdr.first + HEADER_SEPARATOR_STR + b7.encode_str(hdr.second) + codec::END_OF_LINE;
         }
     );
 
@@ -577,7 +577,8 @@ string message::format_header(bool add_bcc_header) const
     if(add_bcc_header)
         header += bcc_recipients_.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
     header += disposition_notification_.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
-        format_address(disposition_notification_.name, disposition_notification_.address) + codec::END_OF_LINE;
+        format_address(disposition_notification_.name, disposition_notification_.address, DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR) +
+        codec::END_OF_LINE;
     string msg_id = format_many_ids(message_id_);
     header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
     string in_reply = format_many_ids(in_reply_to_);
@@ -793,6 +794,73 @@ string message::format_address(const string_t& name, const string& address) cons
 
     string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
     return fold_header_line(addr_name);
+}
+
+
+string message::format_address(const string_t& name, const string& address, const string& header_name) const
+{
+    if (name.buffer.empty() && address.empty())
+        return "";
+
+    // TODO: no need for regex, simple string comparaison can be used
+    const regex QTEXT_REGEX{R"([a-zA-Z0-9\ \t\!#\$%&'\(\)\*\+\,\-\.@/\:;<=>\?\[\]\^\_`\{\|\}\~]*)"};
+    const regex DTEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\.\@/=\?\^\_`\{\|\}\~]*)"};
+
+    string name_formatted;
+    string addr;
+    smatch m;
+
+    // The charset has precedence over the header codec. Only for the non-ascii characters, consider the header encoding.
+
+    if (name.charset == codec::CHARSET_ASCII)
+    {
+        // Check the name format.
+
+        if (regex_match(name.buffer, m, regex(R"([A-Za-z0-9\ \t]*)")))
+            name_formatted = name.buffer;
+        else if (regex_match(name.buffer, m, QTEXT_REGEX))
+            name_formatted = codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR;
+        else
+            throw message_error("Formatting failure of name `" + name.buffer + "`.");
+    }
+    else if (header_codec_ == header_codec_t::UTF8)
+    {
+        name_formatted = name.buffer;
+    }
+    else
+    {
+        q_codec qc(line_policy_, decoder_line_policy_);
+        vector<string> enc_name = qc.encode(name.buffer, name.charset, header_codec_);
+        for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
+        {
+            name_formatted += *sit;
+            if (sit != enc_name.end() - 1)
+                name_formatted += codec::SPACE_STR;
+        }
+    }
+
+    // Check address format.
+
+    if (!address.empty())
+    {
+        if (codec::is_utf8_string(address))
+        {
+            addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
+        }
+        else
+        {
+            if (regex_match(address, m, DTEXT_REGEX))
+                addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
+            else
+                throw message_error("Formatting failure of address `" + address + "`.");
+        }
+    }
+
+
+    string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
+    string::size_type l1p = static_cast<string::size_type>(line_policy_) - header_name.length() - HEADER_SEPARATOR_STR.length();
+    bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
+    return b7.encode_str(addr_name);
 }
 
 
@@ -1440,7 +1508,7 @@ string_t message::format_subject() const
     {
         string::size_type l1p = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
         bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
-        subject.buffer += b7.encode_str(subject_.buffer);
+        subject.buffer += b7.encode_str(subject_.buffer) + codec::END_OF_LINE;
     }
 
     return subject;

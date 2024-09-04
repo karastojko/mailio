@@ -110,9 +110,11 @@ string bit7::encode_str(const std::string& text) const
 {
     std::vector<std::string> v = encode(text);
     string s;
-    for (const auto& l : v)
-        s += l + codec::END_OF_LINE;
-    return s;
+    for_each(v.begin(), v.end(), [&s](const string& line)
+        {
+            s += line + codec::END_OF_LINE;
+        });
+    return s.substr(0, s.length() - codec::END_OF_LINE.length());
 }
 
 

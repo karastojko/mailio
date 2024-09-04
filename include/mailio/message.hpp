@@ -639,6 +639,8 @@ protected:
     **/
     std::string format_address(const string_t& name, const std::string& address) const;
 
+    std::string format_address(const string_t& name, const std::string& address, const std::string& header_name) const;
+
     /**
     Parsing a string into vector of names and addresses.
 
