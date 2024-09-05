@@ -844,18 +844,12 @@ string message::format_address(const string_t& name, const string& address, cons
     if (!address.empty())
     {
         if (codec::is_utf8_string(address))
-        {
             addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
-        }
+        else if (regex_match(address, m, DTEXT_REGEX))
+            addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
         else
-        {
-            if (regex_match(address, m, DTEXT_REGEX))
-                addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
-            else
-                throw message_error("Formatting failure of address `" + address + "`.");
-        }
+            throw message_error("Formatting failure of address `" + address + "`.");
     }
-
 
     string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
     string::size_type l1p = static_cast<string::size_type>(line_policy_) - header_name.length() - HEADER_SEPARATOR_STR.length();
