@@ -43,15 +43,14 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
     int count_3_chars = 0;
     string line;
     string::size_type line_len = 0;
-    bool is_first_line = true;
-    const bool is_folding = (line1_policy_ != lines_policy_);
-    const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
+    string::size_type policy = line1_policy_;
 
-    auto add_new_line = [&enc_text, &line_len](string& line)
+    auto add_new_line = [&enc_text, &line_len, &policy, this](string& line)
     {
         enc_text.push_back(line);
         line.clear();
         line_len = 0;
+        policy = lines_policy_;
     };
 
     for (string::size_type cur_char = 0; cur_char < text.length(); cur_char++)
@@ -70,16 +69,10 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             line_len += 4;
         }
 
-        if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
-        {
-            is_first_line = false;
+        if (line_len >= line1_policy_ - reserved - 2)
             add_new_line(line);
-        }
-        else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
-        {
-            line = FOLD_STR + line;
+        else if (line_len >= lines_policy_ - reserved - 2)
             add_new_line(line);
-        }
     }
 
     // encode remaining characters if any
@@ -96,32 +89,16 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         for (int i = 0; i < count_3_chars + 1; i++)
         {
-            if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
-            {
-                is_first_line = false;
+            if (line_len >= policy - reserved - 2)
                 add_new_line(line);
-            }
-            else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
-            {
-                line = FOLD_STR + line;
-                add_new_line(line);
-            }
             line += CHARSET[group_6bit[i]];
             line_len++;
         }
 
         while (count_3_chars++ < 3)
         {
-            if (is_first_line && line_len >= line1_policy_ - reserved - 2 - FOLD_STR.length())
-            {
-                is_first_line = false;
+            if (line_len >= policy - reserved - 2)
                 add_new_line(line);
-            }
-            else if (line_len >= lines_policy_ - reserved - 2 - FOLD_STR.length())
-            {
-                line = FOLD_STR + line;
-                add_new_line(line);
-            }
             line += EQUAL_CHAR;
             line_len++;
         }
