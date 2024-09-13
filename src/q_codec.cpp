@@ -34,8 +34,9 @@ const string q_codec::BASE64_CODEC_STR = "B";
 const string q_codec::QP_CODEC_STR = "Q";
 
 
-q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy) :
-    codec(encoder_line_policy, decoder_line_policy)
+q_codec::q_codec(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line_len_policy_t::RECOMMENDED, line_len_policy_t::RECOMMENDED),
+    line1_policy_(line1_policy), lines_policy_(lines_policy)
 {
 }
 
@@ -48,13 +49,13 @@ vector<string> q_codec::encode(const string& text, const string& charset, header
     if (method == header_codec_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
-        base64 b64(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
+        base64 b64(line1_policy_, lines_policy_);
         text_c = b64.encode(text, Q_FLAGS_LEN);
     }
     else
     {
         codec_flag = QP_CODEC_STR;
-        quoted_printable qp(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
+        quoted_printable qp(line1_policy_, lines_policy_);
         qp.q_codec_mode(true);
         text_c = qp.encode(text, Q_FLAGS_LEN);
     }
@@ -88,7 +89,7 @@ tuple<string, string, codec::header_codec_t> q_codec::decode(const string& text)
     string dec_text;
     if (iequals(method, BASE64_CODEC_STR))
     {
-        base64 b64(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
+        base64 b64(line1_policy_, lines_policy_);
         dec_text = b64.decode(text_c);
         method_type = header_codec_t::BASE64;
     }
@@ -148,7 +149,7 @@ tuple<string, string, codec::header_codec_t> q_codec::check_decode(const string&
 
 string q_codec::decode_qp(const string& text) const
 {
-    quoted_printable qp(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
+    quoted_printable qp(line1_policy_, lines_policy_);
     qp.q_codec_mode(true);
     vector<string> lines;
     lines.push_back(text);

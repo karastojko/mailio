@@ -193,7 +193,7 @@ void message::add_from(const mail_address& mail)
 
 string message::from_to_string() const
 {
-    return format_address_list(from_);
+    return format_address_list(from_, FROM_HEADER);
 }
 
 
@@ -252,7 +252,7 @@ mailboxes message::recipients() const
 
 string message::recipients_to_string() const
 {
-    return format_address_list(recipients_);
+    return format_address_list(recipients_, TO_HEADER);
 }
 
 
@@ -276,7 +276,7 @@ mailboxes message::cc_recipients() const
 
 string message::cc_recipients_to_string() const
 {
-    return format_address_list(cc_recipients_);
+    return format_address_list(cc_recipients_, CC_HEADER);
 }
 
 
@@ -300,7 +300,7 @@ mailboxes message::bcc_recipients() const
 
 string message::bcc_recipients_to_string() const
 {
-    return format_address_list(bcc_recipients_);
+    return format_address_list(bcc_recipients_, BCC_HEADER);
 }
 
 
@@ -565,7 +565,11 @@ string message::format_header(bool add_bcc_header) const
         {
             string::size_type l1p = static_cast<string::size_type>(line_policy_) - hdr.first.length() - HEADER_SEPARATOR_STR.length();
             bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
-            header += hdr.first + HEADER_SEPARATOR_STR + b7.encode_str(hdr.second) + codec::END_OF_LINE;
+            vector<string> hdr_enc = b7.encode(hdr.second);
+            header += hdr.first + HEADER_SEPARATOR_STR + hdr_enc.at(0) + codec::END_OF_LINE;
+            if (hdr_enc.size() > 1)
+                for (auto h = hdr_enc.begin() + 1; h != hdr_enc.end(); h++)
+                    header += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
         }
     );
 
@@ -690,7 +694,7 @@ void message::parse_header_line(const string& header_line)
 }
 
 
-string message::format_address_list(const mailboxes& mailbox_list) const
+string message::format_address_list(const mailboxes& mailbox_list, const string& header_name) const
 {
     const regex ATEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]*)"};
     smatch m;
@@ -699,9 +703,9 @@ string message::format_address_list(const mailboxes& mailbox_list) const
     for (auto ma = mailbox_list.addresses.begin(); ma != mailbox_list.addresses.end(); ma++)
     {
         if (mailbox_list.addresses.size() > 1 && ma != mailbox_list.addresses.begin())
-            mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address);
+            mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address, header_name);
         else
-            mailbox_str += format_address(ma->name, ma->address);
+            mailbox_str += format_address(ma->name, ma->address, header_name);
 
         if (ma != mailbox_list.addresses.end() - 1)
             mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
@@ -719,9 +723,9 @@ string message::format_address_list(const mailboxes& mailbox_list) const
         for (auto ma = mg->members.begin(); ma != mg->members.end(); ma++)
         {
             if (mg->members.size() > 1 && ma != mg->members.begin())
-                mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address);
+                mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address, header_name);
             else
-                mailbox_str += format_address(ma->name, ma->address);
+                mailbox_str += format_address(ma->name, ma->address, header_name);
 
             if (ma != mg->members.end() - 1)
                 mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
@@ -733,80 +737,19 @@ string message::format_address_list(const mailboxes& mailbox_list) const
 }
 
 
-string message::format_address(const string_t& name, const string& address) const
-{
-    if (name.buffer.empty() && address.empty())
-        return "";
-
-    // TODO: no need for regex, simple string comparaison can be used
-    const regex QTEXT_REGEX{R"([a-zA-Z0-9\ \t\!#\$%&'\(\)\*\+\,\-\.@/\:;<=>\?\[\]\^\_`\{\|\}\~]*)"};
-    const regex DTEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\.\@/=\?\^\_`\{\|\}\~]*)"};
-
-    string name_formatted;
-    string addr;
-    smatch m;
-
-    // The charset has precedence over the header codec. Only for the non-ascii characters, consider the header encoding.
-
-    if (name.charset == codec::CHARSET_ASCII)
-    {
-        // Check the name format.
-
-        if (regex_match(name.buffer, m, regex(R"([A-Za-z0-9\ \t]*)")))
-            name_formatted = name.buffer;
-        else if (regex_match(name.buffer, m, QTEXT_REGEX))
-            name_formatted = codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR;
-        else
-            throw message_error("Formatting failure of name `" + name.buffer + "`.");
-    }
-    else if (header_codec_ == header_codec_t::UTF8)
-    {
-        name_formatted = name.buffer;
-    }
-    else
-    {
-        q_codec qc(line_policy_, decoder_line_policy_);
-        vector<string> enc_name = qc.encode(name.buffer, name.charset, header_codec_);
-        for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
-        {
-            name_formatted += *sit;
-            if (sit != enc_name.end() - 1)
-                name_formatted += codec::SPACE_STR;
-        }
-    }
-
-    // Check address format.
-
-    if (!address.empty())
-    {
-        if (codec::is_utf8_string(address))
-        {
-            addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
-        }
-        else
-        {
-            if (regex_match(address, m, DTEXT_REGEX))
-                addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
-            else
-                throw message_error("Formatting failure of address `" + address + "`.");
-        }
-    }
-
-    string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
-    return fold_header_line(addr_name);
-}
-
-
 string message::format_address(const string_t& name, const string& address, const string& header_name) const
 {
     if (name.buffer.empty() && address.empty())
         return "";
 
+    const string::size_type HEADER_LEN = header_name.length() + HEADER_SEPARATOR_STR.length();
+    const string::size_type line_policy = static_cast<string::size_type>(line_policy_);
+
     // TODO: no need for regex, simple string comparaison can be used
     const regex QTEXT_REGEX{R"([a-zA-Z0-9\ \t\!#\$%&'\(\)\*\+\,\-\.@/\:;<=>\?\[\]\^\_`\{\|\}\~]*)"};
     const regex DTEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\.\@/=\?\^\_`\{\|\}\~]*)"};
 
-    string name_formatted;
+    vector<string> name_formatted;
     string addr;
     smatch m;
 
@@ -817,26 +760,27 @@ string message::format_address(const string_t& name, const string& address, cons
         // Check the name format.
 
         if (regex_match(name.buffer, m, regex(R"([A-Za-z0-9\ \t]*)")))
-            name_formatted = name.buffer;
+        {
+            bit7 b7(line_policy - HEADER_LEN, line_policy);
+            name_formatted = b7.encode(name.buffer);
+        }
         else if (regex_match(name.buffer, m, QTEXT_REGEX))
-            name_formatted = codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR;
+        {
+            bit7 b7(line_policy - HEADER_LEN + 2, line_policy);
+            name_formatted = b7.encode(codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR);
+        }
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
     else if (header_codec_ == header_codec_t::UTF8)
     {
-        name_formatted = name.buffer;
+        bit7 b7(line_policy - HEADER_LEN, line_policy);
+        name_formatted = b7.encode(name.buffer);
     }
     else
     {
-        q_codec qc(line_policy_, decoder_line_policy_);
-        vector<string> enc_name = qc.encode(name.buffer, name.charset, header_codec_);
-        for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
-        {
-            name_formatted += *sit;
-            if (sit != enc_name.end() - 1)
-                name_formatted += codec::SPACE_STR;
-        }
+        q_codec qc(line_policy - HEADER_LEN, static_cast<string::size_type>(line_policy_));
+        name_formatted = qc.encode(name.buffer, name.charset, header_codec_);
     }
 
     // Check address format.
@@ -851,10 +795,21 @@ string message::format_address(const string_t& name, const string& address, cons
             throw message_error("Formatting failure of address `" + address + "`.");
     }
 
-    string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
-    string::size_type l1p = static_cast<string::size_type>(line_policy_) - header_name.length() - HEADER_SEPARATOR_STR.length();
-    bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
-    return b7.encode_str(addr_name);
+    string::size_type last_line_len = (name_formatted.empty() ? 0 : name_formatted.back().length());
+    string name_addr;
+    for (auto sit = name_formatted.begin(); sit != name_formatted.end(); sit++)
+        name_addr += (sit == name_formatted.begin() ? "" : codec::SPACE_STR + codec::SPACE_STR) +
+            *sit + (sit == name_formatted.end() - 1 ? "" : codec::END_OF_LINE);
+
+    if (!addr.empty())
+    {
+        if (last_line_len + addr.length() < line_policy)
+            name_addr += (name_formatted.empty() ? "" : codec::SPACE_STR) + addr;
+        else
+            name_addr += codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR + addr;
+    }
+
+    return name_addr;
 }
 
 
@@ -1491,7 +1446,7 @@ string_t message::format_subject() const
 
     if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
     {
-        q_codec qc(line_policy_, decoder_line_policy_);
+        q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
         subject.buffer += hdr.at(0) + codec::END_OF_LINE;
         if (hdr.size() > 1)
@@ -1502,7 +1457,11 @@ string_t message::format_subject() const
     {
         string::size_type l1p = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
         bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
-        subject.buffer += b7.encode_str(subject_.buffer) + codec::END_OF_LINE;
+        vector<string> hdr = b7.encode(subject_.buffer);
+        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
+        if (hdr.size() > 1)
+            for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
+                subject.buffer += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
     }
 
     return subject;
@@ -1515,7 +1474,7 @@ tuple<string, string> message::parse_subject(const string& subject)
         return make_tuple(subject, codec::CHARSET_UTF8);
     else
     {
-        q_codec qc(line_policy_, decoder_line_policy_);
+        q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         auto subject_dec = qc.check_decode(subject);
         header_codec_t subject_encoding = get<2>(subject_dec);
         if (subject_encoding != header_codec_t::UTF8)
@@ -1527,7 +1486,7 @@ tuple<string, string> message::parse_subject(const string& subject)
 
 string_t message::parse_address_name(const string& address_name)
 {
-    q_codec qc(line_policy_, decoder_line_policy_);
+    q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
     bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&

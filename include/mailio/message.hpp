@@ -622,7 +622,7 @@ protected:
     @throw message_error Formatting failure of address list, bad group name.
     @throw *             `format_address(const string&, const string&)`.
     **/
-    std::string format_address_list(const mailboxes& mailbox_list) const;
+    std::string format_address_list(const mailboxes& mailbox_list, const std::string& header_name = "") const;
 
     /**
     Formatting a name and an address.
@@ -637,7 +637,7 @@ protected:
     @todo                Deal with the line policy.
     @todo                Using `q_codec` does not deal with the line folding.
     **/
-    std::string format_address(const string_t& name, const std::string& address) const;
+    //std::string format_address(const string_t& name, const std::string& address) const;
 
     std::string format_address(const string_t& name, const std::string& address, const std::string& header_name) const;
 

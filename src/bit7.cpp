@@ -39,19 +39,18 @@ vector<string> bit7::encode(const string& text) const
     vector<string> enc_text;
     string line;
     string::size_type line_len = 0;
-    bool is_first_line = true;
-    const bool is_folding = (line1_policy_ != lines_policy_);
-    const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
     const string DELIMITERS = " ,;";
     string::size_type delim_pos = 0;
+    string::size_type policy = line1_policy_;
+    const bool is_folding = (line1_policy_ != lines_policy_);
 
-    auto add_new_line = [&enc_text, &line_len, &delim_pos](bool is_folding, string& line)
+    auto add_new_line = [&enc_text, &line_len, &delim_pos, &policy, this](bool is_folding, string& line)
     {
         if (is_folding && delim_pos > 0)
         {
-            enc_text.push_back(line.substr(0, delim_pos + 1));
-            line = line.substr(delim_pos + 1);
-            line_len -= delim_pos - 1;
+            enc_text.push_back(line.substr(0, delim_pos));
+            line = line.substr(delim_pos);
+            line_len -= delim_pos;
             delim_pos = 0;
         }
         else
@@ -60,21 +59,21 @@ vector<string> bit7::encode(const string& text) const
             line.clear();
             line_len = 0;
         }
+        policy = lines_policy_;
     };
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
-        if (DELIMITERS.find(*ch) != string::npos)
-            delim_pos = line_len;
-
         if (is_allowed(*ch))
         {
             line += *ch;
             line_len++;
+
+            if (DELIMITERS.find(*ch) != string::npos)
+                delim_pos = line_len;
         }
         else if (*ch == '\r' && (ch + 1) != text.end() && *(ch + 1) == '\n')
         {
-            line = FOLD_STR + line;
             add_new_line(is_folding, line);
             // Skip both crlf characters.
             ch++;
@@ -82,23 +81,11 @@ vector<string> bit7::encode(const string& text) const
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
 
-        if (is_first_line && line_len == line1_policy_)
-        {
-            is_first_line = false;
+        if (line_len == policy)
             add_new_line(is_folding, line);
-        }
-        else if (line_len == lines_policy_ - FOLD_STR.length())
-        {
-            line = FOLD_STR + line;
-            add_new_line(is_folding, line);
-        }
     }
     if (!line.empty())
-    {
-        if (is_folding && !is_first_line)
-            line = FOLD_STR + line;
         enc_text.push_back(line);
-    }
     while (!enc_text.empty() && enc_text.back().empty())
         enc_text.pop_back();
 

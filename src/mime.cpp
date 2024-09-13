@@ -664,7 +664,7 @@ string mime::format_mime_name(const string_t& name) const
     if (name.charset != codec::CHARSET_ASCII)
     {
         // if the attachment name exceeds mandatory length, the rest is discarded
-        q_codec qc(codec::line_len_policy_t::MANDATORY, decoder_line_policy_);
+        q_codec qc(static_cast<string::size_type>(codec::line_len_policy_t::MANDATORY), static_cast<string::size_type>(line_policy_));
         vector<string> hdr = qc.encode(name, name.charset, header_codec_);
         return hdr.at(0);
     }
@@ -1112,7 +1112,7 @@ string_t mime::decode_value_attribute(const string& attr_value) const
 
     // Q decoding
 
-    q_codec qc(line_policy_, decoder_line_policy_);
+    q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
     auto av = qc.check_decode(attr_value);
     return string_t(std::get<0>(av), std::get<1>(av));
 }

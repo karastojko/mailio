@@ -2212,7 +2212,6 @@ Showing the bug of having no attribute continuation like there is for the subjec
 
 @pre  None.
 @post None.
-@todo Fix the test when the bug is fixed.
 **/
 BOOST_AUTO_TEST_CASE(format_continued_filename)
 {
@@ -2549,6 +2548,7 @@ Formatting oversized recipient with the recommended line policy.
 
 @pre  None.
 @post None.
+@todo Shows the bug with no delimiter between the name and the address.
 **/
 BOOST_AUTO_TEST_CASE(format_recommended_recipient)
 {
@@ -2571,7 +2571,7 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?= \r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
         "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: proba\r\n"
@@ -2607,9 +2607,9 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 
@@ -2686,7 +2686,6 @@ Showing a bug with the line folding for the long sender header.
 
 @pre  None.
 @post None.
-@todo Fix the test when the bug is fixed.
 **/
 BOOST_AUTO_TEST_CASE(format_long_from)
 {
@@ -2705,8 +2704,8 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         string msg_str;
         msg.format(msg_str);
         BOOST_CHECK(msg_str ==
-            "From: =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiAgICAgINCa0LDRgNCw0YHRgtC+0ZjQutC+0LLQuNGb?=\r\n"
-            "   <tomislavkarastojkovic@hotmail.com>\r\n"
+            "From: =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiAgICAgINCa0LDRgNCw0YHRgtC+0ZjQutC+0LLQ?=\r\n"
+            "  =?UTF-8?B?uNGb?= <tomislavkarastojkovic@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
             "Subject: Zdravo,Svete!\r\n"
@@ -2753,8 +2752,8 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.format(msg_str);
 
         BOOST_CHECK(msg_str ==
-            "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSvet\r\n"
-            "  eZdravo <zdravosvete@hotmail.com>\r\n"
+            "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo\r\n"
+            "  SveteZdravo <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
             "Subject: Zdravo,Svete!\r\n"

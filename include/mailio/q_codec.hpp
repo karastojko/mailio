@@ -45,7 +45,7 @@ public:
     @param decoder_line_policy  Line policy to apply.
     @param codec_method Method for encoding/decoding.
     **/
-    q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy);
+    q_codec(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     q_codec(const q_codec&) = delete;
 
@@ -121,6 +121,11 @@ private:
     @return   True if allowed, false if not.
     **/
     bool is_q_allowed(char ch) const;
+
+
+    std::string::size_type line1_policy_;
+
+    std::string::size_type lines_policy_;
 
     /**
     Method used for encoding/decoding.
