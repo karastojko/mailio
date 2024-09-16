@@ -567,9 +567,7 @@ string message::format_header(bool add_bcc_header) const
             bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
             vector<string> hdr_enc = b7.encode(hdr.second);
             header += hdr.first + HEADER_SEPARATOR_STR + hdr_enc.at(0) + codec::END_OF_LINE;
-            if (hdr_enc.size() > 1)
-                for (auto h = hdr_enc.begin() + 1; h != hdr_enc.end(); h++)
-                    header += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
+            header += fold_header_line(hdr_enc);
         }
     );
 
@@ -1416,9 +1414,7 @@ string_t message::format_subject() const
         q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
         subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        if (hdr.size() > 1)
-            for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
-                subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(hdr);
     }
     else
     {
@@ -1426,12 +1422,20 @@ string_t message::format_subject() const
         bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
         vector<string> hdr = b7.encode(subject_.buffer);
         subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        if (hdr.size() > 1)
-            for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
-                subject.buffer += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(hdr);
     }
 
     return subject;
+}
+
+
+string message::fold_header_line(const vector<string>& headers) const
+{
+    string hdr_str;
+    if (headers.size() > 1)
+        for (auto h = headers.begin() + 1; h != headers.end(); h++)
+            hdr_str += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
+    return hdr_str;
 }
 
 
