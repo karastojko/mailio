@@ -1407,39 +1407,6 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-string message::fold_header_line(const string& header_line, string::size_type name_len) const
-{
-    const string DELIMITERS = " ,;";
-    const string::size_type hl_len = header_line.length();
-    string folded_line;
-    string::size_type pos_beg = name_len;
-    string::size_type pos_end = name_len;
-    // In the first pass, the chunk of line is reduced by the size of header name, afterwards it follows the line policy.
-    string::size_type line_len = string::size_type(line_policy_) - name_len - codec::END_OF_LINE.length();
-
-    while (hl_len - pos_end > line_len)
-    {
-        pos_beg = pos_end;
-        string::size_type pos = header_line.substr(pos_beg, line_len).find_last_of(DELIMITERS);
-        if (pos == string::npos)
-        {
-            folded_line += header_line.substr(pos_beg, line_len);
-            pos_end += line_len;
-        }
-        else
-        {
-            folded_line += header_line.substr(pos_beg, pos + 1);
-            pos_end += pos + 1;
-        }
-        folded_line += codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR;
-        line_len = string::size_type(line_policy_) - 2 * codec::SPACE_STR.length();
-    }
-    folded_line += header_line.substr(pos_end, hl_len - pos_end);
-
-    return folded_line;
-}
-
-
 string_t message::format_subject() const
 {
     string_t subject;
