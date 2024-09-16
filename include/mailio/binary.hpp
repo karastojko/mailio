@@ -36,8 +36,7 @@ public:
     @param encoder_line_policy Encoder line length policy to set.
     @param decoder_line_policy Decoder line length policy to set.
     **/
-    binary(codec::line_len_policy_t encoder_line_policy = codec::line_len_policy_t::NONE,
-           codec::line_len_policy_t decoder_line_policy = codec::line_len_policy_t::NONE);
+    binary(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     binary(const binary&) = delete;
 
@@ -70,6 +69,10 @@ public:
     std::string decode(const std::vector<std::string>& text) const;
 
 private:
+
+    std::string::size_type line1_policy_;
+
+    std::string::size_type lines_policy_;
 };
 
 

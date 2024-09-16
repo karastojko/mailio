@@ -532,7 +532,7 @@ string mime::format_content(bool dot_escape) const
         case content_transfer_encoding_t::BINARY:
         {
             // TODO: probably bug when `\0` is part of the content
-            binary b(line_policy_, decoder_line_policy_);
+            binary b(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             b.strict_mode(strict_codec_mode_);
             content_lines = b.encode(content_);
             break;
@@ -736,7 +736,7 @@ void mime::parse_content()
 
         case content_transfer_encoding_t::BINARY:
         {
-            binary b(line_policy_, decoder_line_policy_);
+            binary b(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
             b.strict_mode(strict_codec_mode_);
             content_ = b.decode(parsed_body_);
             break;
