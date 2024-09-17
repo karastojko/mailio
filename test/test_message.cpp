@@ -2012,15 +2012,13 @@ BOOST_AUTO_TEST_CASE(format_notification)
 /**
 Formatting a message with UTF-8 addresses by using Base64 Q codec.
 
-The line policy has to be mandatory because of the third recipient.
-
 @pre  None.
 @post None.
 **/
 BOOST_AUTO_TEST_CASE(format_qb_sender)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2038,7 +2036,8 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?= <asdfg@zoho.com>\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: proba\r\n"
         "\r\n"
@@ -2049,15 +2048,13 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
 /**
 Formatting a message with UTF-8 addresses by using Quoted Printable Q codec.
 
-The line policy has to be mandatory because of the third recipient.
-
 @pre  None.
 @post None.
 **/
 BOOST_AUTO_TEST_CASE(format_qq_sender)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2075,7 +2072,9 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?Q?Tomislav_Karastojkovi=C4=87?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8=D1=9B?= <asdfg@zoho.com>\r\n"
+        "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0=B0?=\r\n"
+        "  =?UTF-8?Q?=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8=D1=9B?=\r\n"
+        "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: proba\r\n"
         "\r\n"
