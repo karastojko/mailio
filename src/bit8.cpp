@@ -40,8 +40,6 @@ vector<string> bit8::encode(const string& text) const
     string line;
     string::size_type line_len = 0;
     bool is_first_line = true;
-    const bool is_folding = (line1_policy_ != lines_policy_);
-    const string FOLD_STR = (is_folding ? codec::SPACE_STR + codec::SPACE_STR : "");
 
     auto add_new_line = [&enc_text, &line_len](string& line)
     {
@@ -59,7 +57,6 @@ vector<string> bit8::encode(const string& text) const
         }
         else if (*ch == '\r' && (ch + 1) != text.end() && *(ch + 1) == '\n')
         {
-            line = FOLD_STR + line;
             add_new_line(line);
             // skip both crlf characters
             ch++;
@@ -75,9 +72,8 @@ vector<string> bit8::encode(const string& text) const
                 add_new_line(line);
             }
         }
-        else if (line_len == lines_policy_ - FOLD_STR.length())
+        else if (line_len == lines_policy_)
         {
-            line = FOLD_STR + line;
             add_new_line(line);
         }
     }
