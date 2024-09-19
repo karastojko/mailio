@@ -13,6 +13,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 #include <string>
 #include <vector>
+#include <sstream>
 #include <stdexcept>
 #include <boost/algorithm/string/trim.hpp>
 #include <mailio/quoted_printable.hpp>
@@ -43,6 +44,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
     string::size_type line_len = 0;
     // Soon as the first line is added, switch the policy to the other lines policy.
     string::size_type policy = line1_policy_;
+    const string QMARK_HEX = EQUAL_STR + (std::stringstream() << std::hex << static_cast<int>(QUESTION_MARK_CHAR)).str();
 
     auto add_new_line = [&enc_text, &line_len, &policy, this](string& line)
     {
@@ -130,7 +132,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
                 {
                     enc_text.push_back(line);
                     line.clear();
-                    line += "=3F";
+                    line += QMARK_HEX;
                     line_len = 3;
                     policy = lines_policy_;
                 }
@@ -144,7 +146,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
             {
                 if (q_codec_mode_)
                 {
-                    line += "=3F";
+                    line += QMARK_HEX;
                     line_len += 3;
                 }
                 else
