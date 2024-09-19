@@ -183,14 +183,10 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
                 policy = lines_policy_;
             };
 
-            if (line_len >= policy - reserved - 5 && !q_codec_mode_)
+            if (line_len >= policy - reserved - 5)
             {
-                // Add soft break before the current character.
-                line += EQUAL_CHAR;
-                encode_char(*ch, line);
-            }
-            else if (line_len >= policy - reserved - 2 && q_codec_mode_)
-            {
+                if (!q_codec_mode_) // Add soft break before the current character.
+                    line += EQUAL_CHAR;
                 encode_char(*ch, line);
             }
             else
