@@ -392,7 +392,15 @@ public:
     @param encoder_line_policy Encoder line policy to set.
     @param decoder_line_policy Decoder line policy to set.
     **/
+    [[deprecated]]
     void line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy);
+
+    /**
+    Setting the message decoding and encoding line policy.
+
+    @param line_policy Encoder line policy to set.
+    **/
+    void line_policy(codec::line_len_policy_t line_policy);
 
     /**
     Getting the encoder message line policy.
@@ -400,13 +408,6 @@ public:
     @return Encoder line policy.
     **/
     codec::line_len_policy_t line_policy() const;
-
-    /**
-    Getting the message decoder line policy.
-
-    @return Decoder line policy.
-    **/
-    codec::line_len_policy_t decoder_line_policy() const;
 
     /**
     Enabling/disabling the strict mode for the mime part.
@@ -844,11 +845,6 @@ protected:
     Encoder line policy to be applied for the mime part.
     **/
     codec::line_len_policy_t line_policy_;
-
-    /**
-    Decoder line policy to be applied for the mime part.
-    **/
-    codec::line_len_policy_t decoder_line_policy_;
 
     /**
     Strict mode for mime part.

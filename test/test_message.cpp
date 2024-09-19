@@ -1733,7 +1733,7 @@ BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format long attachment name utf8");
@@ -1750,7 +1750,7 @@ BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
     msg.format(msg_str);
 
     message msg_same;
-    msg_same.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg_same.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     BOOST_CHECK_THROW(msg_same.parse(msg_str); , mime_error);
 }
@@ -1985,7 +1985,7 @@ Formatting a message with the disposition notification.
 BOOST_AUTO_TEST_CASE(format_notification)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2018,7 +2018,7 @@ Formatting a message with UTF-8 addresses by using Base64 Q codec.
 BOOST_AUTO_TEST_CASE(format_qb_sender)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2054,7 +2054,7 @@ Formatting a message with UTF-8 addresses by using Quoted Printable Q codec.
 BOOST_AUTO_TEST_CASE(format_qq_sender)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2223,7 +2223,7 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.strict_mode(false);
     msg.boundary("mybnd");
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.subject("format continued filename format continued filename format continued filename format continued filename");
     ifstream ifs1("cv.txt");
     message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
@@ -2266,7 +2266,7 @@ Formatting UTF8 subject in 8bit encoding.
 BOOST_AUTO_TEST_CASE(format_utf8_subject)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2512,7 +2512,7 @@ Showing the bug of having no line folding for message ID headers. The test shoul
 BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2552,7 +2552,7 @@ Formatting oversized recipient with the recommended line policy.
 BOOST_AUTO_TEST_CASE(format_recommended_recipient)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -2590,7 +2590,7 @@ In case there is no delimiter, then there is no folding which is a bug.
 BOOST_AUTO_TEST_CASE(format_long_subject)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2690,7 +2690,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
 {
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
         msg.header_codec(mailio::mime::header_codec_t::BASE64);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
@@ -2713,7 +2713,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
         msg.header_codec(mailio::mime::header_codec_t::BASE64);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
@@ -2737,7 +2737,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
         msg.header_codec(mailio::mime::header_codec_t::BASE64);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
@@ -2802,7 +2802,7 @@ Parsing custom headers.
 BOOST_AUTO_TEST_CASE(parse_custom_header)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
         "To: mailio <adre.sa@mailio.dev>\r\n"
         "Subject: parse custom header\r\n"
@@ -2827,7 +2827,7 @@ Parsing a header with a non-allowed character in it's name.
 BOOST_AUTO_TEST_CASE(parse_bad_header_name)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
         "To: mailio <adre.sa@mailio.dev>\r\n"
         "Subject: parse bad header name\r\n"
@@ -2849,7 +2849,7 @@ Parsing simple message with lines matching the recommended length.
 BOOST_AUTO_TEST_CASE(parse_line_len)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: adre.sa@mailio.dev\r\n"
         "To: adre.sa@mailio.dev\r\n"
         "Subject: parse line len\r\n"
@@ -2872,7 +2872,7 @@ Parsing a message with lines violating the recommended length.
 BOOST_AUTO_TEST_CASE(parse_wrong_line_len)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     string msg_str = "From: adre.sa@mailio.dev\r\n"
         "To: adre.sa@mailio.dev\r\n"
         "Subject: parse wrong line len\r\n"
@@ -2894,7 +2894,7 @@ Parsing by lines an oversized line.
 BOOST_AUTO_TEST_CASE(parse_by_line_oversized)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse_by_line("From: mailio <adresa@mailio.dev>");
     msg.parse_by_line("To: mailio");
     msg.parse_by_line("Subject: parse by line oversized");
@@ -2912,7 +2912,7 @@ Parsing by lines an oversized line Base64 encoded.
 BOOST_AUTO_TEST_CASE(parse_base64_line_oversized)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse_by_line("From: mailio <adresa@mailio.dev>");
     msg.parse_by_line("To: mailio <adresa@mailio.dev>");
     msg.parse_by_line("Date: Fri, 17 Jan 2014 05:39:22 -0730");
@@ -2951,7 +2951,7 @@ BOOST_AUTO_TEST_CASE(parse_addresses)
         "\r\n"
         "Hello, World!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.size() == 4 &&
@@ -2984,7 +2984,7 @@ BOOST_AUTO_TEST_CASE(parse_address_no_space)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
@@ -3088,7 +3088,7 @@ BOOST_AUTO_TEST_CASE(parse_recommended_address)
         "Hello, World!\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3109,7 +3109,7 @@ BOOST_AUTO_TEST_CASE(parse_quoted_address_no_space)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
@@ -3129,7 +3129,7 @@ BOOST_AUTO_TEST_CASE(parse_address_comment)
         "\r\n"
         "Hello, World!";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
@@ -3153,7 +3153,7 @@ BOOST_AUTO_TEST_CASE(parse_double_address_strict)
 
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
 }
 
@@ -3174,7 +3174,7 @@ BOOST_AUTO_TEST_CASE(parse_double_address_non_strict)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "aaa@mailio.dev" && msg.recipients().addresses.at(0).address == "bbb@mailio.dev");
 }
@@ -3197,7 +3197,7 @@ BOOST_AUTO_TEST_CASE(parse_address_without_monkey)
         "test\r\n";
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     auto from = msg.from().addresses.at(0);
     auto rcpt = msg.recipients().addresses.at(0);
@@ -3221,7 +3221,7 @@ BOOST_AUTO_TEST_CASE(parse_content_type)
         "Hello, World!";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
 }
@@ -3244,14 +3244,14 @@ BOOST_AUTO_TEST_CASE(parse_malformed_content_type)
 
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.strict_mode(true);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
 
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.strict_mode(false);
         msg.parse(msg_str);
         BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
@@ -3276,7 +3276,7 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_non_strict)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::APPLICATION && msg.content_type().subtype == "octet-stream");
 }
@@ -3299,7 +3299,7 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_strict)
 
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3323,7 +3323,7 @@ BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain");
 }
@@ -3349,7 +3349,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
 }
@@ -3378,7 +3378,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name() == "Томислав Карастојковић");
 }
@@ -3404,7 +3404,7 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\Program Files\\\xE8.xlsx");
 }
@@ -3431,7 +3431,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_content_type)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" &&
         msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
@@ -3458,7 +3458,7 @@ BOOST_AUTO_TEST_CASE(parse_invalid_continued_filename)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3481,7 +3481,7 @@ BOOST_AUTO_TEST_CASE(parse_multiline_header)
         "Zdravo, Svete!\r\n";
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.message_id() == "<123456789012345678901234567890123456789012345678901234567890@mailio.dev>");
 }
@@ -3504,7 +3504,7 @@ BOOST_AUTO_TEST_CASE(parse_long_header)
         "Zdravo, Svete!\r\n";
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3913,7 +3913,7 @@ Parsing alternative multipart with the first part HTML with ASCII charset Seven 
 BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_bit7_plain_utf8_base64)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
@@ -3962,7 +3962,7 @@ encoded.
 BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_qp_plain_ascii_bit8)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4012,7 +4012,7 @@ Parsing related multipart with the first part HTML default charset Base64 encode
 BOOST_AUTO_TEST_CASE(parse_multipart_html_default_base64_text_utf8_qp)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4062,7 +4062,7 @@ Parsing alternative multipart with the first part HTML with ASCII charset Base64
 BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_base64_plain_ascii_bit7)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4111,7 +4111,7 @@ Parsing multipart with leading dots and escaping flag turned off.
 BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str =
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4256,7 +4256,7 @@ Parsing multipart with leading dots and escaping flag turned on.
 BOOST_AUTO_TEST_CASE(parse_dotted_multipart_esc)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str =
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4405,7 +4405,7 @@ long text ASCII charset Quoted Printable encoded, the fourth is long text UTF-8 
 BOOST_AUTO_TEST_CASE(parse_long_multipart)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str =
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4605,7 +4605,7 @@ Parsing multipart message with a content.
 BOOST_AUTO_TEST_CASE(parse_multipart_content)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>, <qwerty@gmail.com>, Tomislav Karastojkovic <asdfgh@outlook.com>\r\n"
@@ -4822,7 +4822,7 @@ BOOST_AUTO_TEST_CASE(parse_multilined_addresses)
         "Hello, World!\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
@@ -4854,7 +4854,7 @@ BOOST_AUTO_TEST_CASE(parse_long_addresses)
         "Hello, World!\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.at(0).name == "contact" && msg.recipients().addresses.at(0).address == "kontakt@mailio.dev" &&
@@ -4882,7 +4882,7 @@ BOOST_AUTO_TEST_CASE(parse_notification)
         "\r\n"
         "Hello, World!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.disposition_notification_to_string() == "karastojko <zxcvb@zoho.com>" && msg.subject() == "parse notification");
@@ -4907,7 +4907,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_sender)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.at(0).name == "mailio" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
@@ -4952,7 +4952,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_from_no_space)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Action fran" "\xE7" "aise" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
@@ -5029,7 +5029,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_utf8_emoji_subject_raw)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
 }
@@ -5061,7 +5061,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
@@ -5096,7 +5096,7 @@ BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
@@ -5130,7 +5130,7 @@ BOOST_AUTO_TEST_CASE(parse_qbq_long_subject)
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
@@ -5158,7 +5158,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_dash)
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "C++ Annotated: Sep – Dec 2017");
@@ -5184,7 +5184,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_emoji)
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
@@ -5210,7 +5210,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_long)
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() ==
         u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
@@ -5235,7 +5235,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_subject)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
 }
@@ -5259,7 +5259,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_quoted_name)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojković" && msg.from().addresses.at(0).address == "qwerty@gmail.com");
 
@@ -5286,7 +5286,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_name)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "Tomislav Karastojković" && msg.recipients().addresses.at(0).address == "qwerty@gmail.com");
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
@@ -5314,7 +5314,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_address)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojkovic" && msg.from().addresses.at(0).address == "karastojković@gmail.com");
 
@@ -5339,7 +5339,7 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_charset)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
 }
 
@@ -5360,7 +5360,7 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_codec)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
 }
 
@@ -5386,14 +5386,14 @@ BOOST_AUTO_TEST_CASE(parse_message_id)
         // strict mode
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "1234567890@mailio.dev" && msg.content_id() == "987654321@mailio.dev");
     }
     {
         // non-strict mode
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>" && msg.content_id() == "<987654321@mailio.dev>");
     }
@@ -5416,7 +5416,7 @@ BOOST_AUTO_TEST_CASE(parse_whitespace_message_id)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.message_id().empty() == true);
 }
@@ -5438,7 +5438,7 @@ BOOST_AUTO_TEST_CASE(parse_empty_message_id)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 }
 
@@ -5461,14 +5461,14 @@ BOOST_AUTO_TEST_CASE(parse_few_message_ids)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "1@mailio.dev");
     }
     {
         message msg;
         msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "<1@mailio.dev><2@mailio.dev>   <3@mailio.dev>    <4@mailio.dev>");
     }
@@ -5527,12 +5527,12 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_without_monkey)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.in_reply_to().size() == 1 && msg.in_reply_to().at(0) == "<1@mailio.dev> <2 mailio.dev>");
     }
@@ -5558,13 +5558,13 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
         msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.references().size() == 1);
     }
@@ -5588,7 +5588,7 @@ BOOST_AUTO_TEST_CASE(parse_empty_header_strict)
         "Zdravo, Svete!\r\n";
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -5611,7 +5611,7 @@ BOOST_AUTO_TEST_CASE(parse_empty_header_relaxed)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     // If the headers in tests are accessed without copying, then for some reason the multimap often does not read the individual headers
@@ -5643,7 +5643,7 @@ BOOST_AUTO_TEST_CASE(parse_wrong_empty_header)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -5668,7 +5668,7 @@ BOOST_AUTO_TEST_CASE(parse_headers_htab)
         "\r\n"
         "Hello, World!\r\n";
     message msg;
-    msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY, mailio::codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     auto hdrs = msg.headers();
     auto rcv = hdrs.find("Received");

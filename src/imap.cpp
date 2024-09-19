@@ -455,7 +455,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                     for (const auto& ms : msg_str)
                     {
                         message msg;
-                        msg.line_policy(line_policy, line_policy);
+                        msg.line_policy(line_policy);
                         msg.parse(ms.second);
                         found_messages.emplace(ms.first, move(msg));
                     }

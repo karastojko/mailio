@@ -120,7 +120,7 @@ const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
-    decoder_line_policy_(codec::line_len_policy_t::RECOMMENDED), strict_mode_(false), strict_codec_mode_(false),
+    strict_mode_(false), strict_codec_mode_(false),
     header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
     disposition_(content_disposition_t::NONE), parsing_header_(true), mime_status_(mime_parsing_status_t::NONE)
 {
@@ -194,7 +194,7 @@ void mime::parse(const u8string& mime_string, bool dot_escape)
 
 mime& mime::parse_by_line(const string& line, bool dot_escape)
 {
-    if (line.length() > string::size_type(decoder_line_policy_))
+    if (line.length() > string::size_type(line_policy_))
         throw mime_error("Line policy overflow in a header.");
 
     // mark end of header and parse it
@@ -226,7 +226,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
                     if (!parts_.empty())
                         parts_.back().parse_by_line(codec::END_OF_LINE);
                     mime m;
-                    m.line_policy(line_policy_, decoder_line_policy_);
+                    m.line_policy(line_policy_);
                     m.strict_codec_mode(strict_codec_mode_);
                     parts_.push_back(m);
                 }
@@ -382,19 +382,18 @@ vector<mime> mime::parts() const
 void mime::line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
 {
     line_policy_ = encoder_line_policy;
-    decoder_line_policy_ = decoder_line_policy;
+}
+
+
+void mime::line_policy(codec::line_len_policy_t line_policy)
+{
+    line_policy_ = line_policy;
 }
 
 
 codec::line_len_policy_t mime::line_policy() const
 {
     return line_policy_;
-}
-
-
-codec::line_len_policy_t mime::decoder_line_policy() const
-{
-    return decoder_line_policy_;
 }
 
 

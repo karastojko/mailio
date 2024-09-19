@@ -29,8 +29,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <mailio/codec.hpp>
-#include <mailio/base64.hpp>
-#include <mailio/quoted_printable.hpp>
 #include <mailio/bit7.hpp>
 #include <mailio/bit8.hpp>
 #include <mailio/q_codec.hpp>
@@ -115,7 +113,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             ct.charset = content_type_.charset;
             content_part.content_type(ct);
             content_part.content_transfer_encoding(encoding_);
-            content_part.line_policy(line_policy_, decoder_line_policy_);
+            content_part.line_policy(line_policy_);
             content_part.strict_mode(strict_mode_);
             content_part.strict_codec_mode(strict_codec_mode_);
             content_part.header_codec(header_codec_);
@@ -466,7 +464,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         content_part.content(content_);
         content_part.content_type(content_type_);
         content_part.content_transfer_encoding(encoding_);
-        content_part.line_policy(line_policy_, decoder_line_policy_);
+        content_part.line_policy(line_policy_);
         content_part.strict_mode(strict_mode_);
         content_part.strict_codec_mode(strict_codec_mode_);
         content_part.header_codec(header_codec_);
