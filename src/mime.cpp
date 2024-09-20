@@ -379,7 +379,7 @@ vector<mime> mime::parts() const
 }
 
 
-void mime::line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
+void mime::line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t /*decoder_line_policy*/)
 {
     line_policy_ = encoder_line_policy;
 }

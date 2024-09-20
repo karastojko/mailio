@@ -75,10 +75,6 @@ public:
     **/
     void q_codec_mode(bool mode);
 
-    std::string::size_type line1_policy_;
-
-    std::string::size_type lines_policy_;
-
 private:
 
     /**
@@ -93,6 +89,10 @@ private:
     Flag for the Q codec mode.
     **/
     bool q_codec_mode_;
+
+    std::string::size_type line1_policy_;
+
+    std::string::size_type lines_policy_;
 };
 
 
