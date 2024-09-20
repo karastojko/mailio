@@ -35,7 +35,7 @@ base64::base64(string::size_type line1_policy, string::size_type lines_policy) :
 }
 
 
-vector<string> base64::encode(const string& text, string::size_type reserved) const
+vector<string> base64::encode(const string& text) const
 {
     vector<string> enc_text;
     unsigned char group_8bit[3];
@@ -69,9 +69,10 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             line_len += 4;
         }
 
-        if (line_len >= line1_policy_ - reserved - 2)
+        // TODO: Compare against `policy`?
+        if (line_len >= line1_policy_ - 2)
             add_new_line(line);
-        else if (line_len >= lines_policy_ - reserved - 2)
+        else if (line_len >= lines_policy_ - 2)
             add_new_line(line);
     }
 
@@ -89,7 +90,7 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         for (int i = 0; i < count_3_chars + 1; i++)
         {
-            if (line_len >= policy - reserved - 2)
+            if (line_len >= policy - 2)
                 add_new_line(line);
             line += CHARSET[group_6bit[i]];
             line_len++;
@@ -97,7 +98,7 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         while (count_3_chars++ < 3)
         {
-            if (line_len >= policy - reserved - 2)
+            if (line_len >= policy - 2)
                 add_new_line(line);
             line += EQUAL_CHAR;
             line_len++;

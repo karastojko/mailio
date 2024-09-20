@@ -37,7 +37,7 @@ quoted_printable::quoted_printable(string::size_type line1_policy, string::size_
 }
 
 
-vector<string> quoted_printable::encode(const string& text, string::size_type reserved) const
+vector<string> quoted_printable::encode(const string& text) const
 {
     vector<string> enc_text;
     string line;
@@ -59,7 +59,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         if (*ch > SPACE_CHAR && *ch <= TILDE_CHAR && *ch != EQUAL_CHAR && *ch != QUESTION_MARK_CHAR)
         {
             // Add soft break when not q encoding.
-            if (line_len >= policy - reserved - 3)
+            if (line_len >= policy - 3)
             {
                 if (q_codec_mode_)
                 {
@@ -83,7 +83,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         else if (*ch == SPACE_CHAR)
         {
             // Add soft break after the current space character if not q encoding.
-            if (line_len >= policy - reserved - 4)
+            if (line_len >= policy - 4)
             {
                 if (q_codec_mode_)
                 {
@@ -98,7 +98,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
                 }
             }
             // Add soft break before the current space character if not q encoding.
-            else if (line_len >= policy - reserved - 3)
+            else if (line_len >= policy - 3)
             {
                 if (q_codec_mode_)
                 {
@@ -126,7 +126,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
         }
         else if (*ch == QUESTION_MARK_CHAR)
         {
-            if (line_len >= policy - reserved - 2)
+            if (line_len >= policy - 2)
             {
                 if (q_codec_mode_)
                 {
@@ -183,7 +183,7 @@ vector<string> quoted_printable::encode(const string& text, string::size_type re
                 policy = lines_policy_;
             };
 
-            if (line_len >= policy - reserved - 5)
+            if (line_len >= policy - 5)
             {
                 if (!q_codec_mode_) // Add soft break before the current character.
                     line += EQUAL_CHAR;

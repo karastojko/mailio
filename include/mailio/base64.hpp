@@ -62,10 +62,9 @@ public:
     Encoding a string into vector of Base64 encoded strings by applying the line policy.
 
     @param text     String to encode.
-    @param reserved Number of characters to subtract from the line policy.
     @return         Vector of Base64 encoded strings.
     **/
-    std::vector<std::string> encode(const std::string& text, std::string::size_type reserved = 0) const;
+    std::vector<std::string> encode(const std::string& text) const;
 
     /**
     Decoding a vector of Base64 encoded strings to string by applying the line policy.

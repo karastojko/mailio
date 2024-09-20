@@ -43,21 +43,22 @@ q_codec::q_codec(string::size_type line1_policy, string::size_type lines_policy)
 
 vector<string> q_codec::encode(const string& text, const string& charset, header_codec_t method) const
 {
+    // TODO: The constant has to depend of the header length.
     const string::size_type Q_FLAGS_LEN = 12;
     vector<string> enc_text, text_c;
     string codec_flag;
     if (method == header_codec_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
-        base64 b64(line1_policy_, lines_policy_);
-        text_c = b64.encode(text, Q_FLAGS_LEN);
+        base64 b64(line1_policy_ - Q_FLAGS_LEN, lines_policy_ - Q_FLAGS_LEN);
+        text_c = b64.encode(text);
     }
     else
     {
         codec_flag = QP_CODEC_STR;
-        quoted_printable qp(line1_policy_, lines_policy_);
+        quoted_printable qp(line1_policy_ - Q_FLAGS_LEN, lines_policy_ - Q_FLAGS_LEN);
         qp.q_codec_mode(true);
-        text_c = qp.encode(text, Q_FLAGS_LEN);
+        text_c = qp.encode(text);
     }
 
     for (auto s = text_c.begin(); s != text_c.end(); s++)
