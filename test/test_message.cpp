@@ -2020,8 +2020,9 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
+        "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
     msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2033,8 +2034,12 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
 
     string msg_str;
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>,\r\n"
+    BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+INCx0LjQsdC70LjQvtGC0LXQutCwINC30LAg0YDQsNC0?=\r\n"
+        "  =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQ?=\r\n"
+        "  =?UTF-8?B?v9C70YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>\r\n"
+        "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
+        "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
+        "  2023 <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
         "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
         "  <asdfg@zoho.com>\r\n"
@@ -2056,8 +2061,9 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
+        "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
     msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2069,8 +2075,15 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
 
     string msg_str;
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>,\r\n"
+    BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE_=D0=B1=D0=B8=D0=B1?=\r\n"
+        "  =?UTF-8?Q?=D0=BB=D0=B8=D0=BE=D1=82=D0=B5=D0=BA=D0=B0_=D0=B7=D0=B0_=D1=80?=\r\n"
+        "  =?UTF-8?Q?=D0=B0=D0=B4_=D1=81=D0=B0_=D0=BC=D0=B5=D1=98=D0=BB=D0=BE=D0=B2?=\r\n"
+        "  =?UTF-8?Q?=D0=B8=D0=BC=D0=B0_=D1=83_=D1=98=D0=B5=D0=B7=D0=B8=D0=BA=D1=83_?=\r\n"
+        "  =?UTF-8?Q?=D1=86_=D0=BF=D0=BB=D1=83=D1=81_=D0=BF=D0=BB=D1=83=D1=81?=\r\n"
+        "  <adresa@mailio.dev>\r\n"
+        "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
+        "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
+        "  2023 <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?Q?Tomislav_Karastojkovi=C4=87?= <qwerty@gmail.com>,\r\n"
         "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0?=\r\n"
         "  =?UTF-8?Q?=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8?=\r\n"
