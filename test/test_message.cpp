@@ -2119,8 +2119,8 @@ BOOST_AUTO_TEST_CASE(format_qb_long_subject)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0b3IgLSBF?=\r\n"
-        "  =?UTF-8?B?bGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2150,8 +2150,8 @@ BOOST_AUTO_TEST_CASE(format_qq_long_subject)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?Q?Re:_=CE=A3=CF=87=CE=B5=CF=84:_Request_from_GrckaInfo_visitor_-_E?=\r\n"
-        "  =?UTF-8?Q?leni_Beach_Apartments?=\r\n"
+        "Subject: =?UTF-8?Q?Re:_=CE=A3=CF=87=CE=B5=CF=84:_Request_from_GrckaInfo_vi?=\r\n"
+        "  =?UTF-8?Q?sitor_-_Eleni_Beach_Apartments?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2211,7 +2211,8 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?Q?=F0=9F=8E=81=C5=BDivi_godinu_dana_na_ra=C4=8Dun_Super_Kartice?=\r\n"
+        "Subject: =?UTF-8?Q?=F0=9F=8E=81=C5=BDivi_godinu_dana_na_ra=C4=8Dun_Super_K?=\r\n"
+        "  =?UTF-8?Q?artice?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2324,8 +2325,8 @@ BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0b3IgLSBF?=\r\n"
-        "  =?UTF-8?B?bGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }

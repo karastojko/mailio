@@ -65,6 +65,7 @@ public:
 
     @param text    String to encode.
     @param charset Charset used by the string.
+    @param method  Allowed encoding methods.
     @return        Encoded string.
     @todo          Merge text and charset into a single parameter of type `string_t`.
     @todo          It must take another parameter for the header name length in order to remove the hardcoded constant.
