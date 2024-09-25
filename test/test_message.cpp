@@ -2521,7 +2521,6 @@ Showing the bug of having no line folding for message ID headers. The test shoul
 
 @pre  None.
 @post None.
-@todo Fix the test when the bug is fixed.
 */
 BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
 {
@@ -2547,8 +2546,9 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
-        "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev> <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> "
-        "<666666666666666666666666666666666666@mailio.dev>\r\n"
+        "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev> \r\n"
+        "  <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> \r\n"
+        "  <666666666666666666666666666666666666@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: Proba\r\n"
         "\r\n"

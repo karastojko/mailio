@@ -681,14 +681,6 @@ protected:
     string_t format_subject() const;
 
     /**
-    Folding a multiline header.
-
-    @param headers Header lines to be formatted into a single line.
-    @return        Header as string with folded lines.
-    **/
-    std::string fold_header_line(const std::vector<std::string>& headers) const;
-
-    /**
     Parsing a subject which can be ASCII or UTF-8.
 
     The result is string either ASCII or UTF-8 encoded. If another encoding is used like ISO-8859-X, then the result is undefined.

@@ -581,8 +581,17 @@ string message::format_header(bool add_bcc_header) const
         codec::END_OF_LINE;
     string msg_id = format_many_ids(message_id_);
     header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
-    string in_reply = format_many_ids(in_reply_to_);
-    header += in_reply_to_.empty() ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + in_reply + codec::END_OF_LINE;
+
+    if (in_reply_to_.size() > 0)
+    {
+        string::size_type l1p = static_cast<string::size_type>(line_policy_) - IN_REPLY_TO_HEADER.length() - HEADER_SEPARATOR_STR.length();
+        bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
+        string in_reply = format_many_ids(in_reply_to_);
+        vector<string> irp_enc = b7.encode(in_reply);
+        header += IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + irp_enc.at(0) + codec::END_OF_LINE;
+        header += fold_header_line(irp_enc);
+    }
+
     string references = format_many_ids(references_);
     header += references_.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
 
@@ -1424,16 +1433,6 @@ string_t message::format_subject() const
     }
 
     return subject;
-}
-
-
-string message::fold_header_line(const vector<string>& headers) const
-{
-    string hdr_str;
-    if (headers.size() > 1)
-        for (auto h = headers.begin() + 1; h != headers.end(); h++)
-            hdr_str += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
-    return hdr_str;
 }
 
 

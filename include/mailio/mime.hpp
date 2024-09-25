@@ -701,6 +701,14 @@ protected:
     std::string format_mime_name(const string_t& name) const;
 
     /**
+    Folding a multiline header.
+
+    @param headers Header lines to be formatted into a single line.
+    @return        Header as string with folded lines.
+    **/
+    std::string fold_header_line(const std::vector<std::string>& headers) const;
+
+    /**
     Parsing header by going through header lines and calling `parse_header_line()`.
 
     @throw * `parse_header_line(const string&)`.

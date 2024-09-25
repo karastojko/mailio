@@ -672,6 +672,16 @@ string mime::format_mime_name(const string_t& name) const
 }
 
 
+string mime::fold_header_line(const vector<string>& headers) const
+{
+    string hdr_str;
+    if (headers.size() > 1)
+        for (auto h = headers.begin() + 1; h != headers.end(); h++)
+            hdr_str += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
+    return hdr_str;
+}
+
+
 void mime::parse_header()
 {
     string line;
