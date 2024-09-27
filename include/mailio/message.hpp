@@ -647,6 +647,13 @@ protected:
     string_t format_subject() const;
 
     /**
+    Formatting email date.
+
+    @return Date for the email format.
+    **/
+    std::string format_date() const;
+
+    /**
     Parsing a string into vector of names and addresses.
 
     @param address_list  String to parse.

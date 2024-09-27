@@ -597,14 +597,7 @@ string message::format_header(bool add_bcc_header) const
 
     // TODO: move formatting datetime to a separate method
     if (!date_time_.is_not_a_date_time())
-    {
-        stringstream ss;
-        ss.exceptions(std::ios_base::failbit);
-        local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
-        ss.imbue(locale(ss.getloc(), facet));
-        ss << date_time_;
-        header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + codec::END_OF_LINE;
-    }
+        header += DATE_HEADER + HEADER_SEPARATOR_STR + format_date() + codec::END_OF_LINE;
 
     if (!parts_.empty())
         header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + version_ + codec::END_OF_LINE;
@@ -839,6 +832,17 @@ string_t message::format_subject() const
     }
 
     return subject;
+}
+
+
+string message::format_date() const
+{
+    stringstream ss;
+    ss.exceptions(std::ios_base::failbit);
+    local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
+    ss.imbue(locale(ss.getloc(), facet));
+    ss << date_time_;
+    return ss.str();
 }
 
 
