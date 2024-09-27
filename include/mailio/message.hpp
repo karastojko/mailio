@@ -631,14 +631,11 @@ protected:
 
     @param name          Mail name.
     @param address       Mail address.
+    @param header_name   Header name of the address header.
     @return              The mail name and address formatted.
     @throw message_error Formatting failure of name.
     @throw message_error Formatting failure of address.
-    @todo                Deal with the line policy.
-    @todo                Using `q_codec` does not deal with the line folding.
     **/
-    //std::string format_address(const string_t& name, const std::string& address) const;
-
     std::string format_address(const string_t& name, const std::string& address, const std::string& header_name) const;
 
     /**
