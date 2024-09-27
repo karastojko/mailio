@@ -639,6 +639,14 @@ protected:
     std::string format_address(const string_t& name, const std::string& address, const std::string& header_name) const;
 
     /**
+    Formatting the subject which can be ASCII or UTF-8.
+
+    @return Formatted subject.
+    @todo   Folding to be moved into `format_header()`?
+    **/
+    string_t format_subject() const;
+
+    /**
     Parsing a string into vector of names and addresses.
 
     @param address_list  String to parse.
@@ -668,14 +676,6 @@ protected:
     @return      Q encoded fragments as separate strings.
     **/
     static std::vector<std::string> split_qc_string(const std::string& text);
-
-    /**
-    Formatting the subject which can be ASCII or UTF-8.
-
-    @return Formatted subject.
-    @todo   Folding to be moved into `format_header()`?
-    **/
-    string_t format_subject() const;
 
     /**
     Parsing a subject which can be ASCII or UTF-8.

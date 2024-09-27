@@ -818,6 +818,30 @@ string message::format_address(const string_t& name, const string& address, cons
 }
 
 
+string_t message::format_subject() const
+{
+    string_t subject;
+    const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
+
+    if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
+    {
+        q_codec qc(line1_policy, static_cast<string::size_type>(line_policy_));
+        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
+        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(hdr);
+    }
+    else
+    {
+        bit7 b7(line1_policy, static_cast<string::size_type>(line_policy_));
+        vector<string> hdr = b7.encode(subject_.buffer);
+        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(hdr);
+    }
+
+    return subject;
+}
+
+
 /*
 See [rfc 5322, section 3.4, page 16-18].
 
@@ -1409,30 +1433,6 @@ local_date_time message::parse_date(const string& date_str) const
     {
         throw message_error("Parsing failure of date.");
     }
-}
-
-
-string_t message::format_subject() const
-{
-    string_t subject;
-    const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
-
-    if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
-    {
-        q_codec qc(line1_policy, static_cast<string::size_type>(line_policy_));
-        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        subject.buffer += fold_header_line(hdr);
-    }
-    else
-    {
-        bit7 b7(line1_policy, static_cast<string::size_type>(line_policy_));
-        vector<string> hdr = b7.encode(subject_.buffer);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        subject.buffer += fold_header_line(hdr);
-    }
-
-    return subject;
 }
 
 
