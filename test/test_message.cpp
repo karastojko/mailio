@@ -2014,13 +2014,16 @@ Formatting a message with UTF-8 addresses by using Base64 Q codec.
 
 @pre  None.
 @post None.
+@todo The last line of the from header has the empty base64 name part.
 **/
 BOOST_AUTO_TEST_CASE(format_qb_sender)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.sender(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.add_from(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "the_library@mailio.dev"));
     msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
         "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
@@ -2036,7 +2039,10 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+INCx0LjQsdC70LjQvtGC0LXQutCwINC30LAg0YDQsNC0?=\r\n"
         "  =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQ?=\r\n"
-        "  =?UTF-8?B?v9C70YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>\r\n"
+        "  =?UTF-8?B?v9C70YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw?=\r\n"
+        "  =?UTF-8?B?==?= <the_library@mailio.dev>\r\n"
+        "Sender: mailio <adresa@mailio.dev>\r\n"
         "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
         "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
         "  2023 <adresa@mailio.dev>,\r\n"
