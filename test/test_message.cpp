@@ -2374,6 +2374,45 @@ BOOST_AUTO_TEST_CASE(format_message_id)
 
 
 /**
+Formatting long nessage and content IDs.
+
+Showing the bug of not applying the line policy for the message ID.
+
+@pre  None.
+@post None.
+@todo Change the criteria once the bug is fixed.
+**/
+BOOST_AUTO_TEST_CASE(format_long_message_id)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.strict_mode(true);
+    msg.date_time(ldt);
+    msg.subject("Proba");
+    msg.content("Zdravo, Svete!");
+    msg.message_id("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890@mailio.dev");
+    msg.content_id("987654321987654321987654321987654321987654321987654321987654321987654321987654321@mailio.dev");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-ID: <987654321987654321987654321987654321987654321987654321987654321987654321987654321@mailio.dev>\r\n"
+        "Subject: Proba\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n");
+}
+
+
+/**
 Formatting the message ID without the monkey character in the strict mode.
 
 @pre  None.

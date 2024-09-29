@@ -627,7 +627,8 @@ protected:
     /**
     Formatting a name and an address.
 
-    If the name is in ASCII or the header codec set to UTF8, then it is written in raw format. Otherwise, the encoding is performed.
+    If the name is in ASCII or the header codec set to UTF8, then it is written in raw format. Otherwise, the encoding is performed. The header folding is
+    performed if necessary.
 
     @param name          Mail name.
     @param address       Mail address.
