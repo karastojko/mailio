@@ -54,8 +54,6 @@ public:
     **/
     std::vector<std::string> encode(const std::string& text) const;
 
-    std::string encode_str(const std::string& text) const;
-
     /**
     Decoding a vector of 7bit encoded strings to string by applying the line policy.
 
