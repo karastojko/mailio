@@ -2380,7 +2380,6 @@ Showing the bug of not applying the line policy for the message ID.
 
 @pre  None.
 @post None.
-@todo Change the criteria once the bug is fixed.
 **/
 BOOST_AUTO_TEST_CASE(format_long_message_id)
 {
@@ -2403,9 +2402,11 @@ BOOST_AUTO_TEST_CASE(format_long_message_id)
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
-        "Message-ID: <1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890@mailio.dev>\r\n"
+        "Message-ID: <12345678901234567890123456789012345678901234567890123456789012345\r\n"
+        "  67890123456789012345678901234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Content-ID: <987654321987654321987654321987654321987654321987654321987654321987654321987654321@mailio.dev>\r\n"
+        "Content-ID: <98765432198765432198765432198765432198765432198765432198765432198\r\n"
+        "  7654321987654321@mailio.dev>\r\n"
         "Subject: Proba\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");

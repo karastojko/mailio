@@ -622,20 +622,22 @@ protected:
     static const std::string MESSAGE_ID_REGEX_NS;
 
     /**
-    Formatting the vector of IDs.
+    Formatting the vector of IDs. The header folding is performed if necessary.
 
-    @param ids Vector of IDs.
-    @return    String of IDs in the angle brackets.
+    @param ids         Vector of IDs.
+    @param header_name Header name of IDs.
+    @return            String of IDs in the angle brackets.
     **/
-    static std::string format_many_ids(const std::vector<std::string>& ids);
+    std::string format_many_ids(const std::vector<std::string>& ids, const std::string& header_name) const;
 
     /**
     Formatting the ID.
 
-    @param id ID to format.
-    @return   ID within the angle brackets.
+    @param id          ID to format.
+    @param header_name Header name of IDs.
+    @return            ID within the angle brackets.
     **/
-    static std::string format_many_ids(const std::string& id);
+    std::string format_many_ids(const std::string& id, const std::string& header_name) const;
 
     /**
     Parsing a string of IDs into a vector.

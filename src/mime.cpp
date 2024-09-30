@@ -433,7 +433,7 @@ mime::header_codec_t mime::header_codec() const
 }
 
 
-string mime::format_many_ids(const vector<string>& ids)
+string mime::format_many_ids(const vector<string>& ids, const string& header_name) const
 {
     string ids_str;
     for (auto s = ids.begin(); s != ids.end(); s++)
@@ -442,13 +442,20 @@ string mime::format_many_ids(const vector<string>& ids)
         if (s != ids.end() - 1)
             ids_str += codec::SPACE_STR;
     }
-    return ids_str;
+
+    string::size_type l1p = static_cast<string::size_type>(line_policy_) - header_name.length() - HEADER_SEPARATOR_STR.length();
+    bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
+    vector<string> ids_enc = b7.encode(ids_str);
+    string ids_folded = ids_enc.at(0) + codec::END_OF_LINE;
+    ids_folded += fold_header_line(ids_enc);
+
+    return ids_folded;
 }
 
 
-string mime::format_many_ids(const string& id)
+string mime::format_many_ids(const string& id, const string& header_name) const
 {
-    return format_many_ids(vector<string>{id});
+    return format_many_ids(vector<string>{id}, header_name);
 }
 
 
@@ -654,7 +661,7 @@ string mime::format_content_disposition() const
 
 string mime::format_content_id() const
 {
-    return content_id_.empty() ? "" : CONTENT_ID_HEADER + HEADER_SEPARATOR_STR + format_many_ids(content_id_) + codec::END_OF_LINE;
+    return content_id_.empty() ? "" : CONTENT_ID_HEADER + HEADER_SEPARATOR_STR + format_many_ids(content_id_, CONTENT_ID_HEADER);
 }
 
 

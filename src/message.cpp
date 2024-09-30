@@ -579,21 +579,10 @@ string message::format_header(bool add_bcc_header) const
     header += disposition_notification_.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
         format_address(disposition_notification_.name, disposition_notification_.address, DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR) +
         codec::END_OF_LINE;
-    string msg_id = format_many_ids(message_id_);
-    header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
 
-    if (in_reply_to_.size() > 0)
-    {
-        string::size_type l1p = static_cast<string::size_type>(line_policy_) - IN_REPLY_TO_HEADER.length() - HEADER_SEPARATOR_STR.length();
-        bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
-        string in_reply = format_many_ids(in_reply_to_);
-        vector<string> irp_enc = b7.encode(in_reply);
-        header += IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + irp_enc.at(0) + codec::END_OF_LINE;
-        header += fold_header_line(irp_enc);
-    }
-
-    string references = format_many_ids(references_);
-    header += references_.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
+    header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + format_many_ids(message_id_, MESSAGE_ID_HEADER);
+    header += in_reply_to_.size() == 0 ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + format_many_ids(in_reply_to_, IN_REPLY_TO_HEADER);
+    header += references_.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + format_many_ids(references_, REFERENCES_HEADER);
 
     // TODO: move formatting datetime to a separate method
     if (!date_time_.is_not_a_date_time())
