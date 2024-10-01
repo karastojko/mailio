@@ -398,14 +398,14 @@ public:
     /**
     Setting the message decoding and encoding line policy.
 
-    @param line_policy Encoder line policy to set.
+    @param line_policy Line policy to set.
     **/
     void line_policy(codec::line_len_policy_t line_policy);
 
     /**
-    Getting the encoder message line policy.
+    Getting the message line policy.
 
-    @return Encoder line policy.
+    @return Line policy.
     **/
     codec::line_len_policy_t line_policy() const;
 
@@ -748,14 +748,6 @@ protected:
     void parse_header_name_value(const std::string& header_line, std::string& header_name, std::string& header_value) const;
 
     /**
-    Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
-
-    @param attributes Attribute parameters where the merging is to be done.
-    @throw mime_error Parsing attribute failure.
-    **/
-    void merge_attributes(attributes_t& attributes) const;
-
-    /**
     Parsing the content type and its attributes.
 
     @param content_type_hdr Content type header line to be parsed.
@@ -801,6 +793,14 @@ protected:
     @todo             Allowed characters are more strict than required?
     **/
     void parse_header_value_attributes(const std::string& header, std::string& value, attributes_t& attributes) const;
+
+    /**
+    Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
+
+    @param attributes Attribute parameters where the merging is to be done.
+    @throw mime_error Parsing attribute failure.
+    **/
+    void merge_attributes(attributes_t& attributes) const;
 
     /**
     Decoding header value attribute.
