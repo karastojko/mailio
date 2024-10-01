@@ -2231,6 +2231,7 @@ Showing the bug of having no attribute continuation like there is for the subjec
 
 @pre  None.
 @post None.
+@todo Fix the criteria once the bug is fixed.
 **/
 BOOST_AUTO_TEST_CASE(format_continued_filename)
 {
@@ -2380,6 +2381,7 @@ Showing the bug of not applying the line policy for the message ID.
 
 @pre  None.
 @post None.
+@todo Change the criteria once the bug is fixed.
 **/
 BOOST_AUTO_TEST_CASE(format_long_message_id)
 {
@@ -3139,7 +3141,7 @@ BOOST_AUTO_TEST_CASE(parse_recommended_address)
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>, Tomislav Karastojkovic <karas@mailio.dev>, Tomislav Karastojkovic <qwerty@gmail.com>, "
-        "Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
+        "  Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
         "Cc: mail.io <adresa@mailio.dev>, Tomislav Karastojkovic <zxcvb@yahoo.com>\r\n"
         "Date: Wed, 23 Aug 2017 22:16:45 +0000\r\n"
         "Subject: parse recommended address\r\n"
@@ -3358,7 +3360,7 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_strict)
 
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3382,7 +3384,7 @@ BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain");
 }
@@ -3435,11 +3437,19 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
         "\r\n"
         "Hello, World!";
 
-    message msg;
-    msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "Томислав Карастојковић");
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.name() == "Томислав Карастојковић");
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -4965,13 +4975,20 @@ BOOST_AUTO_TEST_CASE(parse_qq_sender)
         "\r\n"
         "test\r\n";
 
-    message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
-        msg.recipients().addresses.at(0).name == "mailio" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
-        msg.recipients().addresses.at(1).name == "Tomislav Karastojković" && msg.recipients().addresses.at(1).address == "qwerty@gmail.com" &&
-        msg.recipients().addresses.at(2).name == "Томислав Карастојковић" && msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
+            msg.recipients().addresses.at(0).name == "mailio" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
+            msg.recipients().addresses.at(1).name == "Tomislav Karastojković" && msg.recipients().addresses.at(1).address == "qwerty@gmail.com"&&
+            msg.recipients().addresses.at(2).name == "Томислав Карастојковић" && msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5087,10 +5104,17 @@ BOOST_AUTO_TEST_CASE(parse_qq_utf8_emoji_subject_raw)
         "\r\n"
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
-    message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5120,7 +5144,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
@@ -5149,18 +5173,25 @@ BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
         "\r\n"
         "\r\n"
         "opa bato\r\n";
-    message msg;
 
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
-        msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+    {
+        message msg;
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
+            msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+            msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
+            msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5185,11 +5216,10 @@ BOOST_AUTO_TEST_CASE(parse_qbq_long_subject)
         "\r\n"
         "opa bato\r\n";
     message msg;
-
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
@@ -5213,12 +5243,10 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_dash)
         "\r\n"
         "test\r\n";
     message msg;
-
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "C++ Annotated: Sep – Dec 2017");
 }
@@ -5238,15 +5266,20 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_emoji)
         "Subject: =?utf-8?Q?=F0=9F=8E=81=C5=BDivi=20godinu=20dana=20na=20ra=C4=8Dun=20Super=20Kartice?=\r\n"
         "\r\n"
         "test\r\n";
-    message msg;
-
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
+    {
+        message msg;
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5264,15 +5297,21 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_long)
         "Subject: =?utf-8?Q?=F0=9F=8E=84=F0=9F=8E=81=F0=9F=8E=8A=C2=A0Sre=C4=87ni=20novogodi=C5=A1nji=20i=20bo=C5=BEi=C4=87ni=20praznici=C2=A0=F0=9F=8E=89=F0=9F=8E=85=F0=9F=92=9D?=\r\n"
         "\r\n"
         "test\r\n";
-    message msg;
-
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() ==
-        u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
+    {
+        message msg;
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.subject() ==
+            u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5294,7 +5333,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_subject)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
 }
@@ -5318,7 +5357,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_quoted_name)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojković" && msg.from().addresses.at(0).address == "qwerty@gmail.com");
 
@@ -5345,7 +5384,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_name)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "Tomislav Karastojković" && msg.recipients().addresses.at(0).address == "qwerty@gmail.com");
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
@@ -5373,7 +5412,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_address)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojkovic" && msg.from().addresses.at(0).address == "karastojković@gmail.com");
 
@@ -5445,14 +5484,12 @@ BOOST_AUTO_TEST_CASE(parse_message_id)
         // strict mode
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "1234567890@mailio.dev" && msg.content_id() == "987654321@mailio.dev");
     }
     {
         // non-strict mode
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>" && msg.content_id() == "<987654321@mailio.dev>");
     }
@@ -5475,7 +5512,6 @@ BOOST_AUTO_TEST_CASE(parse_whitespace_message_id)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.message_id().empty() == true);
 }
@@ -5497,7 +5533,6 @@ BOOST_AUTO_TEST_CASE(parse_empty_message_id)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 }
 
@@ -5520,14 +5555,12 @@ BOOST_AUTO_TEST_CASE(parse_few_message_ids)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "1@mailio.dev");
     }
     {
         message msg;
         msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "<1@mailio.dev><2@mailio.dev>   <3@mailio.dev>    <4@mailio.dev>");
     }
@@ -5586,12 +5619,10 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_without_monkey)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.in_reply_to().size() == 1 && msg.in_reply_to().at(0) == "<1@mailio.dev> <2 mailio.dev>");
     }
@@ -5609,7 +5640,7 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "References: <1@mailio.dev> 2@mailio.dev\r\n"
-        "In-reply-To: <3@mailio.dev> <4@mailio.dev>"
+        "In-reply-To: <3@mailio.dev> <4@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: Proba\r\n"
         "\r\n"
@@ -5617,13 +5648,11 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
         msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.references().size() == 1);
     }
