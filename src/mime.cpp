@@ -616,31 +616,16 @@ string mime::format_transfer_encoding() const
 
 string mime::format_content_disposition() const
 {
-    string line;
+    string disp;
+    if (disposition_ == content_disposition_t::NONE)
+        return "";
+    else if (disposition_ == content_disposition_t::ATTACHMENT)
+        disp = CONTENT_DISPOSITION_ATTACHMENT;
+    else if (disposition_ == content_disposition_t::INLINE)
+        disp = CONTENT_DISPOSITION_INLINE;
 
-    switch (disposition_)
-    {
-        case content_disposition_t::ATTACHMENT:
-        {
-            string attrs = split_attributes(ATTRIBUTE_FILENAME, name_);
-            line += CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + CONTENT_DISPOSITION_ATTACHMENT + ATTRIBUTES_SEPARATOR_STR;
-            line += codec::END_OF_LINE + attrs + codec::END_OF_LINE;
-            break;
-        }
-
-        case content_disposition_t::INLINE:
-        {
-            string attrs = split_attributes(ATTRIBUTE_FILENAME, name_);
-            line += CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + CONTENT_DISPOSITION_INLINE + ATTRIBUTES_SEPARATOR_STR;
-            line += codec::END_OF_LINE + attrs + codec::END_OF_LINE;
-            break;
-        }
-
-        default:
-            break;
-    }
-
-    return line;
+    string attrs = split_attributes(ATTRIBUTE_FILENAME, name_);
+    return CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + disp + ATTRIBUTES_SEPARATOR_STR + codec::END_OF_LINE + attrs + codec::END_OF_LINE;
 }
 
 
