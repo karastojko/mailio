@@ -60,32 +60,6 @@ bool codec::is_utf8_string(const string& txt)
 }
 
 
-string codec::decode_percent(const string& txt)
-{
-    string dec_text;
-    for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
-    {
-        if (*ch == codec::PERCENT_CHAR)
-        {
-            if (ch + 1 == txt.end() || ch + 2 == txt.end())
-                throw codec_error("Bad character.");
-            if (std::isxdigit(*(ch + 1)) == 0 || std::isxdigit(*(ch + 2)) == 0)
-                throw codec_error("Bad character.");
-
-            char next_char = toupper(*(ch + 1));
-            char next_next_char = toupper(*(ch + 2));
-            int nc_val = codec::hex_digit_to_int(next_char);
-            int nnc_val = codec::hex_digit_to_int(next_next_char);
-            dec_text += ((nc_val << 4) + nnc_val);
-            ch += 2;
-        }
-        else
-            dec_text += *ch;
-    }
-    return dec_text;
-}
-
-
 string codec::escape_string(const string& text, const string& escaping_chars)
 {
     string esc_str;
@@ -99,7 +73,7 @@ string codec::escape_string(const string& text, const string& escaping_chars)
 }
 
 
-    string codec::surround_string(const string& text, char surround_char)
+string codec::surround_string(const string& text, char surround_char)
 {
     return surround_char + text + surround_char;
 }

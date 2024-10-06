@@ -467,7 +467,7 @@ protected:
     };
 
     /**
-    Attributes map which used the appropriate comparator.
+    Attributes map with the custom comparator.
     **/
     typedef std::map<std::string, string_t, attr_comp_t> attributes_t;
 

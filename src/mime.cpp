@@ -26,6 +26,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/bit8.hpp>
 #include <mailio/binary.hpp>
 #include <mailio/q_codec.hpp>
+#include <mailio/percent.hpp>
 #include <mailio/mime.hpp>
 
 
@@ -1211,7 +1212,8 @@ string_t mime::decode_value_attribute(const string& attr_value) const
         if (language_pos == string::npos)
             throw mime_error("Parsing attribute value failure, no language parameter.");
 
-        return string_t(codec::decode_percent(attr_value.substr(language_pos + 1)), attr_value.substr(0, charset_pos));
+        percent pct(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
+        return string_t(pct.decode(attr_value.substr(language_pos + 1)), attr_value.substr(0, charset_pos));
     }
 
     // Q decoding
