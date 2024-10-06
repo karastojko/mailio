@@ -795,6 +795,18 @@ protected:
     void parse_header_value_attributes(const std::string& header, std::string& value, attributes_t& attributes) const;
 
     /**
+    Splitting an attribute into continued attribute parameters.
+
+    @param attr_name  Attribute name to split.
+    @param attr_value Attribute value to split.
+    @return           Header string with the continued attributes.
+    @throw *          `q_codec::encode(const string&, const string&, header_codec_t)`.
+    @throw *          `bit7::encode(const string&)`.
+    @todo             Percent encoding.
+    **/
+    std::string split_attributes(const std::string& attr_name, const string_t& attr_value) const;
+
+    /**
     Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
 
     @param attributes Attribute parameters where the merging is to be done.

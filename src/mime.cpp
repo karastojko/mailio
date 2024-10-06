@@ -34,6 +34,7 @@ using std::string_view;
 #if defined(__cpp_char8_t)
 using std::u8string;
 #endif
+using std::to_string;
 using std::ifstream;
 using std::stringstream;
 using std::pair;
@@ -569,13 +570,8 @@ string mime::format_content_type() const
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset;
         if (!name_.buffer.empty())
         {
-            string mn = format_mime_name(name_);
-            const string::size_type line_new_size = line.size() + ATTRIBUTES_SEPARATOR_STR.size() + ATTRIBUTE_NAME.size() + NAME_VALUE_SEPARATOR_STR.size() +
-                sizeof(codec::QUOTE_CHAR) + mn.size() + sizeof(codec::QUOTE_CHAR);
-            line += ATTRIBUTES_SEPARATOR_STR;
-            if (line_new_size >= string::size_type(line_policy_) - codec::END_OF_LINE.length())
-                line += codec::END_OF_LINE + NEW_LINE_INDENT;
-            line += ATTRIBUTE_NAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_STR + mn + codec::QUOTE_STR;
+            string attrs = split_attributes(ATTRIBUTE_NAME, name_);
+            line += ATTRIBUTES_SEPARATOR_STR + codec::END_OF_LINE + attrs;
         }
         if (!boundary_.empty())
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_BOUNDARY + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + boundary_ + codec::QUOTE_CHAR;
@@ -626,28 +622,17 @@ string mime::format_content_disposition() const
     {
         case content_disposition_t::ATTACHMENT:
         {
-            string name = format_mime_name(name_);
+            string attrs = split_attributes(ATTRIBUTE_FILENAME, name_);
             line += CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + CONTENT_DISPOSITION_ATTACHMENT + ATTRIBUTES_SEPARATOR_STR;
-            const string::size_type line_new_size = CONTENT_DISPOSITION_HEADER.size() + HEADER_SEPARATOR_STR.size() + CONTENT_DISPOSITION_ATTACHMENT.size() +
-                ATTRIBUTE_FILENAME.size() + sizeof(codec::EQUAL_CHAR) + sizeof(codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR) +
-                codec::END_OF_LINE.size();
-            if (line_new_size >= string::size_type(line_policy_) - codec::END_OF_LINE.length())
-                line += codec::END_OF_LINE + NEW_LINE_INDENT;
-            line += ATTRIBUTE_FILENAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + name + codec::QUOTE_STR + codec::END_OF_LINE;
-
+            line += codec::END_OF_LINE + attrs + codec::END_OF_LINE;
             break;
         }
 
         case content_disposition_t::INLINE:
         {
-            string name = format_mime_name(name_);
+            string attrs = split_attributes(ATTRIBUTE_FILENAME, name_);
             line += CONTENT_DISPOSITION_HEADER + HEADER_SEPARATOR_STR + CONTENT_DISPOSITION_INLINE + ATTRIBUTES_SEPARATOR_STR;
-            const string::size_type line_new_size = CONTENT_DISPOSITION_HEADER.size() + HEADER_SEPARATOR_STR.size() + CONTENT_DISPOSITION_INLINE.size() +
-                ATTRIBUTE_FILENAME.size() + NAME_VALUE_SEPARATOR_STR.size() + sizeof(codec::QUOTE_CHAR) + name.size() + sizeof(codec::QUOTE_CHAR) + codec::END_OF_LINE.size();
-            if (line_new_size >= string::size_type(line_policy_) - codec::END_OF_LINE.length())
-                line += codec::END_OF_LINE + NEW_LINE_INDENT;
-            line += ATTRIBUTE_FILENAME + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + name + codec::QUOTE_CHAR + codec::END_OF_LINE;
-
+            line += codec::END_OF_LINE + attrs + codec::END_OF_LINE;
             break;
         }
 
@@ -669,8 +654,8 @@ string mime::format_mime_name(const string_t& name) const
 {
     if (name.charset != codec::CHARSET_ASCII)
     {
-        // if the attachment name exceeds mandatory length, the rest is discarded
-        q_codec qc(static_cast<string::size_type>(codec::line_len_policy_t::MANDATORY), static_cast<string::size_type>(line_policy_));
+        // TODO: If the attachment name exceeds mandatory length, the rest is discarded.
+        q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         vector<string> hdr = qc.encode(name, name.charset, header_codec_);
         return hdr.at(0);
     }
@@ -758,7 +743,7 @@ void mime::parse_content()
             break;
         }
 
-        // default encoding is seven bit, so no `default` clause
+        // Default encoding is seven bit, so no `default` clause.
     }
 }
 
@@ -1106,6 +1091,65 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
                 return;
         }
     }
+}
+
+
+string mime::split_attributes(const string& attr_name, const string_t& attr_value) const
+{
+    const string CONTINUATION_MARK = "*";
+    // For the continuation like `filename*0=UTF-8'en-us'C%3A\\Program%20Files\\; ` there are five characters for the charset and two single quotes, because the
+    // language is not supported. There are in addition the equal. In total, this is nine characters.
+    const string::size_type CHARSET_LANG_EQ_SC = 9;
+    // Attribute name can be at most 10 parts enumerated from 0 to 9, with the continuation mark in between, so it adds two more characters to the line length.
+    const string::size_type PART_MARK = 2;
+    const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - (attr_name.length() + PART_MARK) - CHARSET_LANG_EQ_SC -
+        ATTRIBUTES_SEPARATOR_STR.length();
+    // Deduce two tab characters for the folding and two for double quotes.
+    const string::size_type FOLD_QUOTES = 4;
+    const string::size_type line_policy = static_cast<string::size_type>(line_policy_) - (attr_name.length() + PART_MARK) - FOLD_QUOTES -
+        ATTRIBUTES_SEPARATOR_STR.length();
+    vector<string> attr_parts;
+
+    // Try Q encoding.
+    if (attr_value.charset != codec::CHARSET_ASCII)
+    {
+        q_codec qc(line1_policy, line_policy);
+        attr_parts = qc.encode(attr_value, attr_value.charset, header_codec_);
+        if (attr_parts.size() == 1)
+            return NEW_LINE_INDENT + attr_name + codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
+    }
+
+    if (attr_value.charset != codec::CHARSET_ASCII)
+    {
+        // TODO: Try percent encoding.
+
+        throw mime_error("Percent encoding still not supported.");
+    }
+    else
+    {
+        bit7 b7(line1_policy, line_policy);
+        attr_parts = b7.encode(attr_value);
+    }
+
+    // Only one part means there is no continuation.
+    if (attr_parts.size() == 1)
+        return NEW_LINE_INDENT + attr_name + codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
+
+    // All parts as continuations.
+
+    const vector<string>::size_type MAX_PARTS = 10;
+    vector<string>::size_type total_parts = std::min(MAX_PARTS, attr_parts.size());
+    vector<string>::size_type part_no = 0;
+    string attrs;
+    for (part_no = 0; part_no < total_parts; part_no++)
+    {
+        attrs += NEW_LINE_INDENT + attr_name + CONTINUATION_MARK + to_string(part_no) + codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(part_no) +
+            codec::QUOTE_STR;
+        if (part_no != total_parts - 1)
+            attrs += ATTRIBUTES_SEPARATOR_STR + codec::END_OF_LINE;
+    }
+
+    return attrs;
 }
 
 

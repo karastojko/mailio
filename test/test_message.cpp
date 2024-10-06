@@ -1747,12 +1747,13 @@ BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
     msg.attach(atts);
 
     string msg_str;
-    msg.format(msg_str);
+    BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
 
+    /*
     message msg_same;
     msg_same.line_policy(codec::line_len_policy_t::RECOMMENDED);
-
-    BOOST_CHECK_THROW(msg_same.parse(msg_str); , mime_error);
+    BOOST_CHECK_THROW(msg_same.parse(msg_str), mime_error);
+    */
 }
 
 
@@ -1876,9 +1877,11 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
         "=D0=B8=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B0.\r\n"
         "\r\n"
         "--mybnd\r\n"
-        "Content-Type: text/plain; name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -1934,9 +1937,11 @@ BOOST_AUTO_TEST_CASE(format_html_att)
         "<h1>Naslov</h1><p>Ovo je poruka.</p>\r\n"
         "\r\n"
         "--mybnd\r\n"
-        "Content-Type: text/plain; name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2248,7 +2253,7 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
     msg.subject("format continued filename format continued filename format continued filename format continued filename");
     ifstream ifs1("cv.txt");
     message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
-    auto tp1 = make_tuple(std::ref(ifs1), "C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt", ct1);
+    auto tp1 = make_tuple(std::ref(ifs1), "C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicResumeCurriculumVitae.txt", ct1);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp1);
     msg.attach(atts);
@@ -2266,10 +2271,14 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: application/txt; \r\n"
-        "  name=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
+        "  name*0=\"C:\\Program \"; \r\n"
+        "  name*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicResume\"; \r\n"
+        "  name*2=\"CurriculumVitae.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
+        "  filename*0=\"C:\\Program \"; \r\n"
+        "  filename*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicRe\"; \r\n"
+        "  filename*2=\"sumeCurriculumVitae.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
