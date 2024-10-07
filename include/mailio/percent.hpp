@@ -22,6 +22,11 @@ namespace mailio
 {
 
 
+/**
+Percent encoding and decoding as described in RFC 2231 section 4.
+
+@todo Line policies not implemented.
+**/
 class MAILIO_EXPORT percent : public codec
 {
 public:
@@ -42,10 +47,19 @@ public:
     void operator=(percent&&) = delete;
 
     /**
-    Decoding a percent encoded string as described in RFC 2231 section 4.
+    Encoding a string.
 
     @param txt String to encode.
     @return    Encoded string.
+    @todo      Implement the line policies.
+    **/
+    std::string encode(const std::string& txt) const;
+
+    /**
+    Decoding a percent encoded string.
+
+    @param txt String to decode.
+    @return    Decoded string.
     @todo      Implement the line policies.
     **/
     std::string decode(const std::string& txt) const;
