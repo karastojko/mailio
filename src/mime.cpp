@@ -121,6 +121,7 @@ const string mime::CONTENT_ATTR_ALPHABET{"!#$%&'*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
+// TODO: Set header codec to ASCII.
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
     strict_mode_(false), strict_codec_mode_(false), header_codec_(header_codec_t::UTF8), attribute_codec_(attribute_codec_t::ASCII),
     content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
@@ -1113,16 +1114,20 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
         bit7 b7(line1_policy, line_policy);
         attr_parts = b7.encode(attr_value);
     }
-    else if (attribute_codec_ == attribute_codec_t::QUOTED_PRINTABLE)
+    else if (attribute_codec_ == attribute_codec_t::QUOTED_PRINTABLE || attribute_codec_ == attribute_codec_t::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
-        attr_parts = qc.encode(attr_value, attr_value.charset, header_codec_);
+        attr_parts = qc.encode(attr_value, attr_value.charset, attribute_codec_);
+    }
+    else if (attribute_codec_ == attribute_codec_t::PERCENT)
+    {
+        // TODO: Vector of parts should be obtained after implementing the line policy.
+        percent pc(line1_policy, line_policy);
+        attr_parts.push_back(pc.encode(attr_value));
     }
     else
     {
-        // TODO: Try percent encoding.
-
-        throw mime_error("Percent encoding still not supported.");
+        throw codec_error("Attribute codec not supported.");
     }
 
     // Only one part means there is no continuation.

@@ -1664,24 +1664,24 @@ BOOST_AUTO_TEST_CASE(format_attachment)
 
 
 /**
-Attaching a file with UTF-8 name.
+Attaching a file with UTF-8 name in the base64 attribute codec.
 
 @pre  File `cv.txt` in the current directory.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_attachment_utf8)
+BOOST_AUTO_TEST_CASE(format_utf8_attachment_b64)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
-    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
+    msg.attribute_codec(message::attribute_codec_t::BASE64);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.date_time(ldt);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format attachment utf8");
+    msg.subject("format utf8 attachment base64");
     msg.boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
@@ -1693,7 +1693,6 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 
     string msg_str;
     msg.format(msg_str);
-
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -1701,7 +1700,7 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format attachment utf8\r\n"
+        "Subject: format utf8 attachment base64\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
@@ -1717,19 +1716,68 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 
 
 /**
-Attaching a file with the very longUTF-8 name.
+Attaching a file with UTF-8 name in the quoted printable attribute codec.
 
-The test shows inproper formatting of the filename attribut which is not split into several lines. For that reason, parsing the same message
-throws the exception.
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
+{
+    message msg;
+    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.date_time(ldt);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format utf8 attachment quoted printable");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8"), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format utf8 attachment quoted printable\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
+Attaching a file with the long UTF-8 name in the percent attribute codec.
 
 @pre  File `TomislavKarastojkovic_CV.txt` in the current directory.
 @post None.
-@todo No exception thrown once the bug is fixed.
+@todo Shows the bug with the missing charset in the percent encoded attribute.
 **/
-BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
+BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
+    msg.header_codec(message::attribute_codec_t::PERCENT);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -1749,13 +1797,24 @@ BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
 
     string msg_str;
     msg.format(msg_str);
-    //BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
-
-    /*
-    message msg_same;
-    msg_same.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    BOOST_CHECK_THROW(msg_same.parse(msg_str), mime_error);
-    */
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long attachment name utf8\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
 }
 
 

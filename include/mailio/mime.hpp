@@ -437,9 +437,9 @@ public:
     **/
     bool strict_codec_mode() const;
 
-    using header_codec_t = codec::header_codec_t;
+    using header_codec_t = codec::codec_type;
 
-    using attribute_codec_t = codec::attribute_codec_t;
+    using attribute_codec_t = codec::codec_type;
 
     /**
     Setting the headers codec.

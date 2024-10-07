@@ -321,12 +321,7 @@ public:
     /**
     Methods used for the MIME header encoding/decoding.
     **/
-    enum class header_codec_t {BASE64, QUOTED_PRINTABLE, UTF8};
-
-    /**
-    Methods used for the MIME header attribute encoding/decoding.
-    **/
-    enum class attribute_codec_t {ASCII, QUOTED_PRINTABLE};
+    enum class codec_type {ASCII, BASE64, QUOTED_PRINTABLE, UTF8, PERCENT};
 
     /**
     Setting the encoder and decoder line policy of the codec.
