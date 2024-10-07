@@ -122,8 +122,8 @@ const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
-    strict_mode_(false), strict_codec_mode_(false),
-    header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
+    strict_mode_(false), strict_codec_mode_(false), header_codec_(header_codec_t::UTF8), attribute_codec_(attribute_codec_t::ASCII),
+    content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
     disposition_(content_disposition_t::NONE), parsing_header_(true), mime_status_(mime_parsing_status_t::NONE)
 {
 }
@@ -432,6 +432,18 @@ void mime::header_codec(header_codec_t hdr_codec)
 mime::header_codec_t mime::header_codec() const
 {
     return header_codec_;
+}
+
+
+void mime::attribute_codec(attribute_codec_t attr_codec)
+{
+    attribute_codec_ = attr_codec;
+}
+
+
+mime::attribute_codec_t mime::attribute_codec() const
+{
+    return attribute_codec_;
 }
 
 
@@ -1096,25 +1108,21 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
         ATTRIBUTES_SEPARATOR_STR.length();
     vector<string> attr_parts;
 
-    // Try Q encoding.
-    if (attr_value.charset != codec::CHARSET_ASCII)
+    if (attribute_codec_ == attribute_codec_t::ASCII)
+    {
+        bit7 b7(line1_policy, line_policy);
+        attr_parts = b7.encode(attr_value);
+    }
+    else if (attribute_codec_ == attribute_codec_t::QUOTED_PRINTABLE)
     {
         q_codec qc(line1_policy, line_policy);
         attr_parts = qc.encode(attr_value, attr_value.charset, header_codec_);
-        if (attr_parts.size() == 1)
-            return NEW_LINE_INDENT + attr_name + codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
     }
-
-    if (attr_value.charset != codec::CHARSET_ASCII)
+    else
     {
         // TODO: Try percent encoding.
 
         throw mime_error("Percent encoding still not supported.");
-    }
-    else
-    {
-        bit7 b7(line1_policy, line_policy);
-        attr_parts = b7.encode(attr_value);
     }
 
     // Only one part means there is no continuation.

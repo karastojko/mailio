@@ -1673,6 +1673,7 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 {
     message msg;
     msg.header_codec(message::header_codec_t::BASE64);
+    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -1747,7 +1748,8 @@ BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
     msg.attach(atts);
 
     string msg_str;
-    BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
+    msg.format(msg_str);
+    //BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
 
     /*
     message msg_same;

@@ -439,6 +439,8 @@ public:
 
     using header_codec_t = codec::header_codec_t;
 
+    using attribute_codec_t = codec::attribute_codec_t;
+
     /**
     Setting the headers codec.
 
@@ -452,6 +454,20 @@ public:
     @return Codec set.
     **/
     header_codec_t header_codec() const;
+
+    /**
+    Setting the header attributes codec.
+
+    @param attr_codec Codec to set.
+    **/
+    void attribute_codec(attribute_codec_t attr_codec);
+
+    /**
+    Getting the attributes codec.
+
+    @return Codec set.
+    **/
+    attribute_codec_t attribute_codec() const;
 
 protected:
 
@@ -882,6 +898,11 @@ protected:
     Codec used for headers.
     **/
     header_codec_t header_codec_;
+
+    /**
+    Codec used for header attributes.
+    **/
+    attribute_codec_t attribute_codec_;
 
     /**
     Content type as a pair of top level media type and media subtype.

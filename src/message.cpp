@@ -117,6 +117,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             content_part.strict_mode(strict_mode_);
             content_part.strict_codec_mode(strict_codec_mode_);
             content_part.header_codec(header_codec_);
+            content_part.attribute_codec(attribute_codec_);
             string cps;
             content_part.format(cps, opts.dot_escape);
             message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
@@ -439,6 +440,7 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
 
     mime m;
     m.header_codec(this->header_codec());
+    m.attribute_codec(this->attribute_codec());
     m.content_type(content_type_t(type, subtype));
     // content type charset is not set, so it will be treated as us-ascii
     m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
@@ -468,6 +470,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         content_part.strict_mode(strict_mode_);
         content_part.strict_codec_mode(strict_codec_mode_);
         content_part.header_codec(header_codec_);
+        content_part.attribute_codec(attribute_codec_);
         parts_.push_back(content_part);
         content_.clear();
     }
@@ -481,6 +484,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
 
         mime m;
         m.header_codec(this->header_codec());
+        m.attribute_codec(this->attribute_codec());
         m.content_type(content_type_t(std::get<2>(att)));
         // content type charset is not set, so it will be treated as us-ascii
         m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
@@ -804,6 +808,8 @@ string_t message::format_subject() const
 {
     string_t subject;
     const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
+
+    // TODO: Remove the code repetition.
 
     if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
     {
