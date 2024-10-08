@@ -1131,8 +1131,16 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     }
 
     // Only one part means there is no continuation.
+    // TODO: Move the charset printing to the percent codec.
     if (attr_parts.size() == 1)
-        return NEW_LINE_INDENT + attr_name + codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
+    {
+        string attr_str = NEW_LINE_INDENT + attr_name;
+        if (attribute_codec_ == attribute_codec_t::PERCENT)
+            attr_str += CONTINUATION_MARK + codec::EQUAL_CHAR + attr_value.charset + "''" + attr_parts.at(0);
+        else
+            attr_str += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
+        return attr_str;
+    }
 
     // All parts as continuations.
 

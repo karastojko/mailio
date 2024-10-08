@@ -1772,12 +1772,11 @@ Attaching a file with the long UTF-8 name in the percent attribute codec.
 
 @pre  File `TomislavKarastojkovic_CV.txt` in the current directory.
 @post None.
-@todo Shows the bug with the missing charset in the percent encoded attribute.
 **/
 BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
 {
     message msg;
-    msg.header_codec(message::attribute_codec_t::PERCENT);
+    msg.attribute_codec(message::attribute_codec_t::PERCENT);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -1785,7 +1784,7 @@ BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format long attachment name utf8");
+    msg.subject("format long utf8 attachment percentage");
     msg.boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
@@ -1803,14 +1802,14 @@ BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format long attachment name utf8\r\n"
+        "Subject: format long utf8 attachment percentage\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name=\"Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt\"\r\n"
+        "  name*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojkovi%C4%87%5FCV%2Etxt\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt\"\r\n"
+        "  filename*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojkovi%C4%87%5FCV%2Etxt\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
