@@ -1123,7 +1123,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     {
         // TODO: Vector of parts should be obtained after implementing the line policy.
         percent pc(line1_policy, line_policy);
-        attr_parts.push_back(pc.encode(attr_value));
+        attr_parts.push_back(pc.encode(attr_value, attr_value.charset));
     }
     else
     {
@@ -1131,12 +1131,11 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     }
 
     // Only one part means there is no continuation.
-    // TODO: Move the charset printing to the percent codec.
     if (attr_parts.size() == 1)
     {
         string attr_str = NEW_LINE_INDENT + attr_name;
         if (attribute_codec_ == attribute_codec_t::PERCENT)
-            attr_str += CONTINUATION_MARK + codec::EQUAL_CHAR + attr_value.charset + "''" + attr_parts.at(0);
+            attr_str += CONTINUATION_MARK + codec::EQUAL_CHAR + attr_parts.at(0);
         else
             attr_str += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
         return attr_str;

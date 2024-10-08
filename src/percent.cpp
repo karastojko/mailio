@@ -14,11 +14,13 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <boost/algorithm/string.hpp>
 #include <mailio/percent.hpp>
 
 
 using std::string;
 using std::stringstream;
+using boost::to_upper_copy;
 
 
 namespace mailio
@@ -33,7 +35,7 @@ percent::percent(string::size_type line1_policy, string::size_type lines_policy)
 }
 
 
-string percent::encode(const string& txt) const
+string percent::encode(const string& txt, const string& charset) const
 {
     stringstream enc_text;
     for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
@@ -42,7 +44,8 @@ string percent::encode(const string& txt) const
         else
             enc_text << codec::PERCENT_CHAR << std::setfill('0') << std::hex << std::uppercase << std::setw(2) <<
                 static_cast<unsigned int>(static_cast<uint8_t>(*ch));
-    return enc_text.str();
+    // TODO: Name the magic constants for percent codec delimiters.
+    return to_upper_copy(charset) + "''" + enc_text.str();
 }
 
 

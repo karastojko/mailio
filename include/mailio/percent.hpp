@@ -53,7 +53,7 @@ public:
     @return    Encoded string.
     @todo      Implement the line policies.
     **/
-    std::string encode(const std::string& txt) const;
+    std::string encode(const std::string& txt, const std::string& charset) const;
 
     /**
     Decoding a percent encoded string.

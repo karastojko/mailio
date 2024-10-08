@@ -63,6 +63,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, codec_
     else
         throw codec_error("Bad encoding method.");
 
+    // TODO: Name the magic constant for Q delimiters.
     for (auto s = text_c.begin(); s != text_c.end(); s++)
         enc_text.push_back("=?" + to_upper_copy(charset) + "?" + codec_flag + "?" + *s + "?=");
 
