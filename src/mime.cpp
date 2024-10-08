@@ -110,6 +110,7 @@ const string mime::NEW_LINE_INDENT{"  "};
 const string mime::HEADER_SEPARATOR_STR{": "};
 const string mime::NAME_VALUE_SEPARATOR_STR{"="};
 const string mime::ATTRIBUTES_SEPARATOR_STR{"; "};
+const string mime::ATTRIBUTE_MULTIPLE_NAME_INDICATOR{"*"};
 const string mime::ATTRIBUTE_NAME{"name"};
 const string mime::ATTRIBUTE_FILENAME{"filename"};
 const string mime::BOUNDARY_DELIMITER(2, '-');
@@ -1081,7 +1082,6 @@ void mime::parse_header_value_attributes(const string& header, string& header_va
 
 string mime::split_attributes(const string& attr_name, const string_t& attr_value) const
 {
-    const string CONTINUATION_MARK = "*";
     // For the continuation like `filename*0=UTF-8'en-us'C%3A\\Program%20Files\\; ` there are five characters for the charset and two single quotes, because the
     // language is not supported. There are in addition the equal. In total, this is nine characters.
     const string::size_type CHARSET_LANG_EQ_SC = 9;
@@ -1121,7 +1121,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     {
         string attr_str = NEW_LINE_INDENT + attr_name;
         if (attribute_codec_ == attribute_codec_t::PERCENT)
-            attr_str += CONTINUATION_MARK + codec::EQUAL_CHAR + attr_parts.at(0);
+            attr_str += ATTRIBUTE_MULTIPLE_NAME_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(0);
         else
             attr_str += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
         return attr_str;
@@ -1135,8 +1135,8 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     string attrs;
     for (part_no = 0; part_no < total_parts; part_no++)
     {
-        attrs += NEW_LINE_INDENT + attr_name + CONTINUATION_MARK + to_string(part_no) + codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(part_no) +
-            codec::QUOTE_STR;
+        attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_MULTIPLE_NAME_INDICATOR + to_string(part_no) + codec::EQUAL_CHAR + codec::QUOTE_STR +
+            attr_parts.at(part_no) + codec::QUOTE_STR;
         if (part_no != total_parts - 1)
             attrs += ATTRIBUTES_SEPARATOR_STR + codec::END_OF_LINE;
     }

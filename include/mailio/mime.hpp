@@ -580,7 +580,7 @@ protected:
     /**
     Attribute indicator for the parameter continuation.
     **/
-    static const char ATTRIBUTE_MULTIPLE_NAME_INDICATOR{'*'};
+    static const std::string ATTRIBUTE_MULTIPLE_NAME_INDICATOR;
 
     /**
     Attribute indicator for the charset and language parameters.
