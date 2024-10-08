@@ -709,16 +709,6 @@ protected:
     std::string format_content_id() const;
 
     /**
-    Formats mime name.
-
-    The name has to fit to mandatory line policy, otherwise the rest is truncated.
-
-    @param name Mime name to format.
-    @return     Formatted name.
-    **/
-    std::string format_mime_name(const string_t& name) const;
-
-    /**
     Folding a multiline header.
 
     @param headers Header lines to be formatted into a single line.

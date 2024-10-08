@@ -649,20 +649,6 @@ string mime::format_content_id() const
 }
 
 
-string mime::format_mime_name(const string_t& name) const
-{
-    if (name.charset != codec::CHARSET_ASCII)
-    {
-        // TODO: If the attachment name exceeds mandatory length, the rest is discarded.
-        q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
-        vector<string> hdr = qc.encode(name, name.charset, header_codec_);
-        return hdr.at(0);
-    }
-
-    return name;
-}
-
-
 string mime::fold_header_line(const vector<string>& headers) const
 {
     string hdr_str;
