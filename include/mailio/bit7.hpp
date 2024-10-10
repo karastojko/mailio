@@ -30,6 +30,12 @@ class MAILIO_EXPORT bit7 : public codec
 {
 public:
 
+    /**
+    Setting the encoder and decoder line policies.
+
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
+    **/
     bit7(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     bit7(const bit7&) = delete;
@@ -73,10 +79,6 @@ private:
     @return   True if it is, false if not.
     **/
     bool is_allowed(char ch) const;
-
-    std::string::size_type line1_policy_;
-
-    std::string::size_type lines_policy_;
 };
 
 

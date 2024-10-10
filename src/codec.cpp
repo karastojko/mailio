@@ -79,8 +79,8 @@ string codec::surround_string(const string& text, char surround_char)
 }
 
 
-codec::codec(line_len_policy_t encoder_line_policy, line_len_policy_t decoder_line_policy)
-  : line_policy_(encoder_line_policy), decoder_line_policy_(decoder_line_policy), strict_mode_(false)
+codec::codec(string::size_type line1_policy, string::size_type lines_policy) :
+    line1_policy_(line1_policy), lines_policy_(lines_policy), strict_mode_(false)
 {
 }
 

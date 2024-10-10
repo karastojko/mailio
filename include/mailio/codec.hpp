@@ -324,12 +324,12 @@ public:
     enum class codec_type {ASCII, BASE64, QUOTED_PRINTABLE, UTF8, PERCENT};
 
     /**
-    Setting the encoder and decoder line policy of the codec.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy Encoder line policy to set.
-    @param decoder_line_policy Decoder line policy to set.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     **/
-    codec(line_len_policy_t encoder_line_policy, line_len_policy_t decoder_line_policy);
+    codec(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     codec(const codec&) = delete;
 
@@ -361,14 +361,14 @@ public:
 protected:
 
     /**
-    Encoder line length policy.
+    Policy applied for encoding of the first line.
     **/
-    line_len_policy_t line_policy_;
+    std::string::size_type line1_policy_;
 
     /**
-    Decoder line length policy.
+    Policy applied for encoding of the lines other than first one, and for decoding of all lines including the first one.
     **/
-    line_len_policy_t decoder_line_policy_;
+    std::string::size_type lines_policy_;
 
     /**
     Strict mode for encoding/decoding.

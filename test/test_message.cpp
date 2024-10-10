@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
         "\r\n");
 
     string msg_str;
-    msg.format(msg_str, {/*dot_escape*/true});
+    msg.format(msg_str, {true});
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
@@ -302,7 +302,7 @@ BOOST_AUTO_TEST_CASE(format_exports_bcc_headers_when_add_bcc_headers_is_set)
     msg.subject("BCC addresses are formatted");
 
     string msg_str;
-    msg.format(msg_str, {/*dot_escape*/true, /*add_bcc_headers*/true});
+    msg.format(msg_str, {true, true});
 
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
@@ -332,7 +332,7 @@ BOOST_AUTO_TEST_CASE(format_does_not_exports_bcc_headers_when_add_bcc_headers_is
     msg.subject("BCC addresses are not formatted");
 
     string msg_str;
-    msg.format(msg_str, {/*dot_escape*/true, /*add_bcc_headers*/false});
+    msg.format(msg_str, {true, false});
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
@@ -1114,7 +1114,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
     {
         string msg_str;
-        msg.format(msg_str, {/*dot_escape*/false});
+        msg.format(msg_str, {false});
         BOOST_CHECK(msg_str ==
             "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -1189,7 +1189,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
     {
         string msg_str;
-        msg.format(msg_str, {/*dot_escape*/true});
+        msg.format(msg_str, {true});
 
         BOOST_CHECK(msg_str ==
             "From: mailio <adresa@mailio.dev>\r\n"

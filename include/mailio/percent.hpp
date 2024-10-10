@@ -31,6 +31,12 @@ class MAILIO_EXPORT percent : public codec
 {
 public:
 
+    /**
+    Setting the encoder and decoder line policies.
+
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
+    **/
     percent(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     percent(const percent&) = delete;

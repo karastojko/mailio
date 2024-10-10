@@ -39,10 +39,10 @@ class MAILIO_EXPORT q_codec : public codec
 public:
 
     /**
-    Setting the encoder and decoder line policy to recommended one.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy  Line policy to apply.
-    @param decoder_line_policy  Line policy to apply.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     @param codec_method Method for encoding/decoding.
     @throw codec_error  Bad encoding method.
     **/
@@ -124,15 +124,6 @@ private:
     @return   True if allowed, false if not.
     **/
     bool is_q_allowed(char ch) const;
-
-
-    std::string::size_type line1_policy_;
-
-    std::string::size_type lines_policy_;
-
-    /**
-    Method used for encoding/decoding.
-    **/
 };
 
 

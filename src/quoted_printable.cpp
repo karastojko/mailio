@@ -29,10 +29,8 @@ namespace mailio
 {
 
 
-// TODO: `codec` constructor is to satisfy compiler. Once these policies are removed, no need to set them.
 quoted_printable::quoted_printable(string::size_type line1_policy, string::size_type lines_policy) :
-    codec(line_len_policy_t::RECOMMENDED, line_len_policy_t::RECOMMENDED), q_codec_mode_(false),
-    line1_policy_(line1_policy), lines_policy_(lines_policy)
+    q_codec_mode_(false), codec(line1_policy, lines_policy)
 {
 }
 

@@ -31,10 +31,10 @@ class MAILIO_EXPORT binary : public codec
 public:
 
     /**
-    Setting the encoder and decoder line policy.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy Encoder line length policy to set.
-    @param decoder_line_policy Decoder line length policy to set.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     **/
     binary(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
@@ -67,12 +67,6 @@ public:
     @todo       Line policy to be verified.
     **/
     std::string decode(const std::vector<std::string>& text) const;
-
-private:
-
-    std::string::size_type line1_policy_;
-
-    std::string::size_type lines_policy_;
 };
 
 
