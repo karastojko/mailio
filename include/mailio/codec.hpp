@@ -1,7 +1,7 @@
 /*
 
 codec.hpp
------------
+---------
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
 

@@ -136,7 +136,7 @@ int main()
             "\r\n"
             "Hello, World!\r\n";
         message msg;
-        msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY, mailio::codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         cout << msg.subject() << endl;
         // The subject is printed as `Здраво, Свете!` in the UTF-8 encoding.
