@@ -55,7 +55,7 @@ vector<string> percent::encode(const string& txt, const string& charset) const
         else
         {
             // TODO: Replace the percent constant with the semantic one.
-            enc_line << codec::PERCENT_CHAR << std::setfill('0') << std::hex << std::uppercase << std::setw(2) <<
+            enc_line << codec::PERCENT_HEX_FLAG << std::setfill('0') << std::hex << std::uppercase << std::setw(2) <<
                 static_cast<unsigned int>(static_cast<uint8_t>(*ch));
             line_len += 3;
         }
@@ -79,7 +79,7 @@ string percent::decode(const string& txt) const
     string dec_text;
     for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
     {
-        if (*ch == codec::PERCENT_CHAR)
+        if (*ch == codec::PERCENT_HEX_FLAG)
         {
             if (ch + 1 == txt.end() || ch + 2 == txt.end())
                 throw codec_error("Bad character.");

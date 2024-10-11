@@ -23,7 +23,6 @@ namespace mailio
 {
 
 const string codec::HEX_DIGITS{"0123456789ABCDEF"};
-const string codec::ASTERISK_STR(1, codec::ASTERISK_CHAR);
 const string codec::END_OF_LINE{"\r\n"};
 const string codec::END_OF_MESSAGE{"."};
 const string codec::EQUAL_STR(1, codec::EQUAL_CHAR);

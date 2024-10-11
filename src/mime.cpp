@@ -110,7 +110,7 @@ const string mime::NEW_LINE_INDENT{"  "};
 const string mime::HEADER_SEPARATOR_STR{": "};
 const string mime::NAME_VALUE_SEPARATOR_STR{"="};
 const string mime::ATTRIBUTES_SEPARATOR_STR{"; "};
-const string mime::ATTRIBUTE_MULTIPLE_NAME_INDICATOR{"*"}; // TODO: Shorten the name
+const string mime::ATTRIBUTE_CONTINUATION_INDICATOR{"*"};
 const string mime::ATTRIBUTE_NAME{"name"};
 const string mime::ATTRIBUTE_FILENAME{"filename"};
 const string mime::BOUNDARY_DELIMITER(2, '-');
@@ -1120,7 +1120,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     {
         string attr_str = NEW_LINE_INDENT + attr_name;
         if (attribute_codec_ == attribute_codec_t::PERCENT)
-            attr_str += ATTRIBUTE_MULTIPLE_NAME_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(0);
+            attr_str += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(0);
         else
             attr_str += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
         return attr_str;
@@ -1134,9 +1134,9 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     string attrs;
     for (part_no = 0; part_no < total_parts; part_no++)
     {
-        attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_MULTIPLE_NAME_INDICATOR + to_string(part_no);
+        attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_CONTINUATION_INDICATOR + to_string(part_no);
         if (attribute_codec_ == attribute_codec_t::PERCENT)
-            attrs += ATTRIBUTE_MULTIPLE_NAME_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(part_no);
+            attrs += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(part_no);
         else
             attrs += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(part_no) + codec::QUOTE_STR;
         if (part_no != total_parts - 1)
@@ -1154,7 +1154,7 @@ void mime::merge_attributes(attributes_t& attributes) const
     {
         auto full_attr_name = attr->first;
         auto attr_value = attr->second;
-        string::size_type asterisk_pos = full_attr_name.find(ATTRIBUTE_MULTIPLE_NAME_INDICATOR);
+        string::size_type asterisk_pos = full_attr_name.find(ATTRIBUTE_CONTINUATION_INDICATOR);
         if (asterisk_pos != string::npos)
         {
             string attr_name = full_attr_name.substr(0, asterisk_pos);

@@ -104,17 +104,7 @@ public:
     /**
     Percent character.
     **/
-    static const char PERCENT_CHAR = '%';
-
-    /**
-    Asterisk character.
-    **/
-    static const char ASTERISK_CHAR = '*';
-
-    /**
-    Asterisk character as string.
-    **/
-    static const std::string ASTERISK_STR;
+    static const char PERCENT_HEX_FLAG = '%';
 
     /**
     Slash character.
