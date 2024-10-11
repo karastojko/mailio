@@ -30,7 +30,7 @@ namespace mailio
 
 
 quoted_printable::quoted_printable(string::size_type line1_policy, string::size_type lines_policy) :
-    q_codec_mode_(false), codec(line1_policy, lines_policy)
+    codec(line1_policy, lines_policy), q_codec_mode_(false)
 {
 }
 
