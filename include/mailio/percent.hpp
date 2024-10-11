@@ -58,8 +58,9 @@ public:
     @param txt String to encode.
     @return    Encoded string.
     @todo      Implement the line policies.
+    @todo      Replace `txt` to be `string_t`, then no need for the charset parameter.
     **/
-    std::string encode(const std::string& txt, const std::string& charset) const;
+    std::vector<std::string> encode(const std::string& txt, const std::string& charset) const;
 
     /**
     Decoding a percent encoded string.
@@ -69,12 +70,6 @@ public:
     @todo      Implement the line policies.
     **/
     std::string decode(const std::string& txt) const;
-
-private:
-
-    std::string::size_type line1_policy_;
-
-    std::string::size_type lines_policy_;
 };
 
 

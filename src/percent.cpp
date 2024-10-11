@@ -20,6 +20,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 using std::string;
 using std::stringstream;
+using std::vector;
 using boost::to_upper_copy;
 
 
@@ -33,17 +34,43 @@ percent::percent(string::size_type line1_policy, string::size_type lines_policy)
 }
 
 
-string percent::encode(const string& txt, const string& charset) const
+vector<string> percent::encode(const string& txt, const string& charset) const
 {
-    stringstream enc_text;
-    for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
-        if (isalnum(*ch))
-            enc_text << *ch;
-        else
-            enc_text << codec::PERCENT_CHAR << std::setfill('0') << std::hex << std::uppercase << std::setw(2) <<
-                static_cast<unsigned int>(static_cast<uint8_t>(*ch));
+    vector<string> enc_text;
+    string line;
+    string::size_type line_len = 0;
+    // Soon as the first line is added, switch the policy to the other lines policy.
+    string::size_type policy = line1_policy_;
+
+    stringstream enc_line;
     // TODO: Name the magic constants for percent codec delimiters.
-    return to_upper_copy(charset) + "''" + enc_text.str();
+    enc_line << to_upper_copy(charset) + "''";
+    for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
+    {
+        if (isalnum(*ch))
+        {
+            enc_line << *ch;
+            line_len++;
+        }
+        else
+        {
+            // TODO: Replace the percent constant with the semantic one.
+            enc_line << codec::PERCENT_CHAR << std::setfill('0') << std::hex << std::uppercase << std::setw(2) <<
+                static_cast<unsigned int>(static_cast<uint8_t>(*ch));
+            line_len += 3;
+        }
+
+        if (line_len >= policy - 3)
+        {
+            enc_text.push_back(enc_line.str());
+            enc_line.str("");
+            line_len = 0;
+            policy = lines_policy_;
+        }
+    }
+    enc_text.push_back(enc_line.str());
+
+    return enc_text;
 }
 
 

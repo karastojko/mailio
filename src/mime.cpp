@@ -110,7 +110,7 @@ const string mime::NEW_LINE_INDENT{"  "};
 const string mime::HEADER_SEPARATOR_STR{": "};
 const string mime::NAME_VALUE_SEPARATOR_STR{"="};
 const string mime::ATTRIBUTES_SEPARATOR_STR{"; "};
-const string mime::ATTRIBUTE_MULTIPLE_NAME_INDICATOR{"*"};
+const string mime::ATTRIBUTE_MULTIPLE_NAME_INDICATOR{"*"}; // TODO: Shorten the name
 const string mime::ATTRIBUTE_NAME{"name"};
 const string mime::ATTRIBUTE_FILENAME{"filename"};
 const string mime::BOUNDARY_DELIMITER(2, '-');
@@ -1107,9 +1107,8 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     }
     else if (attribute_codec_ == attribute_codec_t::PERCENT)
     {
-        // TODO: Vector of parts should be obtained after implementing the line policy.
         percent pc(line1_policy, line_policy);
-        attr_parts.push_back(pc.encode(attr_value, attr_value.charset));
+        attr_parts = pc.encode(attr_value, attr_value.charset);
     }
     else
     {
@@ -1135,8 +1134,11 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     string attrs;
     for (part_no = 0; part_no < total_parts; part_no++)
     {
-        attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_MULTIPLE_NAME_INDICATOR + to_string(part_no) + codec::EQUAL_CHAR + codec::QUOTE_STR +
-            attr_parts.at(part_no) + codec::QUOTE_STR;
+        attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_MULTIPLE_NAME_INDICATOR + to_string(part_no);
+        if (attribute_codec_ == attribute_codec_t::PERCENT)
+            attrs += ATTRIBUTE_MULTIPLE_NAME_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(part_no);
+        else
+            attrs += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(part_no) + codec::QUOTE_STR;
         if (part_no != total_parts - 1)
             attrs += ATTRIBUTES_SEPARATOR_STR + codec::END_OF_LINE;
     }
