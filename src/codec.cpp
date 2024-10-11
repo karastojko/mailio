@@ -36,6 +36,7 @@ const string codec::LESS_THAN_STR(1, codec::LESS_THAN_CHAR);
 const string codec::GREATER_THAN_STR(1, codec::GREATER_THAN_CHAR);
 const string codec::CHARSET_ASCII("ASCII");
 const string codec::CHARSET_UTF8("UTF-8");
+const string codec::ATTRIBUTE_CHARSET_SEPARATOR_STR(1, codec::ATTRIBUTE_CHARSET_SEPARATOR);
 
 
 int codec::hex_digit_to_int(char digit)

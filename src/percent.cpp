@@ -44,7 +44,7 @@ vector<string> percent::encode(const string& txt, const string& charset) const
 
     stringstream enc_line;
     // TODO: Name the magic constants for percent codec delimiters.
-    enc_line << to_upper_copy(charset) + "''";
+    enc_line << to_upper_copy(charset) + ATTRIBUTE_CHARSET_SEPARATOR_STR + ATTRIBUTE_CHARSET_SEPARATOR_STR;
     for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
     {
         if (isalnum(*ch))

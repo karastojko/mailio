@@ -583,11 +583,6 @@ protected:
     static const std::string ATTRIBUTE_CONTINUATION_INDICATOR;
 
     /**
-    Attribute indicator for the charset and language parameters.
-    **/
-    static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
-
-    /**
     Attribute name part.
     **/
     static const std::string ATTRIBUTE_NAME;

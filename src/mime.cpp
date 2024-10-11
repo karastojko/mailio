@@ -1213,10 +1213,10 @@ string_t mime::decode_value_attribute(const string& attr_value) const
 
     // percent decoding
 
-    size_t charset_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR);
+    size_t charset_pos = attr_value.find(codec::ATTRIBUTE_CHARSET_SEPARATOR);
     if (charset_pos != string::npos)
     {
-        size_t language_pos = attr_value.find(ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
+        size_t language_pos = attr_value.find(codec::ATTRIBUTE_CHARSET_SEPARATOR, charset_pos + 1);
         if (language_pos == string::npos)
             throw mime_error("Parsing attribute value failure, no language parameter.");
 

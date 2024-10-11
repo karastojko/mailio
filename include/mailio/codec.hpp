@@ -302,6 +302,16 @@ public:
     static const std::string CHARSET_UTF8;
 
     /**
+    Attribute indicator for the charset and language parameters.
+    **/
+    static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
+
+    /**
+    Attribute indicator for the charset and language parameters as string.
+    **/
+    static const std::string ATTRIBUTE_CHARSET_SEPARATOR_STR;
+
+    /**
     Line length policy.
     **/
     enum class line_len_policy_t : std::string::size_type {RECOMMENDED = 78, MANDATORY = 998, NONE = UINT_MAX,
