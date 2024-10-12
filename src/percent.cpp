@@ -43,7 +43,6 @@ vector<string> percent::encode(const string& txt, const string& charset) const
     string::size_type policy = line1_policy_;
 
     stringstream enc_line;
-    // TODO: Name the magic constants for percent codec delimiters.
     enc_line << to_upper_copy(charset) + ATTRIBUTE_CHARSET_SEPARATOR_STR + ATTRIBUTE_CHARSET_SEPARATOR_STR;
     for (string::const_iterator ch = txt.begin(); ch != txt.end(); ch++)
     {
@@ -54,7 +53,6 @@ vector<string> percent::encode(const string& txt, const string& charset) const
         }
         else
         {
-            // TODO: Replace the percent constant with the semantic one.
             enc_line << codec::PERCENT_HEX_FLAG << std::setfill('0') << std::hex << std::uppercase << std::setw(2) <<
                 static_cast<unsigned int>(static_cast<uint8_t>(*ch));
             line_len += 3;

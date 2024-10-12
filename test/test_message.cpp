@@ -1768,162 +1768,6 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
 
 
 /**
-Attaching a file with the long UTF-8 name to show the attribute continuation with the base64 codec.
-
-@pre  File `cv.txt` in the current directory.
-@post None.
-**/
-BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_b64)
-{
-    message msg;
-    msg.attribute_codec(message::attribute_codec_t::BASE64);
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.date_time(ldt);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.from(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format long utf8 attachment base64");
-    msg.boundary("mybnd");
-
-    std::ifstream ifs("cv.txt");
-    message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
-    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
-    atts.push_back(tp);
-    msg.attach(atts);
-
-    string msg_str;
-    msg.format(msg_str);
-    BOOST_CHECK(msg_str ==
-        "From: mailio <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>\r\n"
-        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format long utf8 attachment base64\r\n"
-        "\r\n"
-        "--mybnd\r\n"
-        "Content-Type: text/plain; \r\n"
-        "  name*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2X0th?=\"; \r\n"
-        "  name*1=\"=?UTF-8?B?cmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
-        "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; \r\n"
-        "  filename*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2?=\"; \r\n"
-        "  filename*1=\"=?UTF-8?B?X0thcmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
-        "\r\n"
-        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
-        "\r\n"
-        "--mybnd--\r\n");
-}
-
-
-/**
-Attaching a file with the long UTF-8 name to show the attribute continuation with the quoted printable codec.
-
-@pre  File `cv.txt` in the current directory.
-@post None.
-**/
-BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_qp)
-{
-    message msg;
-    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.date_time(ldt);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.from(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format long utf8 attachment quoted printable");
-    msg.boundary("mybnd");
-
-    std::ifstream ifs("cv.txt");
-    message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
-    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
-    atts.push_back(tp);
-    msg.attach(atts);
-
-    string msg_str;
-    msg.format(msg_str);
-    BOOST_CHECK(msg_str ==
-        "From: mailio <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>\r\n"
-        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format long utf8 attachment quoted printable\r\n"
-        "\r\n"
-        "--mybnd\r\n"
-        "Content-Type: text/plain; \r\n"
-        "  name*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karastojk?=\"; \r\n"
-        "  name*1=\"=?UTF-8?Q?ovi=C4=87_CV.txt?=\"\r\n"
-        "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; \r\n"
-        "  filename*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karas?=\"; \r\n"
-        "  filename*1=\"=?UTF-8?Q?tojkovi=C4=87_CV.txt?=\"\r\n"
-        "\r\n"
-        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
-        "\r\n"
-        "--mybnd--\r\n");
-}
-
-
-/**
-Attaching a file with the long UTF-8 name to show the attribute continuation with the percent codec.
-
-@pre  File `cv.txt` in the current directory.
-@post None.
-**/
-BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
-{
-    message msg;
-    msg.attribute_codec(message::attribute_codec_t::PERCENT);
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.date_time(ldt);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.from(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format long utf8 attachment percentage");
-    msg.boundary("mybnd");
-
-    std::ifstream ifs("cv.txt");
-    message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
-    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
-    atts.push_back(tp);
-    msg.attach(atts);
-
-    string msg_str;
-    msg.format(msg_str);
-    BOOST_CHECK(msg_str ==
-        "From: mailio <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>\r\n"
-        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format long utf8 attachment percentage\r\n"
-        "\r\n"
-        "--mybnd\r\n"
-        "Content-Type: text/plain; \r\n"
-        "  name*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojko; \r\n"
-        "  name*1*=vi%C4%87%5FCV%2Etxt\r\n"
-        "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; \r\n"
-        "  filename*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarast; \r\n"
-        "  filename*1*=ojkovi%C4%87%5FCV%2Etxt\r\n"
-        "\r\n"
-        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
-        "\r\n"
-        "--mybnd--\r\n");
-}
-
-
-/**
 Attaching a file with long UTF-8 message content.
 
 @pre  File `cv.txt` in the current directory.
@@ -2396,15 +2240,12 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
 
 
 /**
-Formatting the filename as a continued attribute.
-
-Showing the bug of having no attribute continuation like there is for the subject.
+Attaching a file with the long ASCII name to show the attribute continuation with the default seven bit codec.
 
 @pre  None.
 @post None.
-@todo Fix the criteria once the bug is fixed.
 **/
-BOOST_AUTO_TEST_CASE(format_continued_filename)
+BOOST_AUTO_TEST_CASE(format_continued_ascii_attachment_bit7)
 {
     message msg;
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2414,6 +2255,7 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.strict_mode(false);
+    // The default attribute codec is seven bit.
     msg.boundary("mybnd");
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.subject("format continued filename format continued filename format continued filename format continued filename");
@@ -2426,6 +2268,7 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
     string msg_str;
     msg.format(msg_str);
 
+    // When the escape characters are removed from the long lines, they actually fit to the line policy, so everything is fine,
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
@@ -2450,6 +2293,163 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
         "\r\n"
         "--mybnd--\r\n"
    );
+}
+
+
+
+/**
+Attaching a file with the long UTF-8 name to show the attribute continuation with the base64 codec.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_b64)
+{
+    message msg;
+    msg.attribute_codec(message::attribute_codec_t::BASE64);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long utf8 attachment base64");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long utf8 attachment base64\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2X0th?=\"; \r\n"
+        "  name*1=\"=?UTF-8?B?cmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2?=\"; \r\n"
+        "  filename*1=\"=?UTF-8?B?X0thcmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
+Attaching a file with the long UTF-8 name to show the attribute continuation with the quoted printable codec.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_qp)
+{
+    message msg;
+    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long utf8 attachment quoted printable");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long utf8 attachment quoted printable\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karastojk?=\"; \r\n"
+        "  name*1=\"=?UTF-8?Q?ovi=C4=87_CV.txt?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karas?=\"; \r\n"
+        "  filename*1=\"=?UTF-8?Q?tojkovi=C4=87_CV.txt?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
+Attaching a file with the long UTF-8 name to show the attribute continuation with the percent codec.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
+{
+    message msg;
+    msg.attribute_codec(message::attribute_codec_t::PERCENT);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long utf8 attachment percentage");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long utf8 attachment percentage\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojko; \r\n"
+        "  name*1*=vi%C4%87%5FCV%2Etxt\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarast; \r\n"
+        "  filename*1*=ojkovi%C4%87%5FCV%2Etxt\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
 }
 
 
