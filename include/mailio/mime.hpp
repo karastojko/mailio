@@ -812,6 +812,7 @@ protected:
 
     @param attributes Attribute parameters where the merging is to be done.
     @throw mime_error Parsing attribute failure.
+    @todo             There is no check for the second continuation indicator
     **/
     void merge_attributes(attributes_t& attributes) const;
 

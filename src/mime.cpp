@@ -1155,17 +1155,16 @@ void mime::merge_attributes(attributes_t& attributes) const
         auto full_attr_name = attr->first;
         auto attr_value = attr->second;
         string::size_type asterisk_pos = full_attr_name.find(ATTRIBUTE_CONTINUATION_INDICATOR);
+        // If no continuation indicator is found, then only one part is present, i.e. no continuation.
+        int attr_part = 1;
+        string attr_name = full_attr_name;
         if (asterisk_pos != string::npos)
         {
-            string attr_name = full_attr_name.substr(0, asterisk_pos);
             try
             {
-                if (!full_attr_name.substr(asterisk_pos + 1).empty())
-                {
-                    int attr_part = stoi(full_attr_name.substr(asterisk_pos + 1));
-                    attribute_parts[attr_name][attr_part] = attr_value;
-                    attr = attributes.erase(attr);
-                }
+                attr_name = full_attr_name.substr(0, asterisk_pos);
+                if (asterisk_pos < full_attr_name.length() - 1)
+                    attr_part = stoi(full_attr_name.substr(asterisk_pos + 1, 1));
             }
             catch (const std::invalid_argument& exc)
             {
@@ -1176,12 +1175,8 @@ void mime::merge_attributes(attributes_t& attributes) const
                 throw mime_error("Parsing attribute failure at `" + attr_name + "`.");
             }
         }
-        else
-        {
-            // No attribute continuations means only one part.
-            attribute_parts[full_attr_name][1] = attr_value;
-            attr = attributes.erase(attr);
-        }
+        attribute_parts[attr_name][attr_part] = attr_value;
+        attr = attributes.erase(attr);
     }
 
     for (auto attr = attribute_parts.begin(); attr != attribute_parts.end(); attr++)

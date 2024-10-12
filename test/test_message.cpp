@@ -3566,12 +3566,12 @@ BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
 
 
 /**
-Parsing the filename as a continued attribute.
+Parsing continued ascii filename encoded in seven bit.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_continued_filename)
+BOOST_AUTO_TEST_CASE(parse_continued_ascii_filename_bit7)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: text/plain\r\n"
@@ -3579,7 +3579,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
         "  filename*0=\"C:\\Program Files\\AlephoLtd\"; \r\n"
         "  filename*1=\"\\mailio\\configuration.ini\"\r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse address comment\r\n"
+        "Subject: parse continued ascii filename bit7\r\n"
         "\r\n"
         "Hello, World!";
 
@@ -3587,54 +3587,42 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
+    BOOST_CHECK(msg.name().charset == codec::CHARSET_ASCII && msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
 }
 
 
 /**
-Parsing the UTF8 filename as a continued attribute.
-
-The test shows a problem with decoding of a continued attribute.
+Parsing UTF8 filename encoded in percent.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
+BOOST_AUTO_TEST_CASE(parse_utf8_filename_pct)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
-        "Content-Type: text/plain; name*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
-        "  name*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "Content-Type: text/plain\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
-        "  filename*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "  filename*0=UTF-8'en-us'C%3A\\%E8.xlsx; \r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse continued utf8 filename\r\n"
+        "Subject: parse utf8 filename percent\r\n"
         "\r\n"
         "Hello, World!";
 
-    {
-        message msg;
-        msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY);
-        msg.parse(msg_str);
-        BOOST_CHECK(msg.name() == "Томислав Карастојковић");
-    }
-    {
-        message msg;
-        msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
-    }
+    message msg;
+    msg.strict_mode(false);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+    BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\\xE8.xlsx");
 }
 
 
 /**
-Parsing the filename as a continued attribute with the charset and language.
+Parsing continued filename with the charset and language encoded in percent.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
+BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_rec)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: text/plain\r\n"
@@ -3642,7 +3630,7 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
         "  filename*0=UTF-8'en-us'C%3A\\Program%20Files\\; \r\n"
         "  filename*1=%E8.xlsx; \r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse encoded continued filename\r\n"
+        "Subject: parse continued utf8 filename percent recommended policy\r\n"
         "\r\n"
         "Hello, World!";
 
@@ -3651,6 +3639,41 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\Program Files\\\xE8.xlsx");
+}
+
+
+/**
+Parsing continued filename with the charset and language encoded in percent.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_man)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain; name*0*=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
+        "  name*1*=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0*=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
+        "  filename*1*=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse continued utf8 filename percent mandatory policy\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name() == "Томислав Карастојковић");
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
