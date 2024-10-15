@@ -464,7 +464,6 @@ string mime::format_many_ids(const vector<string>& ids, const string& header_nam
     vector<string> ids_enc = b7.encode(ids_str);
     string ids_folded = ids_enc.at(0) + codec::END_OF_LINE;
     ids_folded += fold_header_line(ids_enc);
-
     return ids_folded;
 }
 

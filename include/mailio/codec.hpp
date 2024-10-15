@@ -69,10 +69,10 @@ public:
     static std::string surround_string(const std::string& text, char surround_char = '"');
 
     /**
-    Checking if a string is UTF-8 encoded.
+    Checking if a string is eight bit encoded.
 
     @param txt String to check.
-    @return    True if it's UTF-8, false if not.
+    @return    True if it's eight bit, false if not.
     **/
     static bool is_utf8_string(const std::string& txt);
 

@@ -2018,7 +2018,7 @@ BOOST_AUTO_TEST_CASE(format_notification)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Disposition-Notification-To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: format notification\r\n"
+        "Subject: =?ASCII?B?Zm9ybWF0IG5vdGlmaWNhdGlvbg==?=\r\n"
         "\r\n"
         "Hello, World!\r\n");
 }
@@ -2047,7 +2047,7 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("proba");
+    msg.subject("format q base64 sender");
     msg.content("test");
 
     string msg_str;
@@ -2065,7 +2065,7 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
         "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
         "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: proba\r\n"
+        "Subject: =?ASCII?B?Zm9ybWF0IHEgYmFzZTY0IHNlbmRlcg==?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2091,7 +2091,7 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("proba");
+    msg.subject("format q quoted printable sender");
     msg.content("test");
 
     string msg_str;
@@ -2110,7 +2110,7 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
         "  =?UTF-8?Q?=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8?=\r\n"
         "  =?UTF-8?Q?=D1=9B?= <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: proba\r\n"
+        "Subject: =?ASCII?Q?format_q_quoted_printable_sender?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2531,7 +2531,7 @@ BOOST_AUTO_TEST_CASE(format_message_id)
     local_date_time ldt(t, tz);
     msg.strict_mode(true);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format message id");
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@mailio.dev");
     msg.content_id("987654321@mailio.dev");
@@ -2543,7 +2543,7 @@ BOOST_AUTO_TEST_CASE(format_message_id)
         "Message-ID: <1234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Content-ID: <987654321@mailio.dev>\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_message_id?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2570,7 +2570,7 @@ BOOST_AUTO_TEST_CASE(format_long_message_id)
     local_date_time ldt(t, tz);
     msg.strict_mode(true);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format long message id");
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890@mailio.dev");
     msg.content_id("987654321987654321987654321987654321987654321987654321987654321987654321987654321@mailio.dev");
@@ -2584,7 +2584,7 @@ BOOST_AUTO_TEST_CASE(format_long_message_id)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Content-ID: <98765432198765432198765432198765432198765432198765432198765432198\r\n"
         "  7654321987654321@mailio.dev>\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_long_message_id?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2629,7 +2629,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_non_strict)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format message id no monkey non strict");
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890mailio.dev");
 
@@ -2639,7 +2639,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_non_strict)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <1234567890mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_message_id_no_monkey_non_strict?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2684,7 +2684,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format message id with space non strict");
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@ mailio.dev");
 
@@ -2694,7 +2694,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <1234567890@ mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_message_id_with_space_non_strict?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2716,7 +2716,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format in reply to");
     msg.content("Zdravo, Svete!");
     msg.add_in_reply_to("1@mailio.dev");
     msg.add_in_reply_to("22@mailio.dev");
@@ -2731,7 +2731,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
         "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev>\r\n"
         "References: <4444@mailio.dev> <55555@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_in_reply_to?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2754,7 +2754,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format in reply to folding");
     msg.content("Zdravo, Svete!");
     msg.add_in_reply_to("1@mailio.dev");
     msg.add_in_reply_to("22@mailio.dev");
@@ -2772,7 +2772,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
         "  <66666666666666666666666666666666666666666666666666666666666666666666666666666\r\n"
         "  666666666666666666666666666666@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_in_reply_to_folding?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2798,7 +2798,7 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("proba");
+    msg.subject("format recommended recipient");
     msg.content("test");
 
     string msg_str;
@@ -2809,7 +2809,7 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
         "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
         "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: proba\r\n"
+        "Subject: =?ASCII?B?Zm9ybWF0IHJlY29tbWVuZGVkIHJlY2lwaWVudA==?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2817,8 +2817,6 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
 
 /*
 Formatting long subject when there is a delimiter and when there is not.
-
-In case there is no delimiter, then there is no folding which is a bug.
 
 @pre  None.
 @post None.
@@ -2841,10 +2839,9 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!\r\n"
+        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdra\r\n"
+        "  vo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zd\r\n"
+        "  ravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 
@@ -2943,7 +2940,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
             "  =?UTF-8?B?uNGb?= <tomislavkarastojkovic@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-            "Subject: Zdravo,Svete!\r\n"
+            "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
             "Hello, World!\r\n");
     }
@@ -2961,13 +2958,12 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
-
         BOOST_CHECK(msg_str ==
             "From: \"Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
             "  Zdravo,Svete!\" <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-            "Subject: Zdravo,Svete!\r\n"
+            "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
            "Hello, World!\r\n");
     }
@@ -2985,13 +2981,12 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
-
         BOOST_CHECK(msg_str ==
             "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo\r\n"
             "  SveteZdravo <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-            "Subject: Zdravo,Svete!\r\n"
+            "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
             "Hello, World!\r\n");
     }

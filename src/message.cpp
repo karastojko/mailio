@@ -808,22 +808,32 @@ string_t message::format_subject() const
 {
     string_t subject;
     const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
+    const string::size_type line_policy = static_cast<string::size_type>(line_policy_) - HEADER_SEPARATOR_STR.length();
 
-    // TODO: Remove the code repetition.
-
-    if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
+    if (header_codec_ == header_codec_t::ASCII)
     {
-        q_codec qc(line1_policy, static_cast<string::size_type>(line_policy_));
+        bit7 b7(line1_policy, line_policy);
+        vector<string> hdr = b7.encode(subject_.buffer);
+        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(hdr);
+    }
+    else if (header_codec_ == header_codec_t::UTF8)
+    {
+        bit8 b8(line1_policy, line_policy);
+        vector<string> hdr = b8.encode(subject_.buffer);
+        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
+        subject.buffer += fold_header_line(hdr);
+    }
+    else if (header_codec_ == header_codec_t::QUOTED_PRINTABLE || header_codec_ == header_codec_t::BASE64)
+    {
+        q_codec qc(line1_policy, line_policy);
         vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
         subject.buffer += hdr.at(0) + codec::END_OF_LINE;
         subject.buffer += fold_header_line(hdr);
     }
-    else
+    else if (header_codec_ == header_codec_t::PERCENT)
     {
-        bit7 b7(line1_policy, static_cast<string::size_type>(line_policy_));
-        vector<string> hdr = b7.encode(subject_.buffer);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        subject.buffer += fold_header_line(hdr);
+        throw message_error("Percent codec not allowed for the subject.");
     }
 
     return subject;
