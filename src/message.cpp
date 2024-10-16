@@ -1453,9 +1453,6 @@ tuple<string, string> message::parse_subject(const string& subject)
     {
         q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         auto subject_dec = qc.check_decode(subject);
-        header_codec_t subject_encoding = get<2>(subject_dec);
-        if (subject_encoding != header_codec_t::UTF8)
-            header_codec_ = subject_encoding;
         return make_tuple(get<0>(subject_dec), get<1>(subject_dec));
     }
 }
@@ -1485,7 +1482,6 @@ string_t message::parse_address_name(const string& address_name)
                 charset = get<1>(an);
             if (charset != get<1>(an))
                 throw message_error("Inconsistent Q encodings.");
-            header_codec_ = get<2>(an);
         }
         return string_t(parts_str, charset);
     }
