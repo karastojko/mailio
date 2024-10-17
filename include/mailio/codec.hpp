@@ -422,9 +422,14 @@ struct String
 
 
     /**
+    String codec.
+    **/
+    codec::codec_type buf_codec;
+
+    /**
     Default constructor.
     **/
-    String() : buffer(), charset(codec::CHARSET_ASCII)
+    String() : buffer(), charset(codec::CHARSET_ASCII), buf_codec(codec::codec_type::ASCII)
     {
     }
 
@@ -446,9 +451,10 @@ struct String
 
     @param buffer_s  Content of the string.
     @param charset_s Charset of the string.
+    @param codec_s   Codec of the string.
     **/
-    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII) :
-        buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
+    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_type codec_s = codec::codec_type::ASCII) :
+        buffer(buffer_s), charset(boost::to_upper_copy(charset_s)), buf_codec(codec_s)
     {
     }
 
@@ -458,9 +464,10 @@ struct String
 
     @param str       String literal.
     @param charset_s Charset of the string.
+    @param codec_s   Codec of the string.
     **/
-    String(const Char* str, const std::string& charset_s = codec::CHARSET_ASCII) :
-        String(Buf(str), charset_s)
+    String(const Char* str, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_type codec_s = codec::codec_type::ASCII) :
+        String(Buf(str), charset_s, codec_s)
     {
     }
 
