@@ -446,9 +446,9 @@ struct String
 
     @param buffer_s  Content of the string.
     @param charset_s Charset of the string.
-    @todo  Hardcoded string is available as static in `codec`.
     **/
-    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII) : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
+    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII) :
+        buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
     {
     }
 
@@ -456,9 +456,11 @@ struct String
     /**
     Initializing of the buffer with the string literal.
 
-    @param str String literal.
+    @param str       String literal.
+    @param charset_s Charset of the string.
     **/
-    String(const Char* str) : String(Buf(str))
+    String(const Char* str, const std::string& charset_s = codec::CHARSET_ASCII) :
+        String(Buf(str), charset_s)
     {
     }
 
