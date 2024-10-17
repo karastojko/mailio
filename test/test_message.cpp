@@ -2009,7 +2009,7 @@ BOOST_AUTO_TEST_CASE(format_notification)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format notification");
+    msg.subject("format notification", codec::codec_type::BASE64);
     msg.content("Hello, World!");
     string msg_str;
     msg.format(msg_str);
@@ -2047,7 +2047,7 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format q base64 sender");
+    msg.subject("format q base64 sender", codec::codec_type::BASE64);
     msg.content("test");
 
     string msg_str;
@@ -2091,7 +2091,7 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format q quoted printable sender");
+    msg.subject("format q quoted printable sender", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("test");
 
     string msg_str;
@@ -2132,7 +2132,7 @@ BOOST_AUTO_TEST_CASE(format_qb_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_type::BASE64));
     msg.content("Hello, Sithonia!");
 
     string msg_str;
@@ -2163,7 +2163,7 @@ BOOST_AUTO_TEST_CASE(format_qq_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_type::QUOTED_PRINTABLE));
     msg.content("Hello, Sithonia!");
 
     string msg_str;
@@ -2194,7 +2194,7 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_dash)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject(u8"C++ Annotated: Sep \u2013 Dec 2017");
+    msg.subject_raw(string_t(u8"C++ Annotated: Sep \u2013 Dec 2017", "utf-8", codec::codec_type::QUOTED_PRINTABLE));
     msg.content("test");
 
     string msg_str;
@@ -2224,7 +2224,7 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject(u8"\U0001F381\u017Divi godinu dana na ra\u010Dun Super Kartice");
+    msg.subject_raw(string_t(u8"\U0001F381\u017Divi godinu dana na ra\u010Dun Super Kartice", "utf-8", codec::codec_type::QUOTED_PRINTABLE));
     msg.content("test");
 
     string msg_str;
@@ -2499,7 +2499,7 @@ BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8"));
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_type::BASE64));
     msg.content("Hello, Sithonia!");
 
     string msg_str;
@@ -2531,7 +2531,7 @@ BOOST_AUTO_TEST_CASE(format_message_id)
     local_date_time ldt(t, tz);
     msg.strict_mode(true);
     msg.date_time(ldt);
-    msg.subject("format message id");
+    msg.subject("format message id", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@mailio.dev");
     msg.content_id("987654321@mailio.dev");
@@ -2570,7 +2570,7 @@ BOOST_AUTO_TEST_CASE(format_long_message_id)
     local_date_time ldt(t, tz);
     msg.strict_mode(true);
     msg.date_time(ldt);
-    msg.subject("format long message id");
+    msg.subject("format long message id", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890@mailio.dev");
     msg.content_id("987654321987654321987654321987654321987654321987654321987654321987654321987654321@mailio.dev");
@@ -2629,7 +2629,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_non_strict)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format message id no monkey non strict");
+    msg.subject("format message id no monkey non strict", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890mailio.dev");
 
@@ -2684,7 +2684,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format message id with space non strict");
+    msg.subject("format message id with space non strict", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@ mailio.dev");
 
@@ -2716,7 +2716,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format in reply to");
+    msg.subject("format in reply to", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.add_in_reply_to("1@mailio.dev");
     msg.add_in_reply_to("22@mailio.dev");
@@ -2754,7 +2754,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format in reply to folding");
+    msg.subject("format in reply to folding", codec::codec_type::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.add_in_reply_to("1@mailio.dev");
     msg.add_in_reply_to("22@mailio.dev");
@@ -2798,7 +2798,7 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format recommended recipient");
+    msg.subject("format recommended recipient", codec::codec_type::BASE64);
     msg.content("test");
 
     string msg_str;
@@ -2839,9 +2839,10 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdra\r\n"
-        "  vo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zd\r\n"
-        "  ravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
+        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
+        "  Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 
@@ -2931,7 +2932,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.date_time(ldt);
         msg.from(mail_address(string_t("Томислав      Карастојковић", codec::CHARSET_UTF8), "tomislavkarastojkovic@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-        msg.subject("Zdravo,Svete!");
+        msg.subject("Zdravo,Svete!", codec::codec_type::BASE64);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -2954,7 +2955,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.date_time(ldt);
         msg.from(mail_address(string_t("Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete!"), "zdravosvete@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-        msg.subject("Zdravo,Svete!");
+        msg.subject("Zdravo,Svete!", codec::codec_type::BASE64);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -2977,7 +2978,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.date_time(ldt);
         msg.from(mail_address(string_t("ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo"), "zdravosvete@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-        msg.subject("Zdravo,Svete!");
+        msg.subject("Zdravo,Svete!", codec::codec_type::BASE64);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);

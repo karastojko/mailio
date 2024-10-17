@@ -371,12 +371,13 @@ vector<string> message::references() const
 }
 
 
-void message::subject(const string& mail_subject)
+void message::subject(const string& mail_subject, codec::codec_type sub_codec)
 {
     subject_.buffer = mail_subject;
     subject_.charset = codec::CHARSET_ASCII;
     if (codec::is_utf8_string(subject_.buffer))
         subject_.charset = codec::CHARSET_UTF8;
+    subject_.buf_codec = sub_codec;
 }
 
 
@@ -388,10 +389,11 @@ void message::subject_raw(const string_t& mail_subject)
 
 #if defined(__cpp_char8_t)
 
-void message::subject(const u8string& mail_subject)
+void message::subject(const u8string& mail_subject, codec::codec_type sub_codec)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
     subject_.charset = codec::CHARSET_UTF8;
+    subject_.codec = sub_codec;
 }
 
 
@@ -399,6 +401,7 @@ void message::subject_raw(const u8string_t& mail_subject)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
     subject_.charset = mail_subject.charset;
+    subject_.codec = mail_subject.codec;
 }
 
 #endif
@@ -596,7 +599,7 @@ string message::format_header(bool add_bcc_header) const
         header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + version_ + codec::END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject().buffer + codec::END_OF_LINE;
+    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
 
     return header;
 }
@@ -669,7 +672,7 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, REFERENCES_HEADER))
         references_ = parse_many_ids(header_value);
     else if (iequals(header_name, SUBJECT_HEADER))
-        std::tie(subject_.buffer, subject_.charset) = parse_subject(header_value);
+        std::tie(subject_.buffer, subject_.charset, subject_.buf_codec) = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
         date_time_ = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
@@ -804,34 +807,34 @@ string message::format_address(const string_t& name, const string& address, cons
 }
 
 
-string_t message::format_subject() const
+string message::format_subject() const
 {
-    string_t subject;
+    string subject;
     const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
     const string::size_type line_policy = static_cast<string::size_type>(line_policy_) - HEADER_SEPARATOR_STR.length();
 
-    if (header_codec_ == header_codec_t::ASCII)
+    if (subject_.buf_codec == header_codec_t::ASCII)
     {
         bit7 b7(line1_policy, line_policy);
         vector<string> hdr = b7.encode(subject_.buffer);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        subject.buffer += fold_header_line(hdr);
+        subject += hdr.at(0) + codec::END_OF_LINE;
+        subject += fold_header_line(hdr);
     }
-    else if (header_codec_ == header_codec_t::UTF8)
+    else if (subject_.buf_codec == header_codec_t::UTF8)
     {
         bit8 b8(line1_policy, line_policy);
         vector<string> hdr = b8.encode(subject_.buffer);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        subject.buffer += fold_header_line(hdr);
+        subject += hdr.at(0) + codec::END_OF_LINE;
+        subject += fold_header_line(hdr);
     }
-    else if (header_codec_ == header_codec_t::QUOTED_PRINTABLE || header_codec_ == header_codec_t::BASE64)
+    else if (subject_.buf_codec == header_codec_t::QUOTED_PRINTABLE || subject_.buf_codec == header_codec_t::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
         vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        subject.buffer += fold_header_line(hdr);
+        subject += hdr.at(0) + codec::END_OF_LINE;
+        subject += fold_header_line(hdr);
     }
-    else if (header_codec_ == header_codec_t::PERCENT)
+    else if (subject_.buf_codec == header_codec_t::PERCENT)
     {
         throw message_error("Percent codec not allowed for the subject.");
     }
@@ -1445,15 +1448,16 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-tuple<string, string> message::parse_subject(const string& subject)
+tuple<string, string, codec::codec_type>
+message::parse_subject(const string& subject)
 {
     if (codec::is_utf8_string(subject))
-        return make_tuple(subject, codec::CHARSET_UTF8);
+        return make_tuple(subject, codec::CHARSET_UTF8, codec::codec_type::ASCII);
     else
     {
         q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         auto subject_dec = qc.check_decode(subject);
-        return make_tuple(get<0>(subject_dec), get<1>(subject_dec));
+        return make_tuple(get<0>(subject_dec), get<1>(subject_dec), get<2>(subject_dec));
     }
 }
 

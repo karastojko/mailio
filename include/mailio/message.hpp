@@ -388,8 +388,9 @@ public:
     Setting the subject.
 
     @param mail_subject Subject to set.
+    @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::string& mail_subject);
+    void subject(const std::string& mail_subject, codec::codec_type sub_codec = codec::codec_type::ASCII);
 
     /**
     Setting the raw subject.
@@ -404,8 +405,9 @@ public:
     Setting the subject.
 
     @param mail_subject Subject to set.
+    @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::u8string& mail_subject);
+    void subject(const std::u8string& mail_subject, codec::codec_type sub_codec = codec::codec_type::ASCII);
 
     /**
     Setting the raw subject.
@@ -643,9 +645,8 @@ protected:
     Formatting the subject which can be ASCII or UTF-8.
 
     @return Formatted subject.
-    @todo   Folding to be moved into `format_header()`?
     **/
-    string_t format_subject() const;
+    std::string format_subject() const;
 
     /**
     Formatting email date.
@@ -695,7 +696,8 @@ protected:
     @throw message_error Parsing failure of Q encoding.
     @throw *             `q_codec::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string> parse_subject(const std::string& subject);
+    std::tuple<std::string, std::string, codec::codec_type>
+    parse_subject(const std::string& subject);
 
     /**
     Parsing a name part of a mail ASCII or UTF-8 encoded.
