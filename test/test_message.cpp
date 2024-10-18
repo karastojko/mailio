@@ -2037,12 +2037,13 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
     msg.sender(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8), "adresa@mailio.dev"));
-    msg.add_from(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "the_library@mailio.dev"));
+    msg.add_from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8, codec::codec_type::BASE64),
+        "adresa@mailio.dev"));
+    msg.add_from(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_type::BASE64), "the_library@mailio.dev"));
     msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
         "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_type::BASE64), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_type::BASE64), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2082,11 +2083,12 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8, codec::codec_type::QUOTED_PRINTABLE),
+        "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
         "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_type::QUOTED_PRINTABLE), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_type::QUOTED_PRINTABLE), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2467,7 +2469,7 @@ BOOST_AUTO_TEST_CASE(format_utf8_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@hotmail.com"));
+    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_type::UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Здраво, Свете!");
     msg.content("Hello, World!");
@@ -2480,6 +2482,35 @@ BOOST_AUTO_TEST_CASE(format_utf8_subject)
         "Subject: Здраво, Свете!\r\n"
         "\r\n"
         "Hello, World!\r\n");
+}
+
+
+/**
+Formatting ISO 8859-1 subject in combination with the UTF8 header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_iso8859_subject_utf8_header)
+{
+    message msg;
+    msg.header_codec(mime::header_codec_t::UTF8);
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address(string_t("Comprobaci\363n CV", "ISO-8859-1", codec::codec_type::UTF8), "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject_raw(string_t("Comprobaci\363n CV", "ISO-8859-1"));
+    msg.content("Здраво, Свете!");
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: Comprobaci\363n CV <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Comprobaci\363n CV\r\n"
+        "\r\n"
+        "Здраво, Свете!\r\n");
 }
 
 
@@ -2790,10 +2821,10 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8, codec::codec_type::BASE64), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_type::BASE64), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_type::BASE64), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2829,7 +2860,7 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@hotmail.com"));
+    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_type::UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!"
         "Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!");
@@ -2930,7 +2961,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
         msg.date_time(ldt);
-        msg.from(mail_address(string_t("Томислав      Карастојковић", codec::CHARSET_UTF8), "tomislavkarastojkovic@hotmail.com"));
+        msg.from(mail_address(string_t("Томислав      Карастојковић", codec::CHARSET_UTF8, codec::codec_type::BASE64), "tomislavkarastojkovic@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
         msg.subject("Zdravo,Svete!", codec::codec_type::BASE64);
         msg.content("Hello, World!");
@@ -5555,9 +5586,6 @@ BOOST_AUTO_TEST_CASE(parse_utf8_quoted_name)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojković" && msg.from().addresses.at(0).address == "qwerty@gmail.com");
-
-    msg.header_codec(mime::header_codec_t::UTF8);
-    BOOST_CHECK(msg.from_to_string() == "Tomislav Karastojković <qwerty@gmail.com>");
 }
 
 
@@ -5583,9 +5611,6 @@ BOOST_AUTO_TEST_CASE(parse_utf8_name)
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "Tomislav Karastojković" && msg.recipients().addresses.at(0).address == "qwerty@gmail.com");
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
-
-    msg.header_codec(mime::header_codec_t::UTF8);
-    BOOST_CHECK(msg.recipients_to_string() == "Tomislav Karastojković <qwerty@gmail.com>");
 }
 
 

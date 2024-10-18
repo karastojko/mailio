@@ -744,12 +744,11 @@ string message::format_address(const string_t& name, const string& address, cons
     const regex DTEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\.\@/=\?\^\_`\{\|\}\~]*)"};
 
     vector<string> name_formatted;
-    string addr;
     smatch m;
 
     // The charset has precedence over the header codec. Only for the non-ascii characters, consider the header encoding.
 
-    if (name.charset == codec::CHARSET_ASCII)
+    if (name.buf_codec == codec::codec_type::ASCII)
     {
         // Check the name format.
 
@@ -766,19 +765,23 @@ string message::format_address(const string_t& name, const string& address, cons
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
-    else if (header_codec_ == header_codec_t::UTF8)
+    else if (name.buf_codec == codec::codec_type::UTF8)
     {
+        // TODO: Should be replaced with the eight bit codec.
         bit7 b7(line_policy - HEADER_LEN, line_policy);
         name_formatted = b7.encode(name.buffer);
     }
-    else
+    else if (name.buf_codec == codec::codec_type::BASE64 || name.buf_codec == codec::codec_type::QUOTED_PRINTABLE)
     {
         q_codec qc(line_policy - HEADER_LEN, static_cast<string::size_type>(line_policy_));
-        name_formatted = qc.encode(name.buffer, name.charset, header_codec_);
+        name_formatted = qc.encode(name.buffer, name.charset, name.buf_codec);
     }
+    else if (name.buf_codec == codec::codec_type::PERCENT)
+        throw message_error("Percent codec not allowed for the mail address.");
 
     // Check address format.
 
+    string addr;
     if (!address.empty())
     {
         if (codec::is_utf8_string(address))
