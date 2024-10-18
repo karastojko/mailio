@@ -2536,6 +2536,39 @@ BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
 
 
 /**
+Formatting a message with several codecs in the header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_many_codecs)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address(string_t("маилио", "UTF-8", codec::codec_type::QUOTED_PRINTABLE), "adresa@mailio.dev"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_type::BASE64), "qwerty@gmail.com"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_type::BASE64));
+    msg.content("Hello, Sithonia!");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        "  <qwerty@gmail.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "\r\n"
+        "Hello, Sithonia!\r\n");
+}
+
+
+/**
 Formatting a message with the message ID in the strict mode.
 
 @pre  None.
@@ -5654,6 +5687,34 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_codec)
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
+}
+
+
+/**
+Parsing a message with several codecs in the header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_many_codecs)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        "  <qwertyuiop@zoho.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "\r\n"
+        "Hello, Sithonia!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
+    BOOST_CHECK(msg.recipients().addresses.at(0).name == "маилио" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev");
+    BOOST_CHECK(msg.recipients().addresses.at(1).name == "Томислав Карастојковић" && msg.recipients().addresses.at(1).address == "qwertyuiop@zoho.com");
+    BOOST_CHECK(msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
 }
 
 
