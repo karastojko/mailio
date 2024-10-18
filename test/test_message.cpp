@@ -5249,7 +5249,8 @@ BOOST_AUTO_TEST_CASE(parse_qb_utf8_subject)
     local_date_time ldt(t, tz);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "Re: Σχετ: Summer 2017" && msg.content() == "hello world");
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject_raw().buffer == "Re: Σχετ: Summer 2017" &&
+        msg.subject_raw().charset == "UTF-8" && msg.subject_raw().buf_codec == codec::codec_type::BASE64 && msg.content() == "hello world");
 }
 
 
@@ -5275,9 +5276,8 @@ BOOST_AUTO_TEST_CASE(parse_qq_latin1_subject_raw)
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject_raw().buffer == "Comprobaci\363n CV" && msg.subject_raw().charset == "ISO-8859-1" &&
-        msg.content() == "hello world");
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject_raw().buffer == "Comprobaci\363n CV" &&
+        msg.subject_raw().charset == "ISO-8859-1" && msg.subject_raw().buf_codec == codec::codec_type::QUOTED_PRINTABLE && msg.content() == "hello world");
 }
 
 
@@ -5302,7 +5302,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_utf8_emoji_subject_raw)
         message msg;
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
+        BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8", codec::codec_type::QUOTED_PRINTABLE));
     }
     {
         message msg;
@@ -5342,7 +5342,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject() == "TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO PROGRAMIRANJE ALEPHO BEOGRAD" &&
+        msg.subject_raw() == string_t("TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO PROGRAMIRANJE ALEPHO BEOGRAD", "utf-8", codec::codec_type::QUOTED_PRINTABLE) &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5378,7 +5378,7 @@ BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
         msg.parse(msg_str);
         BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
             msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-            msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
+            msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_type::BASE64) &&
             msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
     }
     {
@@ -5417,7 +5417,7 @@ BOOST_AUTO_TEST_CASE(parse_qbq_long_subject)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
+        msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "UTF-8", codec::codec_type::QUOTED_PRINTABLE) &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5467,7 +5467,8 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_emoji)
         local_date_time ldt(t, tz);
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
+        BOOST_CHECK(msg.subject_raw().buffer == "🎁Živi godinu dana na račun Super Kartice" && msg.subject_raw().charset == "UTF-8" &&
+            msg.subject_raw().buf_codec == codec::codec_type::QUOTED_PRINTABLE);
     }
     {
         message msg;

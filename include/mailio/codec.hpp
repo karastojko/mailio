@@ -559,7 +559,7 @@ Checking whether the strings are equal by the content and charset.
 template<typename Buf, typename Char>
 bool operator==(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
-    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset;
+    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset && lhs.buf_codec == rhs.buf_codec;
 }
 
 
