@@ -2001,7 +2001,6 @@ BOOST_AUTO_TEST_CASE(format_notification)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.disposition_notification(mail_address("mailio", "adresa@mailio.dev"));
@@ -2035,7 +2034,6 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::BASE64);
     msg.sender(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8, codec::codec_type::BASE64),
         "adresa@mailio.dev"));
@@ -2082,7 +2080,6 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8, codec::codec_type::QUOTED_PRINTABLE),
         "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
@@ -2127,7 +2124,6 @@ Formatting a message with UTF-8 subject by using Base64 Q codec.
 BOOST_AUTO_TEST_CASE(format_qb_long_subject)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2158,7 +2154,6 @@ Formatting a message with UTF-8 subject by using Quoted Printable Q codec.
 BOOST_AUTO_TEST_CASE(format_qq_long_subject)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2189,7 +2184,6 @@ Formatting a message with UTF-8 subject containing the long dash character.
 BOOST_AUTO_TEST_CASE(format_qq_subject_dash)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2219,7 +2213,6 @@ Formatting a message with UTF-8 subject containing an emoji character.
 BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2473,7 +2466,6 @@ BOOST_AUTO_TEST_CASE(format_utf8_subject)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Здраво, Свете!");
     msg.content("Hello, World!");
-    msg.header_codec(mime::header_codec_t::UTF8);
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
@@ -2494,7 +2486,6 @@ Formatting ISO 8859-1 subject in combination with the UTF8 header.
 BOOST_AUTO_TEST_CASE(format_iso8859_subject_utf8_header)
 {
     message msg;
-    msg.header_codec(mime::header_codec_t::UTF8);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2523,7 +2514,6 @@ Formatting a message with UTF-8 raw subject by using Base64 Q codec.
 BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2554,7 +2544,6 @@ Formatting a message with the message ID in the strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2593,7 +2582,6 @@ BOOST_AUTO_TEST_CASE(format_long_message_id)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2630,7 +2618,6 @@ Formatting the message ID without the monkey character in the strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2653,7 +2640,6 @@ Formatting the message ID without the monkey character in the non-strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_non_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2685,7 +2671,6 @@ Formatting the message ID with the space character in the strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_with_space_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2708,7 +2693,6 @@ Formatting the message ID with the space character in the non-strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2740,7 +2724,6 @@ Formatting a message with the in-reply-to and references IDs.
 BOOST_AUTO_TEST_CASE(format_in_reply_to)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2778,7 +2761,6 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2820,7 +2802,6 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8, codec::codec_type::BASE64), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_type::BASE64), "qwerty@gmail.com"));
@@ -2956,7 +2937,6 @@ BOOST_AUTO_TEST_CASE(format_long_from)
     {
         message msg;
         msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-        msg.header_codec(mailio::mime::header_codec_t::BASE64);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
@@ -2979,7 +2959,6 @@ BOOST_AUTO_TEST_CASE(format_long_from)
     {
         message msg;
         msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-        msg.header_codec(mailio::mime::header_codec_t::BASE64);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
@@ -3002,7 +2981,6 @@ BOOST_AUTO_TEST_CASE(format_long_from)
     {
         message msg;
         msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
-        msg.header_codec(mailio::mime::header_codec_t::BASE64);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
@@ -5368,7 +5346,6 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
@@ -5404,7 +5381,6 @@ BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
-        msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
@@ -5635,8 +5611,6 @@ BOOST_AUTO_TEST_CASE(parse_utf8_address)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojkovic" && msg.from().addresses.at(0).address == "karastojković@gmail.com");
-
-    msg.header_codec(mime::header_codec_t::UTF8);
     BOOST_CHECK(msg.from_to_string() == "Tomislav Karastojkovic <karastojković@gmail.com>" && msg.content() == "Здраво, Свете!\r\n");
 }
 

@@ -446,6 +446,7 @@ public:
 
     @param hdr_codec Codec to set.
     **/
+    [[deprecated]]
     void header_codec(header_codec_t hdr_codec);
 
     /**
@@ -453,6 +454,7 @@ public:
 
     @return Codec set.
     **/
+    [[deprecated]]
     header_codec_t header_codec() const;
 
     /**
@@ -883,6 +885,7 @@ protected:
     /**
     Codec used for headers.
     **/
+    [[deprecated]]
     header_codec_t header_codec_;
 
     /**

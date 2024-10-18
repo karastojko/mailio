@@ -116,7 +116,6 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             content_part.line_policy(line_policy_);
             content_part.strict_mode(strict_mode_);
             content_part.strict_codec_mode(strict_codec_mode_);
-            content_part.header_codec(header_codec_);
             content_part.attribute_codec(attribute_codec_);
             string cps;
             content_part.format(cps, opts.dot_escape);
@@ -442,7 +441,6 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
     string content = ss.str();
 
     mime m;
-    m.header_codec(this->header_codec());
     m.attribute_codec(this->attribute_codec());
     m.content_type(content_type_t(type, subtype));
     // content type charset is not set, so it will be treated as us-ascii
@@ -472,7 +470,6 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         content_part.line_policy(line_policy_);
         content_part.strict_mode(strict_mode_);
         content_part.strict_codec_mode(strict_codec_mode_);
-        content_part.header_codec(header_codec_);
         content_part.attribute_codec(attribute_codec_);
         parts_.push_back(content_part);
         content_.clear();
@@ -486,7 +483,6 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         ss << std::get<0>(att).rdbuf();
 
         mime m;
-        m.header_codec(this->header_codec());
         m.attribute_codec(this->attribute_codec());
         m.content_type(content_type_t(std::get<2>(att)));
         // content type charset is not set, so it will be treated as us-ascii
@@ -816,28 +812,28 @@ string message::format_subject() const
     const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
     const string::size_type line_policy = static_cast<string::size_type>(line_policy_) - HEADER_SEPARATOR_STR.length();
 
-    if (subject_.buf_codec == header_codec_t::ASCII)
+    if (subject_.buf_codec == codec::codec_type::ASCII)
     {
         bit7 b7(line1_policy, line_policy);
         vector<string> hdr = b7.encode(subject_.buffer);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
-    else if (subject_.buf_codec == header_codec_t::UTF8)
+    else if (subject_.buf_codec == codec::codec_type::UTF8)
     {
         bit8 b8(line1_policy, line_policy);
         vector<string> hdr = b8.encode(subject_.buffer);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
-    else if (subject_.buf_codec == header_codec_t::QUOTED_PRINTABLE || subject_.buf_codec == header_codec_t::BASE64)
+    else if (subject_.buf_codec == codec::codec_type::QUOTED_PRINTABLE || subject_.buf_codec == codec::codec_type::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
         vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, subject_.buf_codec);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
-    else if (subject_.buf_codec == header_codec_t::PERCENT)
+    else if (subject_.buf_codec == codec::codec_type::PERCENT)
     {
         throw message_error("Percent codec not allowed for the subject.");
     }
