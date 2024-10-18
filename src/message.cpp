@@ -833,7 +833,7 @@ string message::format_subject() const
     else if (subject_.buf_codec == header_codec_t::QUOTED_PRINTABLE || subject_.buf_codec == header_codec_t::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
-        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
+        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, subject_.buf_codec);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
