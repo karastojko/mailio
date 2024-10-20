@@ -3061,8 +3061,17 @@ BOOST_AUTO_TEST_CASE(parse_simple)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "parse simple" &&
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" &&
+        msg.from().addresses.at(0).name.charset == "ASCII" &&
+        msg.from().addresses.at(0).name.buf_codec == codec::codec_type::ASCII &&
+        msg.from().addresses.at(0).address == "adre.sa@mailio.dev" &&
+        msg.date_time() == ldt &&
+        msg.recipients().addresses.at(0).name.charset == "ASCII" &&
+        msg.recipients().addresses.at(0).name.buf_codec == codec::codec_type::ASCII &&
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+        msg.subject() == "parse simple" &&
+        msg.subject_raw().charset == "ASCII" &&
+        msg.subject_raw().buf_codec == codec::codec_type::ASCII &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5215,10 +5224,20 @@ BOOST_AUTO_TEST_CASE(parse_qq_sender)
         message msg;
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
-            msg.recipients().addresses.at(0).name == "mailio" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
-            msg.recipients().addresses.at(1).name == "Tomislav Karastojković" && msg.recipients().addresses.at(1).address == "qwerty@gmail.com"&&
-            msg.recipients().addresses.at(2).name == "Томислав Карастојковић" && msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
+        BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" &&
+            msg.from().addresses.at(0).name.charset == "UTF-8" &&
+            msg.from().addresses.at(0).name.buf_codec == codec::codec_type::QUOTED_PRINTABLE &&
+            msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
+            msg.recipients().addresses.at(0).name.buffer == "mailio" &&
+            msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
+            msg.recipients().addresses.at(1).name == "Tomislav Karastojković" &&
+            msg.recipients().addresses.at(1).name.charset == "UTF-8" &&
+            msg.recipients().addresses.at(1).name.buf_codec == codec::codec_type::QUOTED_PRINTABLE &&
+            msg.recipients().addresses.at(1).address == "qwerty@gmail.com"&&
+            msg.recipients().addresses.at(2).name == "Томислав Карастојковић" &&
+            msg.recipients().addresses.at(2).name.charset == "UTF-8" &&
+            msg.recipients().addresses.at(2).name.buf_codec == codec::codec_type::QUOTED_PRINTABLE &&
+            msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
     }
     {
         message msg;
@@ -5244,7 +5263,9 @@ BOOST_AUTO_TEST_CASE(parse_qb_sender)
         "test\r\n";
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио");
+    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" &&
+        msg.from().addresses.at(0).name.charset == "UTF-8" &&
+        msg.from().addresses.at(0).name.buf_codec == codec::codec_type::BASE64);
 }
 
 
@@ -5266,7 +5287,10 @@ BOOST_AUTO_TEST_CASE(parse_qq_from_no_space)
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "Action fran" "\xE7" "aise" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
+    BOOST_CHECK(msg.from().addresses.at(0).name == "Action fran" "\xE7" "aise" &&
+        msg.from().addresses.at(0).name.charset == "WINDOWS-1252" &&
+        msg.from().addresses.at(0).name.buf_codec == codec::codec_type::QUOTED_PRINTABLE &&
+        msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
 
 

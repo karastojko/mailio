@@ -23,6 +23,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <optional>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -122,7 +123,8 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
-        // recursively format mime parts
+        // Recursively format mime parts.
+
         for (const auto& p: parts_)
         {
             string p_str;
@@ -1476,6 +1478,7 @@ string_t message::parse_address_name(const string& address_name)
     {
         auto parts = split_qc_string(address_name);
         string parts_str, charset;
+        std::optional<codec::codec_type> buf_codec = std::nullopt;
         for (const auto& p : parts)
         {
             string::size_type p_len = p.length();
@@ -1485,8 +1488,12 @@ string_t message::parse_address_name(const string& address_name)
                 charset = get<1>(an);
             if (charset != get<1>(an))
                 throw message_error("Inconsistent Q encodings.");
+            if (!buf_codec)
+                buf_codec = get<2>(an);
         }
-        return string_t(parts_str, charset);
+        if (!buf_codec)
+            buf_codec = codec::codec_type::ASCII;
+        return string_t(parts_str, charset, buf_codec.value());
     }
 
     if (codec::is_utf8_string(address_name))

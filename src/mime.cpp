@@ -144,7 +144,9 @@ void mime::format(string& mime_str, bool dot_escape) const
     {
         if (!content.empty())
             mime_str += codec::END_OF_LINE;
-        // recursively format mime parts
+
+        // Recursively format mime parts.
+
         for (auto& p : parts_)
         {
             string p_str;
