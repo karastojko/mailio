@@ -372,13 +372,13 @@ vector<string> message::references() const
 }
 
 
-void message::subject(const string& mail_subject, codec::codec_type sub_codec)
+void message::subject(const string& mail_subject, codec::codec_t sub_codec)
 {
     subject_.buffer = mail_subject;
     subject_.charset = codec::CHARSET_ASCII;
     if (codec::is_utf8_string(subject_.buffer))
         subject_.charset = codec::CHARSET_UTF8;
-    subject_.buf_codec = sub_codec;
+    subject_.codec_type = sub_codec;
 }
 
 
@@ -390,7 +390,7 @@ void message::subject_raw(const string_t& mail_subject)
 
 #if defined(__cpp_char8_t)
 
-void message::subject(const u8string& mail_subject, codec::codec_type sub_codec)
+void message::subject(const u8string& mail_subject, codec::codec_t sub_codec)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
     subject_.charset = codec::CHARSET_UTF8;
@@ -670,7 +670,7 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, REFERENCES_HEADER))
         references_ = parse_many_ids(header_value);
     else if (iequals(header_name, SUBJECT_HEADER))
-        std::tie(subject_.buffer, subject_.charset, subject_.buf_codec) = parse_subject(header_value);
+        std::tie(subject_.buffer, subject_.charset, subject_.codec_type) = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
         date_time_ = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
@@ -746,7 +746,7 @@ string message::format_address(const string_t& name, const string& address, cons
 
     // The charset has precedence over the header codec. Only for the non-ascii characters, consider the header encoding.
 
-    if (name.buf_codec == codec::codec_type::ASCII)
+    if (name.codec_type == codec::codec_t::ASCII)
     {
         // Check the name format.
 
@@ -763,18 +763,18 @@ string message::format_address(const string_t& name, const string& address, cons
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
-    else if (name.buf_codec == codec::codec_type::UTF8)
+    else if (name.codec_type == codec::codec_t::UTF8)
     {
         // TODO: Should be replaced with the eight bit codec.
         bit7 b7(line_policy - HEADER_LEN, line_policy);
         name_formatted = b7.encode(name.buffer);
     }
-    else if (name.buf_codec == codec::codec_type::BASE64 || name.buf_codec == codec::codec_type::QUOTED_PRINTABLE)
+    else if (name.codec_type == codec::codec_t::BASE64 || name.codec_type == codec::codec_t::QUOTED_PRINTABLE)
     {
         q_codec qc(line_policy - HEADER_LEN, static_cast<string::size_type>(line_policy_));
-        name_formatted = qc.encode(name.buffer, name.charset, name.buf_codec);
+        name_formatted = qc.encode(name.buffer, name.charset, name.codec_type);
     }
-    else if (name.buf_codec == codec::codec_type::PERCENT)
+    else if (name.codec_type == codec::codec_t::PERCENT)
         throw message_error("Percent codec not allowed for the mail address.");
 
     // Check address format.
@@ -814,28 +814,28 @@ string message::format_subject() const
     const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
     const string::size_type line_policy = static_cast<string::size_type>(line_policy_) - HEADER_SEPARATOR_STR.length();
 
-    if (subject_.buf_codec == codec::codec_type::ASCII)
+    if (subject_.codec_type == codec::codec_t::ASCII)
     {
         bit7 b7(line1_policy, line_policy);
         vector<string> hdr = b7.encode(subject_.buffer);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
-    else if (subject_.buf_codec == codec::codec_type::UTF8)
+    else if (subject_.codec_type == codec::codec_t::UTF8)
     {
         bit8 b8(line1_policy, line_policy);
         vector<string> hdr = b8.encode(subject_.buffer);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
-    else if (subject_.buf_codec == codec::codec_type::QUOTED_PRINTABLE || subject_.buf_codec == codec::codec_type::BASE64)
+    else if (subject_.codec_type == codec::codec_t::QUOTED_PRINTABLE || subject_.codec_type == codec::codec_t::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
-        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, subject_.buf_codec);
+        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, subject_.codec_type);
         subject += hdr.at(0) + codec::END_OF_LINE;
         subject += fold_header_line(hdr);
     }
-    else if (subject_.buf_codec == codec::codec_type::PERCENT)
+    else if (subject_.codec_type == codec::codec_t::PERCENT)
     {
         throw message_error("Percent codec not allowed for the subject.");
     }
@@ -1449,11 +1449,11 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-tuple<string, string, codec::codec_type>
+tuple<string, string, codec::codec_t>
 message::parse_subject(const string& subject)
 {
     if (codec::is_utf8_string(subject))
-        return make_tuple(subject, codec::CHARSET_UTF8, codec::codec_type::ASCII);
+        return make_tuple(subject, codec::CHARSET_UTF8, codec::codec_t::ASCII);
     else
     {
         q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
@@ -1478,7 +1478,7 @@ string_t message::parse_address_name(const string& address_name)
     {
         auto parts = split_qc_string(address_name);
         string parts_str, charset;
-        std::optional<codec::codec_type> buf_codec = std::nullopt;
+        std::optional<codec::codec_t> buf_codec = std::nullopt;
         for (const auto& p : parts)
         {
             string::size_type p_len = p.length();
@@ -1492,7 +1492,7 @@ string_t message::parse_address_name(const string& address_name)
                 buf_codec = get<2>(an);
         }
         if (!buf_codec)
-            buf_codec = codec::codec_type::ASCII;
+            buf_codec = codec::codec_t::ASCII;
         return string_t(parts_str, charset, buf_codec.value());
     }
 

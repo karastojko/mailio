@@ -37,7 +37,7 @@ int main()
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         // The subject is automatically determined as UTF-8 since it contains 8bit characters. It is encoded as Quoted Printable,
-        msg.subject("Здраво, Свете!", mailio::codec::codec_type::QUOTED_PRINTABLE);
+        msg.subject("Здраво, Свете!", mailio::codec::codec_t::QUOTED_PRINTABLE);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -51,7 +51,7 @@ int main()
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         // The subject remains in 8bit because such header is set.
-        msg.subject("Здраво, Свете!", mailio::codec::codec_type::UTF8);
+        msg.subject("Здраво, Свете!", mailio::codec::codec_t::UTF8);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -91,7 +91,8 @@ int main()
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
-        msg.subject_raw(string_t("Здраво, Свете!", "utf-8", mailio::codec::codec_type::QUOTED_PRINTABLE));
+        msg.subject_raw(string_t("Здраво, Свете!", "utf-8",
+            mailio::codec::codec_t::QUOTED_PRINTABLE));
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);

@@ -390,7 +390,7 @@ public:
     @param mail_subject Subject to set.
     @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::string& mail_subject, codec::codec_type sub_codec = codec::codec_type::ASCII);
+    void subject(const std::string& mail_subject, codec::codec_t sub_codec = codec::codec_t::ASCII);
 
     /**
     Setting the raw subject.
@@ -407,7 +407,7 @@ public:
     @param mail_subject Subject to set.
     @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::u8string& mail_subject, codec::codec_type sub_codec = codec::codec_type::ASCII);
+    void subject(const std::u8string& mail_subject, codec::codec_t sub_codec = codec::codec_type::ASCII);
 
     /**
     Setting the raw subject.
@@ -696,7 +696,7 @@ protected:
     @throw message_error Parsing failure of Q encoding.
     @throw *             `q_codec::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string, codec::codec_type>
+    std::tuple<std::string, std::string, codec::codec_t>
     parse_subject(const std::string& subject);
 
     /**

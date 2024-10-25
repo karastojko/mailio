@@ -320,7 +320,7 @@ public:
     /**
     Methods used for the MIME header encoding/decoding.
     **/
-    enum class codec_type {ASCII, BASE64, QUOTED_PRINTABLE, UTF8, PERCENT};
+    enum class codec_t {ASCII, BASE64, QUOTED_PRINTABLE, UTF8, PERCENT};
 
     /**
     Setting the encoder and decoder line policies.
@@ -424,12 +424,12 @@ struct String
     /**
     String codec.
     **/
-    codec::codec_type buf_codec;
+    codec::codec_t codec_type;
 
     /**
     Default constructor.
     **/
-    String() : buffer(), charset(codec::CHARSET_ASCII), buf_codec(codec::codec_type::ASCII)
+    String() : buffer(), charset(codec::CHARSET_ASCII), codec_type(codec::codec_t::ASCII)
     {
     }
 
@@ -453,8 +453,8 @@ struct String
     @param charset_s Charset of the string.
     @param codec_s   Codec of the string.
     **/
-    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_type codec_s = codec::codec_type::ASCII) :
-        buffer(buffer_s), charset(boost::to_upper_copy(charset_s)), buf_codec(codec_s)
+    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_t codec_s = codec::codec_t::ASCII) :
+        buffer(buffer_s), charset(boost::to_upper_copy(charset_s)), codec_type(codec_s)
     {
     }
 
@@ -466,7 +466,7 @@ struct String
     @param charset_s Charset of the string.
     @param codec_s   Codec of the string.
     **/
-    String(const Char* str, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_type codec_s = codec::codec_type::ASCII) :
+    String(const Char* str, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_t codec_s = codec::codec_t::ASCII) :
         String(Buf(str), charset_s, codec_s)
     {
     }
@@ -559,7 +559,7 @@ Checking whether the strings are equal by the content and charset.
 template<typename Buf, typename Char>
 bool operator==(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
-    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset && lhs.buf_codec == rhs.buf_codec;
+    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset && lhs.codec_type == rhs.codec_type;
 }
 
 

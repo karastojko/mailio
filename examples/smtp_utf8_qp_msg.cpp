@@ -38,11 +38,11 @@ int main()
     {
         // create mail message
         message msg;
-        msg.from(mail_address(string_t("mailio library", "ASCII", codec::codec_type::BASE64), "mailio@mailserver.com"));// set the correct sender name and address
-        msg.add_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_type::BASE64), "mailio@gmail.com"));// set the correct recipent name and address
-        msg.add_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_type::BASE64), "mailio@outlook.com"));// add more recipients
-        msg.add_cc_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_type::BASE64), "mailio@yahoo.com"));// add CC recipient
-        msg.add_bcc_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_type::BASE64), "mailio@zoho.com"));
+        msg.from(mail_address(string_t("mailio library", "ASCII", codec::codec_t::BASE64), "mailio@mailserver.com"));// set the correct sender name and address
+        msg.add_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_t::BASE64), "mailio@gmail.com"));// set the correct recipent name and address
+        msg.add_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_t::BASE64), "mailio@outlook.com"));// add more recipients
+        msg.add_cc_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_t::BASE64), "mailio@yahoo.com"));// add CC recipient
+        msg.add_bcc_recipient(mail_address(string_t("mailio library", "ASCII", codec::codec_t::BASE64), "mailio@zoho.com"));
 
         msg.subject("smtp utf8 quoted printable message");
         // create message in Cyrillic alphabet

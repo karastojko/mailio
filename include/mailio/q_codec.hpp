@@ -71,7 +71,7 @@ public:
     @todo          Merge text and charset into a single parameter of type `string_t`.
     @todo          It must take another parameter for the header name length in order to remove the hardcoded constant.
     **/
-    std::vector<std::string> encode(const std::string& text, const std::string& charset, codec_type method) const;
+    std::vector<std::string> encode(const std::string& text, const std::string& charset, codec_t method) const;
 
     /**
     Decoding a string.
@@ -84,7 +84,7 @@ public:
     @throw codec_error Bad encoding method.
     @throw *           `decode_qp(const string&)`, `base64::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string, codec_type> decode(const std::string& text) const;
+    std::tuple<std::string, std::string, codec_t> decode(const std::string& text) const;
 
     /**
     Checking if a string is Q encoded and decodes it.
@@ -94,7 +94,7 @@ public:
     @throw codec_error Bad Q codec format.
     @todo              Returning value to hold `string_t` instead of two `std::string`.
     **/
-    std::tuple<std::string, std::string, codec_type> check_decode(const std::string& text) const;
+    std::tuple<std::string, std::string, codec_t> check_decode(const std::string& text) const;
 
 private:
 
