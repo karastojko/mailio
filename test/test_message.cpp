@@ -1672,7 +1672,6 @@ Attaching a file with UTF-8 name in the base64 attribute codec.
 BOOST_AUTO_TEST_CASE(format_utf8_attachment_b64)
 {
     message msg;
-    msg.attribute_codec(message::attribute_codec_t::BASE64);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -1686,7 +1685,7 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_b64)
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8", codec::codec_t::BASE64), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
@@ -1724,7 +1723,6 @@ Attaching a file with UTF-8 name in the quoted printable attribute codec.
 BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
 {
     message msg;
-    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -1738,7 +1736,7 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8", codec::codec_t::QUOTED_PRINTABLE), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
@@ -2298,10 +2296,9 @@ Attaching a file with the long UTF-8 name to show the attribute continuation wit
 @pre  File `cv.txt` in the current directory.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_b64)
+BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_b64)
 {
     message msg;
-    msg.attribute_codec(message::attribute_codec_t::BASE64);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2314,7 +2311,7 @@ BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_b64)
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8", codec::codec_t::BASE64), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
@@ -2350,10 +2347,9 @@ Attaching a file with the long UTF-8 name to show the attribute continuation wit
 @pre  File `cv.txt` in the current directory.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_qp)
+BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_qp)
 {
     message msg;
-    msg.attribute_codec(message::attribute_codec_t::QUOTED_PRINTABLE);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2366,7 +2362,7 @@ BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_qp)
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8", codec::codec_t::QUOTED_PRINTABLE), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
@@ -2402,10 +2398,9 @@ Attaching a file with the long UTF-8 name to show the attribute continuation wit
 @pre  File `cv.txt` in the current directory.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
+BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_pct)
 {
     message msg;
-    msg.attribute_codec(message::attribute_codec_t::PERCENT);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2418,7 +2413,7 @@ BOOST_AUTO_TEST_CASE(format_long_utf8_attachment_pct)
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8", codec::codec_t::PERCENT), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);

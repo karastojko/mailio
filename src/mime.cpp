@@ -1096,17 +1096,17 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
         ATTRIBUTES_SEPARATOR_STR.length();
     vector<string> attr_parts;
 
-    if (attribute_codec_ == attribute_codec_t::ASCII)
+    if (attr_value.codec_type == attribute_codec_t::ASCII)
     {
         bit7 b7(line1_policy, line_policy);
         attr_parts = b7.encode(attr_value);
     }
-    else if (attribute_codec_ == attribute_codec_t::QUOTED_PRINTABLE || attribute_codec_ == attribute_codec_t::BASE64)
+    else if (attr_value.codec_type == attribute_codec_t::QUOTED_PRINTABLE || attr_value.codec_type == attribute_codec_t::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
-        attr_parts = qc.encode(attr_value, attr_value.charset, attribute_codec_);
+        attr_parts = qc.encode(attr_value, attr_value.charset, attr_value.codec_type);
     }
-    else if (attribute_codec_ == attribute_codec_t::PERCENT)
+    else if (attr_value.codec_type == attribute_codec_t::PERCENT)
     {
         percent pc(line1_policy, line_policy);
         attr_parts = pc.encode(attr_value, attr_value.charset);
@@ -1120,7 +1120,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     if (attr_parts.size() == 1)
     {
         string attr_str = NEW_LINE_INDENT + attr_name;
-        if (attribute_codec_ == attribute_codec_t::PERCENT)
+        if (attr_value.codec_type == attribute_codec_t::PERCENT)
             attr_str += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(0);
         else
             attr_str += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
@@ -1136,7 +1136,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     for (part_no = 0; part_no < total_parts; part_no++)
     {
         attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_CONTINUATION_INDICATOR + to_string(part_no);
-        if (attribute_codec_ == attribute_codec_t::PERCENT)
+        if (attr_value.codec_type == attribute_codec_t::PERCENT)
             attrs += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(part_no);
         else
             attrs += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(part_no) + codec::QUOTE_STR;
