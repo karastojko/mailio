@@ -1217,14 +1217,14 @@ string_t mime::decode_value_attribute(const string& attr_value) const
             throw mime_error("Parsing attribute value failure, no language parameter.");
 
         percent pct(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
-        return string_t(pct.decode(attr_value.substr(language_pos + 1)), attr_value.substr(0, charset_pos));
+        return string_t(pct.decode(attr_value.substr(language_pos + 1)), attr_value.substr(0, charset_pos), codec::codec_t::PERCENT);
     }
 
     // Q decoding
 
     q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
     auto av = qc.check_decode(attr_value);
-    return string_t(std::get<0>(av), std::get<1>(av));
+    return string_t(std::get<0>(av), std::get<1>(av), std::get<2>(av));
 }
 
 

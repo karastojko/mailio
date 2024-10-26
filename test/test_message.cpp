@@ -3629,7 +3629,8 @@ BOOST_AUTO_TEST_CASE(parse_continued_ascii_filename_bit7)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name().charset == codec::CHARSET_ASCII && msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
+    BOOST_CHECK(msg.name().charset == codec::CHARSET_ASCII && msg.name().buffer == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini" &&
+        msg.name().charset == "ASCII" && msg.name().codec_type == codec::codec_t::ASCII);
 }
 
 
@@ -3654,7 +3655,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_filename_pct)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\\xE8.xlsx");
+    BOOST_CHECK(msg.name().buffer == "C:\\\xE8.xlsx" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type == codec::codec_t::PERCENT);
 }
 
 
@@ -3680,7 +3681,8 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_rec)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\Program Files\\\xE8.xlsx");
+    BOOST_CHECK(msg.name().buffer == "C:\\Program Files\\\xE8.xlsx" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type ==
+        codec::codec_t::PERCENT);
 }
 
 
@@ -3708,7 +3710,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_man)
         msg.strict_mode(false);
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name() == "Томислав Карастојковић");
+        BOOST_CHECK(msg.name() == "Томислав Карастојковић" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type == codec::codec_t::PERCENT);
     }
     {
         message msg;
@@ -3742,8 +3744,9 @@ BOOST_AUTO_TEST_CASE(parse_continued_content_type)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" &&
-        msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+    BOOST_CHECK(msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+    BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" && msg.name().charset == "ASCII" &&
+        msg.name().codec_type == codec::codec_t::ASCII);
 }
 
 
@@ -4992,8 +4995,9 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     msg_msg.parse(msg_str);
     BOOST_CHECK(msg_msg.content_type().type == mime::media_type_t::MULTIPART && msg_msg.content_type().subtype == "mixed" &&
         msg_msg.attachments_size() == 2);
-    BOOST_CHECK(msg_msg.parts().at(0).name() == "tkcv.txt" && msg_msg.parts().at(0).content_type().type ==
-        message::media_type_t::APPLICATION && msg_msg.parts().at(0).content_type().subtype == "txt");
+    BOOST_CHECK(msg_msg.parts().at(0).name() == "tkcv.txt" && msg_msg.parts().at(0).name().charset == "ASCII" &&
+        msg_msg.parts().at(0).name().codec_type == codec::codec_t::ASCII && msg_msg.parts().at(0).content_type().type == message::media_type_t::APPLICATION &&
+        msg_msg.parts().at(0).content_type().subtype == "txt");
     BOOST_CHECK(msg_msg.parts().at(1).name() == "a0.png" && msg_msg.parts().at(1).content_type().type == message::media_type_t::IMAGE &&
         msg_msg.parts().at(1).content_type().subtype == "png");
 
@@ -5100,7 +5104,8 @@ BOOST_AUTO_TEST_CASE(parse_attachment_utf8)
     string_t att_name;
     msg.attachment(1, att_file, att_name);
     att_file.close();
-    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt" && att_name.charset == codec::CHARSET_UTF8);
+    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt" && att_name.charset == codec::CHARSET_UTF8 &&
+        att_name.codec_type == codec::codec_t::BASE64);
 
     ofstream ofs(CV_FILE);
     BOOST_CHECK_EQUAL(!ofs, false);
