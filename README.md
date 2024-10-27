@@ -57,7 +57,8 @@ generated password for all three protocols.
 *mailio* library is supposed to work on all platforms supporting C++ 17 compiler, Boost 1.81 or newer and CMake build tool. The platforms tested so far are
 Linux, Windows, FreeBSD, MacOS, Cygwin, MinGW and the compilers are Gcc, Microsoft Visual C++ and Clang.
 
-There are two ways to build *mailio*: by cloning the [repo](https://github.com/karastojko/mailio.git) and using Cmake or by using Vcpkg.
+There are several ways to build *mailio*: by cloning the [repo](https://github.com/karastojko/mailio.git) and using Cmake, by using Vcpkg or
+[xmake](https://xmake.io).
 
 
 ## CMake ##
@@ -121,8 +122,10 @@ Tests are not available as an option in this case. Use the CMake way to build th
 
 * Recursive formatter and parser of the MIME message.
 * MIME message recognizes the most common headers like subject, recipients, content type and so on.
-* Encodings that are supported for the message body: Seven bit, Eight bit, Binary, Base64 and Quoted Printable.
-* Subject, attachment and name part of the mail address can be in ASCII or UTF-8 format.
+* Message body encodings that are supported: Seven bit, Eight bit, Binary, Base64 and Quoted Printable.
+* Header encodings that are supported: ASCII, UTF-8, Base64, Quoted Printable.
+* Header attributes encodings that are supported: ASCII, Base64, Quoted Printable, Percent.
+* String charset configurable for headers and their attributes.
 * All media types are recognized, including MIME message embedded within another message.
 * MIME message has configurable line length policy and strict mode for parsing.
 * SMTP implementation with message sending. Both plain and SSL (including START TLS) versions are available.
@@ -131,17 +134,25 @@ Tests are not available as an option in this case. Use the CMake way to build th
   versions are available.
 
 
-# Issues #
+# Issues and improvements #
 
 The library is tested on valid mail servers, so probably there are negative test scenarios that are not covered by the code. In case you find one, please
 contact me. Here is a list of issues known so far and planned to be fixed in the future.
 
 * MIME header attributes not fully implemented.
-* Non-ASCII attachment name is assumed to be UTF-8.
 * IMAP supports only ASCII folder names.
+* IMAP lacks the idle support.
+* Editing parts of a message.
+* IMAP flags.
+* Asynchronous I/O.
+* More descriptive error messages.
+* External initialization of the SSL context.
 
 
 # Contributors #
+
+Thanks to all people who contribute to the project by improving the source code, report problems and propose new features. Here is a list from the Git history,
+in case I missed someone please let me know.
 
 * [Trevor Mellon](https://github.com/TrevorMellon): CMake build scripts.
 * [Kira Backes](mailto:kira.backes[at]nrwsoft.de): Fix for correct default message date.
@@ -159,7 +170,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [Canyon E](https://github.com/canyone2015): IMAP folder delimiter static variable issue.
 * [ostermal](https://github.com/ostermal): Bug with the horizontal tab in MIME headers.
 * [MRsoymilk](mailto:313958485[at]qq.com): Bug in the sending attachment example.
-* [Don Yihtseu](https://github.com/tsurumi-yizhou): Add Chinese document.
+* [Don Yihtseu](https://github.com/tsurumi-yizhou): Add Chinese ReadMe.
 * [Leonhard Kipp](mailto:Leonhard.Kipp@ppro.com): Proper way to build the shared library. Message formatting options.
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
 
@@ -171,6 +182,7 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * [RFC 2045](http://www.rfc-editor.org/rfc/rfc2045): Multipurpose Internet Mail Extensions (MIME) Part One: Format of Internet Message Bodies
 * [RFC 2046](http://www.rfc-editor.org/rfc/rfc2046): Multipurpose Internet Mail Extensions (MIME) Part Two: Media Types
 * [RFC 2047](http://www.rfc-editor.org/rfc/rfc2047): MIME (Multipurpose Internet Mail Extensions) Part Three: Message Header Extensions for Non-ASCII Text
+* [RFC 2177](http://www.rfc-editor.org/rfc/rfc2177): IMAP4 IDLE command
 * [RFC 2183](http://www.rfc-editor.org/rfc/rfc2183): Communicating Presentation Information in Internet Messages: The Content-Disposition Header Field
 * [RFC 2231](http://www.rfc-editor.org/rfc/rfc2231): MIME Parameter Value and Encoded Word Extensions: Sets, Languages, and Continuations
 * [RFC 2449](http://www.rfc-editor.org/rfc/rfc2449): Extension Mechanism
