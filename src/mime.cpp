@@ -124,9 +124,9 @@ const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 // TODO: Set header codec to ASCII.
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
-    strict_mode_(false), strict_codec_mode_(false), header_codec_(header_codec_t::UTF8), attribute_codec_(attribute_codec_t::ASCII),
-    content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
-    disposition_(content_disposition_t::NONE), parsing_header_(true), mime_status_(mime_parsing_status_t::NONE)
+    strict_mode_(false), strict_codec_mode_(false), header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""),
+    encoding_(content_transfer_encoding_t::NONE), disposition_(content_disposition_t::NONE), parsing_header_(true),
+    mime_status_(mime_parsing_status_t::NONE)
 {
 }
 
@@ -436,18 +436,6 @@ void mime::header_codec(header_codec_t hdr_codec)
 mime::header_codec_t mime::header_codec() const
 {
     return header_codec_;
-}
-
-
-void mime::attribute_codec(attribute_codec_t attr_codec)
-{
-    attribute_codec_ = attr_codec;
-}
-
-
-mime::attribute_codec_t mime::attribute_codec() const
-{
-    return attribute_codec_;
 }
 
 
@@ -1096,17 +1084,17 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
         ATTRIBUTES_SEPARATOR_STR.length();
     vector<string> attr_parts;
 
-    if (attr_value.codec_type == attribute_codec_t::ASCII)
+    if (attr_value.codec_type == codec::codec_t::ASCII)
     {
         bit7 b7(line1_policy, line_policy);
         attr_parts = b7.encode(attr_value);
     }
-    else if (attr_value.codec_type == attribute_codec_t::QUOTED_PRINTABLE || attr_value.codec_type == attribute_codec_t::BASE64)
+    else if (attr_value.codec_type == codec::codec_t::QUOTED_PRINTABLE || attr_value.codec_type == codec::codec_t::BASE64)
     {
         q_codec qc(line1_policy, line_policy);
         attr_parts = qc.encode(attr_value, attr_value.charset, attr_value.codec_type);
     }
-    else if (attr_value.codec_type == attribute_codec_t::PERCENT)
+    else if (attr_value.codec_type == codec::codec_t::PERCENT)
     {
         percent pc(line1_policy, line_policy);
         attr_parts = pc.encode(attr_value, attr_value.charset);
@@ -1120,7 +1108,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     if (attr_parts.size() == 1)
     {
         string attr_str = NEW_LINE_INDENT + attr_name;
-        if (attr_value.codec_type == attribute_codec_t::PERCENT)
+        if (attr_value.codec_type == codec::codec_t::PERCENT)
             attr_str += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(0);
         else
             attr_str += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(0) + codec::QUOTE_STR;
@@ -1136,7 +1124,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     for (part_no = 0; part_no < total_parts; part_no++)
     {
         attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_CONTINUATION_INDICATOR + to_string(part_no);
-        if (attr_value.codec_type == attribute_codec_t::PERCENT)
+        if (attr_value.codec_type == codec::codec_t::PERCENT)
             attrs += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(part_no);
         else
             attrs += codec::EQUAL_CHAR + codec::QUOTE_STR + attr_parts.at(part_no) + codec::QUOTE_STR;
