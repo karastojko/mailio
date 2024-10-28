@@ -351,6 +351,7 @@ Since content type and transfer encoding are default, no such headers are create
 BOOST_AUTO_TEST_CASE(format_long_text_default_default)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2014-01-17 13:09:22");
@@ -422,6 +423,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_default_base64)
     msg.subject("format long text default base64");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
     msg.content_type(message::media_type_t::TEXT, "plain");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
         "\r\n"
@@ -497,6 +499,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_ascii_qp)
         " a isto to treba proveriti sa parsiranjem.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     string msg_str;
     msg.format(msg_str);
@@ -559,6 +562,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_base64)
         " а исто то треба проверити са парсирањем.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     string msg_str;
     msg.format(msg_str);
@@ -614,6 +618,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_cyr_qp)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format long text utf8 cyrillic quoted printable");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
@@ -723,7 +728,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_lat_qp)
     msg.subject("format long text utf8 latin quoted printable");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
-
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content("Ovo je jako dugačka poruka koja ima i praznih linija i predugačkih linija. Nije jasno kako će se tekst prelomiti\r\n"
         "pa se nadam da će to ovaj test pokazati.\r\n"
         "\r\n"
@@ -903,6 +908,7 @@ Formatting a related multipart with the first part HTML default charset Base64 e
 BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -915,11 +921,13 @@ BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
     msg.content_type(message::media_type_t::MULTIPART, "related");
 
     mime m1;
+    m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m1.content_type(message::media_type_t::TEXT, "html");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
     m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
 
     mime m2;
+    m2.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     m2.content("Здраво, Свете!");
@@ -1036,6 +1044,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     ptime t = time_from_string("2016-03-15 13:13:32");
     time_zone_ptr tz(new posix_time_zone("-00:00"));
     local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.date_time(ldt);
     msg.subject("format dotted multipart");
     msg.boundary("my_bound");
@@ -1044,6 +1053,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m1.content("<html>\r\n"
         "\t<head>\r\n"
         "\t\t<title>.naslov</title>\r\n"
@@ -1063,6 +1073,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
         "</html>");
 
     mime m2;
+    m2.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     m2.content(".Zdravo svete!\r\n"
@@ -1078,6 +1089,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     mime m3;
     m3.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     m3.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    m3.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m3.content(".Здраво, Свете!\r\n"
         "..\r\n"
         "Има ли кога?\r\n"
@@ -1106,6 +1118,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
         "\t.<p>Ima li koga?</p>\r\n"
         "\t</body>\r\n"
         "</html>");
+    m4.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     msg.add_part(m1);
     msg.add_part(m2);
@@ -1280,6 +1293,7 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
     message msg;
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
@@ -1293,8 +1307,10 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
     m1.content("<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa Bato!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>");
+    m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     mime m2;
+    m2.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
     m2.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
@@ -1314,6 +1330,7 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
 
     mime m3;
     m3.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m3.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m3.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     m3.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
@@ -1347,6 +1364,7 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
         "а исто то треба проверити са парсирањем.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+    m4.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     msg.add_part(m1);
     msg.add_part(m2);
@@ -1783,6 +1801,7 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format message attachment");
     msg.boundary("mybnd");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
@@ -2128,6 +2147,7 @@ BOOST_AUTO_TEST_CASE(format_qb_long_subject)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64));
     msg.content("Hello, Sithonia!");
 
@@ -2154,6 +2174,7 @@ BOOST_AUTO_TEST_CASE(format_qq_long_subject)
     message msg;
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
@@ -2211,6 +2232,7 @@ Formatting a message with UTF-8 subject containing an emoji character.
 BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2509,6 +2531,7 @@ Formatting a message with UTF-8 raw subject by using Base64 Q codec.
 BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2539,6 +2562,7 @@ Formatting a message with several codecs in the header.
 BOOST_AUTO_TEST_CASE(format_many_codecs)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("маилио", "UTF-8", codec::codec_t::QUOTED_PRINTABLE), "adresa@mailio.dev"));
     msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_t::BASE64), "qwerty@gmail.com"));
@@ -2908,6 +2932,7 @@ Formatting a message with a long header to be folded.
 BOOST_AUTO_TEST_CASE(format_long_header)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev"));
     msg.add_recipient(mail_address("contact", "kontakt@mailio.dev"));

@@ -122,8 +122,7 @@ const string mime::CONTENT_ATTR_ALPHABET{"!#$%&'*+-.^_`|~"};
 const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
-// TODO: Set header codec to ASCII.
-mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::RECOMMENDED),
+mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::MANDATORY),
     strict_mode_(false), strict_codec_mode_(false), header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""),
     encoding_(content_transfer_encoding_t::NONE), disposition_(content_disposition_t::NONE), parsing_header_(true),
     mime_status_(mime_parsing_status_t::NONE)

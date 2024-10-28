@@ -482,6 +482,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         ss << std::get<0>(att).rdbuf();
 
         mime m;
+        m.line_policy(line_policy_);
         m.content_type(content_type_t(std::get<2>(att)));
         // content type charset is not set, so it will be treated as us-ascii
         m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
