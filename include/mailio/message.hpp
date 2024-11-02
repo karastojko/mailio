@@ -407,7 +407,7 @@ public:
     @param mail_subject Subject to set.
     @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::u8string& mail_subject, codec::codec_t sub_codec = codec::codec_type::ASCII);
+    void subject(const std::u8string& mail_subject, codec::codec_t sub_codec = codec::codec_t::ASCII);
 
     /**
     Setting the raw subject.
