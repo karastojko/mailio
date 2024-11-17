@@ -1,7 +1,7 @@
 /*
 
 codec.hpp
------------
+---------
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
 
@@ -69,17 +69,12 @@ public:
     static std::string surround_string(const std::string& text, char surround_char = '"');
 
     /**
-    Checking if a string is UTF-8 encoded.
+    Checking if a string is eight bit encoded.
 
     @param txt String to check.
-    @return    True if it's UTF-8, false if not.
+    @return    True if it's eight bit, false if not.
     **/
     static bool is_utf8_string(const std::string& txt);
-
-    /**
-    Decoding a percent encoded string as described in RFC 2231 section 4.
-    **/
-    static std::string decode_percent(const std::string& txt);
 
     /**
     Nil character.
@@ -109,17 +104,7 @@ public:
     /**
     Percent character.
     **/
-    static const char PERCENT_CHAR = '%';
-
-    /**
-    Asterisk character.
-    **/
-    static const char ASTERISK_CHAR = '*';
-
-    /**
-    Asterisk character as string.
-    **/
-    static const std::string ASTERISK_STR;
+    static const char PERCENT_HEX_FLAG = '%';
 
     /**
     Slash character.
@@ -317,24 +302,33 @@ public:
     static const std::string CHARSET_UTF8;
 
     /**
+    Attribute indicator for the charset and language parameters.
+    **/
+    static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
+
+    /**
+    Attribute indicator for the charset and language parameters as string.
+    **/
+    static const std::string ATTRIBUTE_CHARSET_SEPARATOR_STR;
+
+    /**
     Line length policy.
-
-    @todo No need for `SUBJECT` line policy.
     **/
-    enum class line_len_policy_t : std::string::size_type {NONE = 2048, RECOMMENDED = 78, MANDATORY = 998, VERYLARGE = 16384};
+    enum class line_len_policy_t : std::string::size_type {RECOMMENDED = 78, MANDATORY = 998, NONE = UINT_MAX,
+        VERYLARGE [[deprecated]] = 16384};
 
     /**
-    Methods used for MIME header encoding/decoding.
+    Methods used for the MIME header encoding/decoding.
     **/
-    enum class header_codec_t {BASE64, QUOTED_PRINTABLE, UTF8};
+    enum class codec_t {ASCII, BASE64, QUOTED_PRINTABLE, UTF8, PERCENT};
 
     /**
-    Setting the encoder and decoder line policy of the codec.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy Encoder line policy to set.
-    @param decoder_line_policy Decoder line policy to set.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     **/
-    codec(line_len_policy_t encoder_line_policy, line_len_policy_t decoder_line_policy);
+    codec(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     codec(const codec&) = delete;
 
@@ -366,14 +360,14 @@ public:
 protected:
 
     /**
-    Encoder line length policy.
+    Policy applied for encoding of the first line.
     **/
-    line_len_policy_t line_policy_;
+    std::string::size_type line1_policy_;
 
     /**
-    Decoder line length policy.
+    Policy applied for encoding of the lines other than first one, and for decoding of all lines including the first one.
     **/
-    line_len_policy_t decoder_line_policy_;
+    std::string::size_type lines_policy_;
 
     /**
     Strict mode for encoding/decoding.
@@ -428,9 +422,14 @@ struct String
 
 
     /**
+    String codec.
+    **/
+    codec::codec_t codec_type;
+
+    /**
     Default constructor.
     **/
-    String() : buffer(), charset(codec::CHARSET_ASCII)
+    String() : buffer(), charset(codec::CHARSET_ASCII), codec_type(codec::codec_t::ASCII)
     {
     }
 
@@ -452,9 +451,10 @@ struct String
 
     @param buffer_s  Content of the string.
     @param charset_s Charset of the string.
-    @todo  Hardcoded string is available as static in `codec`.
+    @param codec_s   Codec of the string.
     **/
-    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII) : buffer(buffer_s), charset(boost::to_upper_copy(charset_s))
+    String(const Buf& buffer_s, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_t codec_s = codec::codec_t::ASCII) :
+        buffer(buffer_s), charset(boost::to_upper_copy(charset_s)), codec_type(codec_s)
     {
     }
 
@@ -462,9 +462,12 @@ struct String
     /**
     Initializing of the buffer with the string literal.
 
-    @param str String literal.
+    @param str       String literal.
+    @param charset_s Charset of the string.
+    @param codec_s   Codec of the string.
     **/
-    String(const Char* str) : String(Buf(str))
+    String(const Char* str, const std::string& charset_s = codec::CHARSET_ASCII, codec::codec_t codec_s = codec::codec_t::ASCII) :
+        String(Buf(str), charset_s, codec_s)
     {
     }
 
@@ -556,7 +559,7 @@ Checking whether the strings are equal by the content and charset.
 template<typename Buf, typename Char>
 bool operator==(const String<Buf, Char>& lhs, const String<Buf, Char>& rhs)
 {
-    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset;
+    return lhs.buffer == rhs.buffer && lhs.charset == rhs.charset && lhs.codec_type == rhs.codec_type;
 }
 
 

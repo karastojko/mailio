@@ -79,6 +79,7 @@ set(project_sources
     ${PROJECT_SOURCE_DIR}/src/mailboxes.cpp
     ${PROJECT_SOURCE_DIR}/src/message.cpp
     ${PROJECT_SOURCE_DIR}/src/mime.cpp
+    ${PROJECT_SOURCE_DIR}/src/percent.cpp
     ${PROJECT_SOURCE_DIR}/src/pop3.cpp
     ${PROJECT_SOURCE_DIR}/src/quoted_printable.cpp
     ${PROJECT_SOURCE_DIR}/src/q_codec.cpp
@@ -96,6 +97,7 @@ set(project_headers
     ${PROJECT_SOURCE_DIR}/include/mailio/mailboxes.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/message.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/mime.hpp
+    ${PROJECT_SOURCE_DIR}/include/mailio/percent.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/pop3.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/quoted_printable.hpp
     ${PROJECT_SOURCE_DIR}/include/mailio/q_codec.hpp

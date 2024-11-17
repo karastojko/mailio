@@ -34,11 +34,10 @@ int main()
     // Set the file encoding to UTF-8 to properly see the letters in this snippet.
     {
         message msg;
-        msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         // The subject is automatically determined as UTF-8 since it contains 8bit characters. It is encoded as Quoted Printable,
-        msg.subject("Здраво, Свете!");
+        msg.subject("Здраво, Свете!", mailio::codec::codec_t::QUOTED_PRINTABLE);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -49,11 +48,10 @@ int main()
     // Set the file encoding to UTF-8 to properly see the letters in this snippet.
     {
         message msg;
-        msg.header_codec(message::header_codec_t::UTF8);
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         // The subject remains in 8bit because such header is set.
-        msg.subject("Здраво, Свете!");
+        msg.subject("Здраво, Свете!", mailio::codec::codec_t::UTF8);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -90,11 +88,11 @@ int main()
     // Set the file encoding to UTF-8 to properly see the letters in this snippet.
     {
         message msg;
-        msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
         msg.from(mail_address("mail io", "contact@mailio.dev"));
         msg.add_recipient(mail_address("mail io", "contact@mailio.dev"));
         msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
-        msg.subject_raw(string_t("Здраво, Свете!", "utf-8"));
+        msg.subject_raw(string_t("Здраво, Свете!", "utf-8",
+            mailio::codec::codec_t::QUOTED_PRINTABLE));
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
@@ -136,7 +134,7 @@ int main()
             "\r\n"
             "Hello, World!\r\n";
         message msg;
-        msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY, mailio::codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         cout << msg.subject() << endl;
         // The subject is printed as `Здраво, Свете!` in the UTF-8 encoding.

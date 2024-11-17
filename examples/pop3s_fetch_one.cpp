@@ -35,7 +35,7 @@ int main()
         // mail message to store the fetched one
         message msg;
         // set the line policy to mandatory, so longer lines could be parsed
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
         // connect to server
         pop3s conn("pop.mail.yahoo.com", 995);

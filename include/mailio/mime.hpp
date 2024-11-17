@@ -392,21 +392,22 @@ public:
     @param encoder_line_policy Encoder line policy to set.
     @param decoder_line_policy Decoder line policy to set.
     **/
+    [[deprecated]]
     void line_policy(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy);
 
     /**
-    Getting the encoder message line policy.
+    Setting the message decoding and encoding line policy.
 
-    @return Encoder line policy.
+    @param line_policy Line policy to set.
     **/
-    codec::line_len_policy_t line_policy() const;
+    void line_policy(codec::line_len_policy_t line_policy);
 
     /**
-    Getting the message decoder line policy.
+    Getting the message line policy.
 
-    @return Decoder line policy.
+    @return Line policy.
     **/
-    codec::line_len_policy_t decoder_line_policy() const;
+    codec::line_len_policy_t line_policy() const;
 
     /**
     Enabling/disabling the strict mode for the mime part.
@@ -436,13 +437,14 @@ public:
     **/
     bool strict_codec_mode() const;
 
-    using header_codec_t = codec::header_codec_t;
+    using header_codec_t = codec::codec_t;
 
     /**
     Setting the headers codec.
 
     @param hdr_codec Codec to set.
     **/
+    [[deprecated]]
     void header_codec(header_codec_t hdr_codec);
 
     /**
@@ -450,6 +452,7 @@ public:
 
     @return Codec set.
     **/
+    [[deprecated]]
     header_codec_t header_codec() const;
 
 protected:
@@ -466,7 +469,7 @@ protected:
     };
 
     /**
-    Attributes map which used the appropriate comparator.
+    Attributes map with the custom comparator.
     **/
     typedef std::map<std::string, string_t, attr_comp_t> attributes_t;
 
@@ -563,12 +566,7 @@ protected:
     /**
     Attribute indicator for the parameter continuation.
     **/
-    static const char ATTRIBUTE_MULTIPLE_NAME_INDICATOR{'*'};
-
-    /**
-    Attribute indicator for the charset and language parameters.
-    **/
-    static const char ATTRIBUTE_CHARSET_SEPARATOR{'\''};
+    static const std::string ATTRIBUTE_CONTINUATION_INDICATOR;
 
     /**
     Attribute name part.
@@ -621,20 +619,22 @@ protected:
     static const std::string MESSAGE_ID_REGEX_NS;
 
     /**
-    Formatting the vector of IDs.
+    Formatting the vector of IDs. The header folding is performed if necessary.
 
-    @param ids Vector of IDs.
-    @return    String of IDs in the angle brackets.
+    @param ids         Vector of IDs.
+    @param header_name Header name of IDs.
+    @return            String of IDs in the angle brackets.
     **/
-    static std::string format_many_ids(const std::vector<std::string>& ids);
+    std::string format_many_ids(const std::vector<std::string>& ids, const std::string& header_name) const;
 
     /**
     Formatting the ID.
 
-    @param id ID to format.
-    @return   ID within the angle brackets.
+    @param id          ID to format.
+    @param header_name Header name of IDs.
+    @return            ID within the angle brackets.
     **/
-    static std::string format_many_ids(const std::string& id);
+    std::string format_many_ids(const std::string& id, const std::string& header_name) const;
 
     /**
     Parsing a string of IDs into a vector.
@@ -690,14 +690,12 @@ protected:
     std::string format_content_id() const;
 
     /**
-    Formats mime name.
+    Folding a multiline header.
 
-    The name has to fit to mandatory line policy, otherwise the rest is truncated.
-
-    @param name Mime name to format.
-    @return     Formatted name.
+    @param headers Header lines to be formatted into a single line.
+    @return        Header as string with folded lines.
     **/
-    std::string format_mime_name(const string_t& name) const;
+    std::string fold_header_line(const std::vector<std::string>& headers) const;
 
     /**
     Parsing header by going through header lines and calling `parse_header_line()`.
@@ -735,14 +733,6 @@ protected:
     @throw mime_error   Parsing failure, header name or value empty.
     **/
     void parse_header_name_value(const std::string& header_line, std::string& header_name, std::string& header_value) const;
-
-    /**
-    Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
-
-    @param attributes Attribute parameters where the merging is to be done.
-    @throw mime_error Parsing attribute failure.
-    **/
-    void merge_attributes(attributes_t& attributes) const;
 
     /**
     Parsing the content type and its attributes.
@@ -790,6 +780,27 @@ protected:
     @todo             Allowed characters are more strict than required?
     **/
     void parse_header_value_attributes(const std::string& header, std::string& value, attributes_t& attributes) const;
+
+    /**
+    Splitting an attribute into continued attribute parameters.
+
+    @param attr_name  Attribute name to split.
+    @param attr_value Attribute value to split.
+    @return           Header string with the continued attributes.
+    @throw *          `q_codec::encode(const string&, const string&, header_codec_t)`.
+    @throw *          `bit7::encode(const string&)`.
+    @todo             Percent encoding.
+    **/
+    std::string split_attributes(const std::string& attr_name, const string_t& attr_value) const;
+
+    /**
+    Continued attribute parameters are merged into a single attribute parameter, the others remain as they are.
+
+    @param attributes Attribute parameters where the merging is to be done.
+    @throw mime_error Parsing attribute failure.
+    @todo             There is no check for the second continuation indicator
+    **/
+    void merge_attributes(attributes_t& attributes) const;
 
     /**
     Decoding header value attribute.
@@ -846,11 +857,6 @@ protected:
     codec::line_len_policy_t line_policy_;
 
     /**
-    Decoder line policy to be applied for the mime part.
-    **/
-    codec::line_len_policy_t decoder_line_policy_;
-
-    /**
     Strict mode for mime part.
     **/
     bool strict_mode_;
@@ -863,6 +869,7 @@ protected:
     /**
     Codec used for headers.
     **/
+    [[deprecated]]
     header_codec_t header_codec_;
 
     /**

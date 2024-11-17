@@ -34,31 +34,35 @@ const string q_codec::BASE64_CODEC_STR = "B";
 const string q_codec::QP_CODEC_STR = "Q";
 
 
-q_codec::q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy) :
-    codec(encoder_line_policy, decoder_line_policy)
+q_codec::q_codec(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line1_policy, lines_policy)
 {
 }
 
 
-vector<string> q_codec::encode(const string& text, const string& charset, header_codec_t method) const
+vector<string> q_codec::encode(const string& text, const string& charset, codec_t method) const
 {
+    // TODO: The constant has to depend of the header length.
     const string::size_type Q_FLAGS_LEN = 12;
     vector<string> enc_text, text_c;
     string codec_flag;
-    if (method == header_codec_t::BASE64)
+    if (method == codec_t::BASE64)
     {
         codec_flag = BASE64_CODEC_STR;
-        base64 b64(line_policy_, decoder_line_policy_);
-        text_c = b64.encode(text, Q_FLAGS_LEN);
+        base64 b64(line1_policy_ - Q_FLAGS_LEN, lines_policy_ - Q_FLAGS_LEN);
+        text_c = b64.encode(text);
     }
-    else
+    else if (method == codec_t::QUOTED_PRINTABLE)
     {
         codec_flag = QP_CODEC_STR;
-        quoted_printable qp(line_policy_, decoder_line_policy_);
+        quoted_printable qp(line1_policy_ - Q_FLAGS_LEN, lines_policy_ - Q_FLAGS_LEN);
         qp.q_codec_mode(true);
-        text_c = qp.encode(text, Q_FLAGS_LEN);
+        text_c = qp.encode(text);
     }
+    else
+        throw codec_error("Bad encoding method.");
 
+    // TODO: Name the magic constant for Q delimiters.
     for (auto s = text_c.begin(); s != text_c.end(); s++)
         enc_text.push_back("=?" + to_upper_copy(charset) + "?" + codec_flag + "?" + *s + "?=");
 
@@ -67,7 +71,7 @@ vector<string> q_codec::encode(const string& text, const string& charset, header
 
 
 // TODO: returning charset info?
-tuple<string, string, codec::header_codec_t> q_codec::decode(const string& text) const
+tuple<string, string, codec::codec_t> q_codec::decode(const string& text) const
 {
     string::size_type charset_pos = text.find(QUESTION_MARK_CHAR);
     if (charset_pos == string::npos)
@@ -82,20 +86,20 @@ tuple<string, string, codec::header_codec_t> q_codec::decode(const string& text)
     if (content_pos == string::npos)
         throw codec_error("Missing last Q codec separator.");
     string method = text.substr(method_pos + 1, content_pos - method_pos - 1);
-    header_codec_t method_type;
+    codec_t method_type;
     string text_c = text.substr(content_pos + 1);
 
     string dec_text;
     if (iequals(method, BASE64_CODEC_STR))
     {
-        base64 b64(line_policy_, decoder_line_policy_);
+        base64 b64(line1_policy_, lines_policy_);
         dec_text = b64.decode(text_c);
-        method_type = header_codec_t::BASE64;
+        method_type = codec_t::BASE64;
     }
     else if (iequals(method, QP_CODEC_STR))
     {
         dec_text = decode_qp(text_c);
-        method_type = header_codec_t::QUOTED_PRINTABLE;
+        method_type = codec_t::QUOTED_PRINTABLE;
     }
     else
         throw codec_error("Bad encoding method.");
@@ -104,15 +108,15 @@ tuple<string, string, codec::header_codec_t> q_codec::decode(const string& text)
 }
 
 
-tuple<string, string, codec::header_codec_t> q_codec::check_decode(const string& text) const
+tuple<string, string, codec::codec_t> q_codec::check_decode(const string& text) const
 {
     string::size_type question_mark_counter = 0;
     const string::size_type QUESTION_MARKS_NO = 4;
     bool is_encoded = false;
     string dec_text, encoded_part;
     string charset = CHARSET_ASCII;
-    // if there is no q encoding, then it's ascii or utf8
-    header_codec_t method_type = header_codec_t::UTF8;
+    // If there is no q encoding, then it's ascii or utf8.
+    codec_t method_type = codec_t::ASCII;
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
@@ -148,7 +152,7 @@ tuple<string, string, codec::header_codec_t> q_codec::check_decode(const string&
 
 string q_codec::decode_qp(const string& text) const
 {
-    quoted_printable qp(line_policy_, decoder_line_policy_);
+    quoted_printable qp(line1_policy_, lines_policy_);
     qp.q_codec_mode(true);
     vector<string> lines;
     lines.push_back(text);

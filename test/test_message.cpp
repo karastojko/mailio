@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
         "\r\n");
 
     string msg_str;
-    msg.format(msg_str, {/*dot_escape*/true});
+    msg.format(msg_str, {true});
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
@@ -302,7 +302,7 @@ BOOST_AUTO_TEST_CASE(format_exports_bcc_headers_when_add_bcc_headers_is_set)
     msg.subject("BCC addresses are formatted");
 
     string msg_str;
-    msg.format(msg_str, {/*dot_escape*/true, /*add_bcc_headers*/true});
+    msg.format(msg_str, {true, true});
 
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
@@ -332,7 +332,7 @@ BOOST_AUTO_TEST_CASE(format_does_not_exports_bcc_headers_when_add_bcc_headers_is
     msg.subject("BCC addresses are not formatted");
 
     string msg_str;
-    msg.format(msg_str, {/*dot_escape*/true, /*add_bcc_headers*/false});
+    msg.format(msg_str, {true, false});
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
@@ -351,6 +351,7 @@ Since content type and transfer encoding are default, no such headers are create
 BOOST_AUTO_TEST_CASE(format_long_text_default_default)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2014-01-17 13:09:22");
@@ -422,6 +423,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_default_base64)
     msg.subject("format long text default base64");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
     msg.content_type(message::media_type_t::TEXT, "plain");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
         "\r\n"
@@ -497,6 +499,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_ascii_qp)
         " a isto to treba proveriti sa parsiranjem.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     string msg_str;
     msg.format(msg_str);
@@ -559,6 +562,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_base64)
         " а исто то треба проверити са парсирањем.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     string msg_str;
     msg.format(msg_str);
@@ -614,6 +618,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_cyr_qp)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format long text utf8 cyrillic quoted printable");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
@@ -723,7 +728,7 @@ BOOST_AUTO_TEST_CASE(format_long_text_utf8_lat_qp)
     msg.subject("format long text utf8 latin quoted printable");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
-
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content("Ovo je jako dugačka poruka koja ima i praznih linija i predugačkih linija. Nije jasno kako će se tekst prelomiti\r\n"
         "pa se nadam da će to ovaj test pokazati.\r\n"
         "\r\n"
@@ -903,6 +908,7 @@ Formatting a related multipart with the first part HTML default charset Base64 e
 BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
@@ -915,11 +921,13 @@ BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
     msg.content_type(message::media_type_t::MULTIPART, "related");
 
     mime m1;
+    m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m1.content_type(message::media_type_t::TEXT, "html");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
     m1.content("<html><head></head><body><h1>Hello, World!</h1></body></html>");
 
     mime m2;
+    m2.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     m2.content("Здраво, Свете!");
@@ -1036,6 +1044,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     ptime t = time_from_string("2016-03-15 13:13:32");
     time_zone_ptr tz(new posix_time_zone("-00:00"));
     local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.date_time(ldt);
     msg.subject("format dotted multipart");
     msg.boundary("my_bound");
@@ -1044,6 +1053,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
+    m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m1.content("<html>\r\n"
         "\t<head>\r\n"
         "\t\t<title>.naslov</title>\r\n"
@@ -1063,6 +1073,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
         "</html>");
 
     mime m2;
+    m2.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m2.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     m2.content(".Zdravo svete!\r\n"
@@ -1078,6 +1089,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     mime m3;
     m3.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     m3.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    m3.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m3.content(".Здраво, Свете!\r\n"
         "..\r\n"
         "Има ли кога?\r\n"
@@ -1106,6 +1118,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
         "\t.<p>Ima li koga?</p>\r\n"
         "\t</body>\r\n"
         "</html>");
+    m4.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     msg.add_part(m1);
     msg.add_part(m2);
@@ -1114,7 +1127,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
     {
         string msg_str;
-        msg.format(msg_str, {/*dot_escape*/false});
+        msg.format(msg_str, {false});
         BOOST_CHECK(msg_str ==
             "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -1189,7 +1202,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
 
     {
         string msg_str;
-        msg.format(msg_str, {/*dot_escape*/true});
+        msg.format(msg_str, {true});
 
         BOOST_CHECK(msg_str ==
             "From: mailio <adresa@mailio.dev>\r\n"
@@ -1280,6 +1293,7 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
     message msg;
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
@@ -1293,8 +1307,10 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
     m1.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
     m1.content("<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa Bato!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>");
+    m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     mime m2;
+    m2.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m2.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
     m2.content_transfer_encoding(mime::content_transfer_encoding_t::BASE_64);
     m2.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
@@ -1314,6 +1330,7 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
 
     mime m3;
     m3.content_type(message::media_type_t::TEXT, "plain", "us-ascii");
+    m3.line_policy(codec::line_len_policy_t::RECOMMENDED);
     m3.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     m3.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
@@ -1347,6 +1364,7 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
         "а исто то треба проверити са парсирањем.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Овде је и провера за низ празних линија.\r\n\r\n\r\n");
+    m4.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
     msg.add_part(m1);
     msg.add_part(m2);
@@ -1664,35 +1682,34 @@ BOOST_AUTO_TEST_CASE(format_attachment)
 
 
 /**
-Attaching a file with UTF-8 name.
+Attaching a file with UTF-8 name in the base64 attribute codec.
 
 @pre  File `cv.txt` in the current directory.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_attachment_utf8)
+BOOST_AUTO_TEST_CASE(format_utf8_attachment_b64)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.date_time(ldt);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format attachment utf8");
+    msg.subject("format utf8 attachment base64");
     msg.boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8", codec::codec_t::BASE64), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
 
     string msg_str;
     msg.format(msg_str);
-
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -1700,7 +1717,7 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format attachment utf8\r\n"
+        "Subject: format utf8 attachment base64\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
@@ -1716,43 +1733,53 @@ BOOST_AUTO_TEST_CASE(format_attachment_utf8)
 
 
 /**
-Attaching a file with the very longUTF-8 name.
+Attaching a file with UTF-8 name in the quoted printable attribute codec.
 
-The test shows inproper formatting of the filename attribut which is not split into several lines. For that reason, parsing the same message
-throws the exception.
-
-@pre  File `TomislavKarastojkovic_CV.txt` in the current directory.
+@pre  File `cv.txt` in the current directory.
 @post None.
-@todo No exception thrown once the bug is fixed.
 **/
-BOOST_AUTO_TEST_CASE(format_long_attachment_name_utf8)
+BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.date_time(ldt);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("format long attachment name utf8");
+    msg.subject("format utf8 attachment quoted printable");
     msg.boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
-    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8"), ct);
+    auto tp = make_tuple(std::ref(ifs), string_t("TomislavKarastojković_CV.txt", "UTF-8", codec::codec_t::QUOTED_PRINTABLE), ct);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp);
     msg.attach(atts);
 
     string msg_str;
     msg.format(msg_str);
-
-    message msg_same;
-    msg_same.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
-
-    BOOST_CHECK_THROW(msg_same.parse(msg_str); , mime_error);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format utf8 attachment quoted printable\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
 }
 
 
@@ -1774,6 +1801,7 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format message attachment");
     msg.boundary("mybnd");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
@@ -1876,9 +1904,11 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
         "=D0=B8=D1=85 =D0=BB=D0=B8=D0=BD=D0=B8=D1=98=D0=B0.\r\n"
         "\r\n"
         "--mybnd\r\n"
-        "Content-Type: text/plain; name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -1934,9 +1964,11 @@ BOOST_AUTO_TEST_CASE(format_html_att)
         "<h1>Naslov</h1><p>Ovo je poruka.</p>\r\n"
         "\r\n"
         "--mybnd\r\n"
-        "Content-Type: text/plain; name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
-        "Content-Disposition: attachment; filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -1985,8 +2017,7 @@ Formatting a message with the disposition notification.
 BOOST_AUTO_TEST_CASE(format_notification)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.header_codec(message::header_codec_t::BASE64);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.disposition_notification(mail_address("mailio", "adresa@mailio.dev"));
@@ -1994,7 +2025,7 @@ BOOST_AUTO_TEST_CASE(format_notification)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("format notification");
+    msg.subject("format notification", codec::codec_t::BASE64);
     msg.content("Hello, World!");
     string msg_str;
     msg.format(msg_str);
@@ -2003,7 +2034,7 @@ BOOST_AUTO_TEST_CASE(format_notification)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Disposition-Notification-To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: format notification\r\n"
+        "Subject: =?ASCII?B?Zm9ybWF0IG5vdGlmaWNhdGlvbg==?=\r\n"
         "\r\n"
         "Hello, World!\r\n");
 }
@@ -2012,35 +2043,45 @@ BOOST_AUTO_TEST_CASE(format_notification)
 /**
 Formatting a message with UTF-8 addresses by using Base64 Q codec.
 
-The line policy has to be mandatory because of the third recipient.
-
 @pre  None.
 @post None.
+@todo The last line of the from header has the empty base64 name part.
 **/
 BOOST_AUTO_TEST_CASE(format_qb_sender)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.sender(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8, codec::codec_t::BASE64),
+        "adresa@mailio.dev"));
+    msg.add_from(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_t::BASE64), "the_library@mailio.dev"));
+    msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
+        "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::BASE64), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_t::BASE64), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("proba");
+    msg.subject("format q base64 sender", codec::codec_t::BASE64);
     msg.content("test");
 
     string msg_str;
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>,\r\n"
+    BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+INCx0LjQsdC70LjQvtGC0LXQutCwINC30LAg0YDQsNC0?=\r\n"
+        "  =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQ?=\r\n"
+        "  =?UTF-8?B?v9C70YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw?=\r\n"
+        "  =?UTF-8?B?==?= <the_library@mailio.dev>\r\n"
+        "Sender: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
+        "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
+        "  2023 <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?= <asdfg@zoho.com>\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: proba\r\n"
+        "Subject: =?ASCII?B?Zm9ybWF0IHEgYmFzZTY0IHNlbmRlcg==?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2049,35 +2090,43 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
 /**
 Formatting a message with UTF-8 addresses by using Quoted Printable Q codec.
 
-The line policy has to be mandatory because of the third recipient.
-
 @pre  None.
 @post None.
 **/
 BOOST_AUTO_TEST_CASE(format_qq_sender)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
-    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address(string_t("маилио библиотека за рад са мејловима у језику ц плус плус", codec::CHARSET_UTF8, codec::codec_t::QUOTED_PRINTABLE),
+        "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus "
+        "verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom 2023", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::QUOTED_PRINTABLE), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_t::QUOTED_PRINTABLE), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("proba");
+    msg.subject("format q quoted printable sender", codec::codec_t::QUOTED_PRINTABLE);
     msg.content("test");
 
     string msg_str;
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>\r\n"
-        "To: mailio <adresa@mailio.dev>,\r\n"
+    BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE_=D0=B1=D0=B8=D0=B1?=\r\n"
+        "  =?UTF-8?Q?=D0=BB=D0=B8=D0=BE=D1=82=D0=B5=D0=BA=D0=B0_=D0=B7=D0=B0_=D1=80?=\r\n"
+        "  =?UTF-8?Q?=D0=B0=D0=B4_=D1=81=D0=B0_=D0=BC=D0=B5=D1=98=D0=BB=D0=BE=D0=B2?=\r\n"
+        "  =?UTF-8?Q?=D0=B8=D0=BC=D0=B0_=D1=83_=D1=98=D0=B5=D0=B7=D0=B8=D0=BA=D1=83_?=\r\n"
+        "  =?UTF-8?Q?=D1=86_=D0=BF=D0=BB=D1=83=D1=81_=D0=BF=D0=BB=D1=83=D1=81?=\r\n"
+        "  <adresa@mailio.dev>\r\n"
+        "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
+        "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
+        "  2023 <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?Q?Tomislav_Karastojkovi=C4=87?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8=D1=9B?= <asdfg@zoho.com>\r\n"
+        "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0?=\r\n"
+        "  =?UTF-8?Q?=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8?=\r\n"
+        "  =?UTF-8?Q?=D1=9B?= <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: proba\r\n"
+        "Subject: =?ASCII?Q?format_q_quoted_printable_sender?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2092,14 +2141,14 @@ Formatting a message with UTF-8 subject by using Base64 Q codec.
 BOOST_AUTO_TEST_CASE(format_qb_long_subject)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64));
     msg.content("Hello, Sithonia!");
 
     string msg_str;
@@ -2107,8 +2156,8 @@ BOOST_AUTO_TEST_CASE(format_qb_long_subject)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0b3IgLSBF?=\r\n"
-        " =?UTF-8?B?bGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2123,14 +2172,14 @@ Formatting a message with UTF-8 subject by using Quoted Printable Q codec.
 BOOST_AUTO_TEST_CASE(format_qq_long_subject)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
     msg.content("Hello, Sithonia!");
 
     string msg_str;
@@ -2138,8 +2187,8 @@ BOOST_AUTO_TEST_CASE(format_qq_long_subject)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?Q?Re:_=CE=A3=CF=87=CE=B5=CF=84:_Request_from_GrckaInfo_visitor_-_E?=\r\n"
-        " =?UTF-8?Q?leni_Beach_Apartments?=\r\n"
+        "Subject: =?UTF-8?Q?Re:_=CE=A3=CF=87=CE=B5=CF=84:_Request_from_GrckaInfo_vi?=\r\n"
+        "  =?UTF-8?Q?sitor_-_Eleni_Beach_Apartments?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2154,14 +2203,13 @@ Formatting a message with UTF-8 subject containing the long dash character.
 BOOST_AUTO_TEST_CASE(format_qq_subject_dash)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject(u8"C++ Annotated: Sep \u2013 Dec 2017");
+    msg.subject_raw(string_t(u8"C++ Annotated: Sep \u2013 Dec 2017", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
     msg.content("test");
 
     string msg_str;
@@ -2184,14 +2232,14 @@ Formatting a message with UTF-8 subject containing an emoji character.
 BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject(u8"\U0001F381\u017Divi godinu dana na ra\u010Dun Super Kartice");
+    msg.subject_raw(string_t(u8"\U0001F381\u017Divi godinu dana na ra\u010Dun Super Kartice", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
     msg.content("test");
 
     string msg_str;
@@ -2199,22 +2247,20 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?Q?=F0=9F=8E=81=C5=BDivi_godinu_dana_na_ra=C4=8Dun_Super_Kartice?=\r\n"
+        "Subject: =?UTF-8?Q?=F0=9F=8E=81=C5=BDivi_godinu_dana_na_ra=C4=8Dun_Super_K?=\r\n"
+        "  =?UTF-8?Q?artice?=\r\n"
         "\r\n"
         "test\r\n");
 }
 
 
 /**
-Formatting the filename as a continued attribute.
-
-Showing the bug of having no attribute continuation like there is for the subject.
+Attaching a file with the long ASCII name to show the attribute continuation with the default seven bit codec.
 
 @pre  None.
 @post None.
-@todo Fix the test when the bug is fixed.
 **/
-BOOST_AUTO_TEST_CASE(format_continued_filename)
+BOOST_AUTO_TEST_CASE(format_continued_ascii_attachment_bit7)
 {
     message msg;
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2224,38 +2270,198 @@ BOOST_AUTO_TEST_CASE(format_continued_filename)
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.strict_mode(false);
+    // The default attribute codec is seven bit.
     msg.boundary("mybnd");
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.subject("format continued filename format continued filename format continued filename format continued filename");
     ifstream ifs1("cv.txt");
     message::content_type_t ct1(message::media_type_t::APPLICATION, "txt");
-    auto tp1 = make_tuple(std::ref(ifs1), "C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt", ct1);
+    auto tp1 = make_tuple(std::ref(ifs1), "C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicResumeCurriculumVitae.txt", ct1);
     list<tuple<std::istream&, string_t, message::content_type_t>> atts;
     atts.push_back(tp1);
     msg.attach(atts);
     string msg_str;
     msg.format(msg_str);
 
+    // When the escape characters are removed from the long lines, they actually fit to the line policy, so everything is fine,
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
-        "Subject: format continued filename format continued filename format \r\n"
-        "  continued filename format continued filename\r\n"
+        "Subject: format continued filename format continued filename format continued \r\n"
+        "  filename format continued filename\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: application/txt; \r\n"
-        "  name=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
+        "  name*0=\"C:\\Program \"; \r\n"
+        "  name*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicResume\"; \r\n"
+        "  name*2=\"CurriculumVitae.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"C:\\Program Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovic.txt\"\r\n"
+        "  filename*0=\"C:\\Program \"; \r\n"
+        "  filename*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicRe\"; \r\n"
+        "  filename*2=\"sumeCurriculumVitae.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
         "--mybnd--\r\n"
    );
+}
+
+
+
+/**
+Attaching a file with the long UTF-8 name to show the attribute continuation with the base64 codec.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_b64)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long utf8 attachment base64");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8", codec::codec_t::BASE64), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long utf8 attachment base64\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2X0th?=\"; \r\n"
+        "  name*1=\"=?UTF-8?B?cmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2?=\"; \r\n"
+        "  filename*1=\"=?UTF-8?B?X0thcmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
+Attaching a file with the long UTF-8 name to show the attribute continuation with the quoted printable codec.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_qp)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long utf8 attachment quoted printable");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8", codec::codec_t::QUOTED_PRINTABLE), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long utf8 attachment quoted printable\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karastojk?=\"; \r\n"
+        "  name*1=\"=?UTF-8?Q?ovi=C4=87_CV.txt?=\"\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karas?=\"; \r\n"
+        "  filename*1=\"=?UTF-8?Q?tojkovi=C4=87_CV.txt?=\"\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
+}
+
+
+/**
+Attaching a file with the long UTF-8 name to show the attribute continuation with the percent codec.
+
+@pre  File `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_pct)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject("format long utf8 attachment percentage");
+    msg.boundary("mybnd");
+
+    std::ifstream ifs("cv.txt");
+    message::content_type_t ct(message::media_type_t::TEXT, "plain");
+    auto tp = make_tuple(std::ref(ifs), string_t("Veoma_Dugačko_Ime_Fajla_Tomislav_Karastojković_CV.txt", "UTF-8", codec::codec_t::PERCENT), ct);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp);
+    msg.attach(atts);
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str ==
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
+        "Subject: format long utf8 attachment percentage\r\n"
+        "\r\n"
+        "--mybnd\r\n"
+        "Content-Type: text/plain; \r\n"
+        "  name*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojko; \r\n"
+        "  name*1*=vi%C4%87%5FCV%2Etxt\r\n"
+        "Content-Transfer-Encoding: Base64\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarast; \r\n"
+        "  filename*1*=ojkovi%C4%87%5FCV%2Etxt\r\n"
+        "\r\n"
+        "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
+        "\r\n"
+        "--mybnd--\r\n");
 }
 
 
@@ -2268,16 +2474,15 @@ Formatting UTF8 subject in 8bit encoding.
 BOOST_AUTO_TEST_CASE(format_utf8_subject)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@hotmail.com"));
+    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Здраво, Свете!");
     msg.content("Hello, World!");
-    msg.header_codec(mime::header_codec_t::UTF8);
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
@@ -2290,6 +2495,34 @@ BOOST_AUTO_TEST_CASE(format_utf8_subject)
 
 
 /**
+Formatting ISO 8859-1 subject in combination with the UTF8 header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_iso8859_subject_utf8_header)
+{
+    message msg;
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.from(mail_address(string_t("Comprobaci\363n CV", "ISO-8859-1", codec::codec_t::UTF8), "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    msg.subject_raw(string_t("Comprobaci\363n CV", "ISO-8859-1"));
+    msg.content("Здраво, Свете!");
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: Comprobaci\363n CV <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Comprobaci\363n CV\r\n"
+        "\r\n"
+        "Здраво, Свете!\r\n");
+}
+
+
+/**
 Formatting a message with UTF-8 raw subject by using Base64 Q codec.
 
 @pre  None.
@@ -2298,14 +2531,14 @@ Formatting a message with UTF-8 raw subject by using Base64 Q codec.
 BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::BASE64);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8"));
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64));
     msg.content("Hello, Sithonia!");
 
     string msg_str;
@@ -2313,8 +2546,42 @@ BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0b3IgLSBF?=\r\n"
-        " =?UTF-8?B?bGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "\r\n"
+        "Hello, Sithonia!\r\n");
+}
+
+
+/**
+Formatting a message with several codecs in the header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_many_codecs)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address(string_t("маилио", "UTF-8", codec::codec_t::QUOTED_PRINTABLE), "adresa@mailio.dev"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_t::BASE64), "qwerty@gmail.com"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+    msg.subject_raw(string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64));
+    msg.content("Hello, Sithonia!");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        "  <qwerty@gmail.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2329,7 +2596,6 @@ Formatting a message with the message ID in the strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2337,7 +2603,7 @@ BOOST_AUTO_TEST_CASE(format_message_id)
     local_date_time ldt(t, tz);
     msg.strict_mode(true);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format message id", codec::codec_t::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@mailio.dev");
     msg.content_id("987654321@mailio.dev");
@@ -2349,7 +2615,47 @@ BOOST_AUTO_TEST_CASE(format_message_id)
         "Message-ID: <1234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Content-ID: <987654321@mailio.dev>\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_message_id?=\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n");
+}
+
+
+/**
+Formatting long nessage and content IDs.
+
+Showing the bug of not applying the line policy for the message ID.
+
+@pre  None.
+@post None.
+@todo Change the criteria once the bug is fixed.
+**/
+BOOST_AUTO_TEST_CASE(format_long_message_id)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2016-02-11 22:56:22");
+    time_zone_ptr tz(new posix_time_zone("+00:00"));
+    local_date_time ldt(t, tz);
+    msg.strict_mode(true);
+    msg.date_time(ldt);
+    msg.subject("format long message id", codec::codec_t::QUOTED_PRINTABLE);
+    msg.content("Zdravo, Svete!");
+    msg.message_id("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890@mailio.dev");
+    msg.content_id("987654321987654321987654321987654321987654321987654321987654321987654321987654321@mailio.dev");
+
+    string msg_str;
+    msg.format(msg_str);
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Message-ID: <12345678901234567890123456789012345678901234567890123456789012345\r\n"
+        "  67890123456789012345678901234567890@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-ID: <98765432198765432198765432198765432198765432198765432198765432198\r\n"
+        "  7654321987654321@mailio.dev>\r\n"
+        "Subject: =?ASCII?Q?format_long_message_id?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2364,7 +2670,6 @@ Formatting the message ID without the monkey character in the strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2387,14 +2692,13 @@ Formatting the message ID without the monkey character in the non-strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_non_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format message id no monkey non strict", codec::codec_t::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890mailio.dev");
 
@@ -2404,7 +2708,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_non_strict)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <1234567890mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_message_id_no_monkey_non_strict?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2419,7 +2723,6 @@ Formatting the message ID with the space character in the strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_with_space_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
@@ -2442,14 +2745,13 @@ Formatting the message ID with the space character in the non-strict mode.
 BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format message id with space non strict", codec::codec_t::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.message_id("1234567890@ mailio.dev");
 
@@ -2459,7 +2761,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_with_space_non_strict)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <1234567890@ mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_message_id_with_space_non_strict?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2474,14 +2776,13 @@ Formatting a message with the in-reply-to and references IDs.
 BOOST_AUTO_TEST_CASE(format_in_reply_to)
 {
     message msg;
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format in reply to", codec::codec_t::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.add_in_reply_to("1@mailio.dev");
     msg.add_in_reply_to("22@mailio.dev");
@@ -2496,7 +2797,7 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
         "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev>\r\n"
         "References: <4444@mailio.dev> <55555@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_in_reply_to?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2505,40 +2806,38 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to)
 /*
 Formatting long message IDs.
 
-Showing the bug of having no line folding for message ID headers. The test should throw an exception.
-
 @pre  None.
 @post None.
-@todo Fix the test when the bug is fixed.
 */
 BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("Proba");
+    msg.subject("format in reply to folding", codec::codec_t::QUOTED_PRINTABLE);
     msg.content("Zdravo, Svete!");
     msg.add_in_reply_to("1@mailio.dev");
     msg.add_in_reply_to("22@mailio.dev");
     msg.add_in_reply_to("333@mailio.dev");
     msg.add_in_reply_to("44444444444444444444444444@mailio.dev");
     msg.add_in_reply_to("5555555555555555@mailio.dev");
-    msg.add_in_reply_to("666666666666666666666666666666666666@mailio.dev");
+    msg.add_in_reply_to("66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666@mailio.dev");
 
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
-        "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev> <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> "
-        "<666666666666666666666666666666666666@mailio.dev>\r\n"
+        "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev> \r\n"
+        "  <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> \r\n"
+        "  <66666666666666666666666666666666666666666666666666666666666666666666666666666\r\n"
+        "  666666666666666666666666666666@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Proba\r\n"
+        "Subject: =?ASCII?Q?format_in_reply_to_folding?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
 }
@@ -2549,21 +2848,21 @@ Formatting oversized recipient with the recommended line policy.
 
 @pre  None.
 @post None.
+@todo Shows the bug with no delimiter between the name and the address.
 **/
 BOOST_AUTO_TEST_CASE(format_recommended_recipient)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
-    msg.header_codec(message::header_codec_t::BASE64);
-    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8), "adresa@mailio.dev"));
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.from(mail_address(string_t("маилио", codec::CHARSET_UTF8, codec::codec_t::BASE64), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@gmail.com"));
-    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8), "asdfg@zoho.com"));
+    msg.add_recipient(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::BASE64), "qwerty@gmail.com"));
+    msg.add_recipient(mail_address(string_t("Томислав Карастојковић", codec::CHARSET_UTF8, codec::codec_t::BASE64), "asdfg@zoho.com"));
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.subject("proba");
+    msg.subject("format recommended recipient", codec::codec_t::BASE64);
     msg.content("test");
 
     string msg_str;
@@ -2571,10 +2870,10 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?= \r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
         "  <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: proba\r\n"
+        "Subject: =?ASCII?B?Zm9ybWF0IHJlY29tbWVuZGVkIHJlY2lwaWVudA==?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2583,20 +2882,18 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
 /*
 Formatting long subject when there is a delimiter and when there is not.
 
-In case there is no delimiter, then there is no folding which is a bug.
-
 @pre  None.
 @post None.
 */
 BOOST_AUTO_TEST_CASE(format_long_subject)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8), "qwerty@hotmail.com"));
+    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!"
         "Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!");
@@ -2619,8 +2916,8 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoS\r\n"
-        "  vete!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
+        "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSve\r\n"
+        "  te!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 }
@@ -2635,6 +2932,7 @@ Formatting a message with a long header to be folded.
 BOOST_AUTO_TEST_CASE(format_long_header)
 {
     message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.reply_address(mail_address("Tomislav Karastojkovic", "kontakt@mailio.dev"));
     msg.add_recipient(mail_address("contact", "kontakt@mailio.dev"));
@@ -2667,8 +2965,8 @@ BOOST_AUTO_TEST_CASE(format_long_header)
     msg.add_header("Proba", "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 12345678901234567890@mailio.dev");
     msg_str.clear();
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "Proba: 123456789012345678901234567890123456789012345678901234567890123456789\r\n"
-        "  012345678901234567890 12345678901234567890@mailio.dev\r\n"
+    BOOST_CHECK(msg_str == "Proba: 12345678901234567890123456789012345678901234567890123456789012345678901\r\n"
+        "  2345678901234567890 12345678901234567890@mailio.dev\r\n"
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>,\r\n"
@@ -2686,78 +2984,72 @@ Showing a bug with the line folding for the long sender header.
 
 @pre  None.
 @post None.
-@todo Fix the test when the bug is fixed.
 **/
 BOOST_AUTO_TEST_CASE(format_long_from)
 {
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
-        msg.header_codec(mailio::mime::header_codec_t::BASE64);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
         msg.date_time(ldt);
-        msg.from(mail_address(string_t("Томислав      Карастојковић", codec::CHARSET_UTF8), "tomislavkarastojkovic@hotmail.com"));
+        msg.from(mail_address(string_t("Томислав      Карастојковић", codec::CHARSET_UTF8, codec::codec_t::BASE64), "tomislavkarastojkovic@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-        msg.subject("Zdravo,Svete!");
+        msg.subject("Zdravo,Svete!", codec::codec_t::BASE64);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
         BOOST_CHECK(msg_str ==
-            "From: =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiAgICAgINCa0LDRgNCw0YHRgtC+0ZjQutC+0LLQuNGb?=\r\n"
-            "   <tomislavkarastojkovic@hotmail.com>\r\n"
+            "From: =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiAgICAgINCa0LDRgNCw0YHRgtC+0ZjQutC+0LLQ?=\r\n"
+            "  =?UTF-8?B?uNGb?= <tomislavkarastojkovic@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-            "Subject: Zdravo,Svete!\r\n"
+            "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
             "Hello, World!\r\n");
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
-        msg.header_codec(mailio::mime::header_codec_t::BASE64);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
         msg.date_time(ldt);
         msg.from(mail_address(string_t("Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete!"), "zdravosvete@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-        msg.subject("Zdravo,Svete!");
+        msg.subject("Zdravo,Svete!", codec::codec_t::BASE64);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
-
         BOOST_CHECK(msg_str ==
             "From: \"Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
             "  Zdravo,Svete!\" <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-            "Subject: Zdravo,Svete!\r\n"
+            "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
            "Hello, World!\r\n");
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
-        msg.header_codec(mailio::mime::header_codec_t::BASE64);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
         ptime t = time_from_string("2016-02-11 22:56:22");
         time_zone_ptr tz(new posix_time_zone("+00:00"));
         local_date_time ldt(t, tz);
         msg.date_time(ldt);
         msg.from(mail_address(string_t("ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo"), "zdravosvete@hotmail.com"));
         msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-        msg.subject("Zdravo,Svete!");
+        msg.subject("Zdravo,Svete!", codec::codec_t::BASE64);
         msg.content("Hello, World!");
         string msg_str;
         msg.format(msg_str);
-
         BOOST_CHECK(msg_str ==
-            "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSvet\r\n"
-            "  eZdravo <zdravosvete@hotmail.com>\r\n"
+            "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo\r\n"
+            "  SveteZdravo <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-            "Subject: Zdravo,Svete!\r\n"
+            "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
             "Hello, World!\r\n");
     }
@@ -2789,8 +3081,17 @@ BOOST_AUTO_TEST_CASE(parse_simple)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "parse simple" &&
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" &&
+        msg.from().addresses.at(0).name.charset == "ASCII" &&
+        msg.from().addresses.at(0).name.codec_type == codec::codec_t::ASCII &&
+        msg.from().addresses.at(0).address == "adre.sa@mailio.dev" &&
+        msg.date_time() == ldt &&
+        msg.recipients().addresses.at(0).name.charset == "ASCII" &&
+        msg.recipients().addresses.at(0).name.codec_type == codec::codec_t::ASCII &&
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+        msg.subject() == "parse simple" &&
+        msg.subject_raw().charset == "ASCII" &&
+        msg.subject_raw().codec_type == codec::codec_t::ASCII &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -2804,7 +3105,7 @@ Parsing custom headers.
 BOOST_AUTO_TEST_CASE(parse_custom_header)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
         "To: mailio <adre.sa@mailio.dev>\r\n"
         "Subject: parse custom header\r\n"
@@ -2829,7 +3130,7 @@ Parsing a header with a non-allowed character in it's name.
 BOOST_AUTO_TEST_CASE(parse_bad_header_name)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
         "To: mailio <adre.sa@mailio.dev>\r\n"
         "Subject: parse bad header name\r\n"
@@ -2851,7 +3152,7 @@ Parsing simple message with lines matching the recommended length.
 BOOST_AUTO_TEST_CASE(parse_line_len)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: adre.sa@mailio.dev\r\n"
         "To: adre.sa@mailio.dev\r\n"
         "Subject: parse line len\r\n"
@@ -2874,7 +3175,7 @@ Parsing a message with lines violating the recommended length.
 BOOST_AUTO_TEST_CASE(parse_wrong_line_len)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     string msg_str = "From: adre.sa@mailio.dev\r\n"
         "To: adre.sa@mailio.dev\r\n"
         "Subject: parse wrong line len\r\n"
@@ -2896,7 +3197,7 @@ Parsing by lines an oversized line.
 BOOST_AUTO_TEST_CASE(parse_by_line_oversized)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse_by_line("From: mailio <adresa@mailio.dev>");
     msg.parse_by_line("To: mailio");
     msg.parse_by_line("Subject: parse by line oversized");
@@ -2914,7 +3215,7 @@ Parsing by lines an oversized line Base64 encoded.
 BOOST_AUTO_TEST_CASE(parse_base64_line_oversized)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse_by_line("From: mailio <adresa@mailio.dev>");
     msg.parse_by_line("To: mailio <adresa@mailio.dev>");
     msg.parse_by_line("Date: Fri, 17 Jan 2014 05:39:22 -0730");
@@ -2953,7 +3254,7 @@ BOOST_AUTO_TEST_CASE(parse_addresses)
         "\r\n"
         "Hello, World!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.size() == 4 &&
@@ -2986,7 +3287,7 @@ BOOST_AUTO_TEST_CASE(parse_address_no_space)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
@@ -3082,7 +3383,7 @@ BOOST_AUTO_TEST_CASE(parse_recommended_address)
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>, Tomislav Karastojkovic <karas@mailio.dev>, Tomislav Karastojkovic <qwerty@gmail.com>, "
-        "Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
+        "  Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
         "Cc: mail.io <adresa@mailio.dev>, Tomislav Karastojkovic <zxcvb@yahoo.com>\r\n"
         "Date: Wed, 23 Aug 2017 22:16:45 +0000\r\n"
         "Subject: parse recommended address\r\n"
@@ -3090,7 +3391,7 @@ BOOST_AUTO_TEST_CASE(parse_recommended_address)
         "Hello, World!\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3111,7 +3412,7 @@ BOOST_AUTO_TEST_CASE(parse_quoted_address_no_space)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
@@ -3131,7 +3432,7 @@ BOOST_AUTO_TEST_CASE(parse_address_comment)
         "\r\n"
         "Hello, World!";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
@@ -3155,7 +3456,7 @@ BOOST_AUTO_TEST_CASE(parse_double_address_strict)
 
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
 }
 
@@ -3176,7 +3477,7 @@ BOOST_AUTO_TEST_CASE(parse_double_address_non_strict)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "aaa@mailio.dev" && msg.recipients().addresses.at(0).address == "bbb@mailio.dev");
 }
@@ -3199,7 +3500,7 @@ BOOST_AUTO_TEST_CASE(parse_address_without_monkey)
         "test\r\n";
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     auto from = msg.from().addresses.at(0);
     auto rcpt = msg.recipients().addresses.at(0);
@@ -3223,7 +3524,7 @@ BOOST_AUTO_TEST_CASE(parse_content_type)
         "Hello, World!";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
 }
@@ -3246,14 +3547,14 @@ BOOST_AUTO_TEST_CASE(parse_malformed_content_type)
 
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.strict_mode(true);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
 
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.strict_mode(false);
         msg.parse(msg_str);
         BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
@@ -3278,7 +3579,7 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_non_strict)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::APPLICATION && msg.content_type().subtype == "octet-stream");
 }
@@ -3301,7 +3602,7 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_strict)
 
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3325,19 +3626,19 @@ BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain");
 }
 
 
 /**
-Parsing the filename as a continued attribute.
+Parsing continued ascii filename encoded in seven bit.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_continued_filename)
+BOOST_AUTO_TEST_CASE(parse_continued_ascii_filename_bit7)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: text/plain\r\n"
@@ -3345,54 +3646,51 @@ BOOST_AUTO_TEST_CASE(parse_continued_filename)
         "  filename*0=\"C:\\Program Files\\AlephoLtd\"; \r\n"
         "  filename*1=\"\\mailio\\configuration.ini\"\r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse address comment\r\n"
+        "Subject: parse continued ascii filename bit7\r\n"
         "\r\n"
         "Hello, World!";
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini");
+    BOOST_CHECK(msg.name().charset == codec::CHARSET_ASCII && msg.name().buffer == "C:\\Program Files\\AlephoLtd\\mailio\\configuration.ini" &&
+        msg.name().charset == "ASCII" && msg.name().codec_type == codec::codec_t::ASCII);
 }
 
 
 /**
-Parsing the UTF8 filename as a continued attribute.
-
-The test shows a problem with decoding of a continued attribute.
+Parsing UTF8 filename encoded in percent.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename)
+BOOST_AUTO_TEST_CASE(parse_utf8_filename_pct)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
-        "Content-Type: text/plain; name*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
-        "  name*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "Content-Type: text/plain\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
-        "  filename*1=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "  filename*0=UTF-8'en-us'C%3A\\%E8.xlsx; \r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse continued utf8 filename\r\n"
+        "Subject: parse utf8 filename percent\r\n"
         "\r\n"
         "Hello, World!";
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "Томислав Карастојковић");
+    BOOST_CHECK(msg.name().buffer == "C:\\\xE8.xlsx" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type == codec::codec_t::PERCENT);
 }
 
 
 /**
-Parsing the filename as a continued attribute with the charset and language.
+Parsing continued filename with the charset and language encoded in percent.
 
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
+BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_rec)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Content-Type: text/plain\r\n"
@@ -3400,15 +3698,51 @@ BOOST_AUTO_TEST_CASE(parse_encoded_continued_filename)
         "  filename*0=UTF-8'en-us'C%3A\\Program%20Files\\; \r\n"
         "  filename*1=%E8.xlsx; \r\n"
         "To: adresa@mailio.dev\r\n"
-        "Subject: parse encoded continued filename\r\n"
+        "Subject: parse continued utf8 filename percent recommended policy\r\n"
         "\r\n"
         "Hello, World!";
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name().charset == codec::CHARSET_UTF8 && msg.name().buffer == "C:\\Program Files\\\xE8.xlsx");
+    BOOST_CHECK(msg.name().buffer == "C:\\Program Files\\\xE8.xlsx" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type ==
+        codec::codec_t::PERCENT);
+}
+
+
+/**
+Parsing continued filename with the charset and language encoded in percent.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_man)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "Content-Type: text/plain; name*0*=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
+        "  name*1*=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "Content-Disposition: attachment; \r\n"
+        "  filename*0*=UTF-8''%D0%A2%D0%BE%D0%BC%D0%B8%D1%81%D0%BB%D0%B0%D0%B2%20; \r\n"
+        "  filename*1*=%D0%9A%D0%B0%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%BA%D0%BE%D0%B2%D0%B8%D1%9B\r\n"
+        "To: adresa@mailio.dev\r\n"
+        "Subject: parse continued utf8 filename percent mandatory policy\r\n"
+        "\r\n"
+        "Hello, World!";
+
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.name() == "Томислав Карастојковић" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type == codec::codec_t::PERCENT);
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -3433,10 +3767,11 @@ BOOST_AUTO_TEST_CASE(parse_continued_content_type)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" &&
-        msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+    BOOST_CHECK(msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+    BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" && msg.name().charset == "ASCII" &&
+        msg.name().codec_type == codec::codec_t::ASCII);
 }
 
 
@@ -3460,7 +3795,7 @@ BOOST_AUTO_TEST_CASE(parse_invalid_continued_filename)
 
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3483,7 +3818,7 @@ BOOST_AUTO_TEST_CASE(parse_multiline_header)
         "Zdravo, Svete!\r\n";
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.message_id() == "<123456789012345678901234567890123456789012345678901234567890@mailio.dev>");
 }
@@ -3506,7 +3841,7 @@ BOOST_AUTO_TEST_CASE(parse_long_header)
         "Zdravo, Svete!\r\n";
     message msg;
     msg.strict_mode(false);
-    msg.line_policy(codec::line_len_policy_t::RECOMMENDED, codec::line_len_policy_t::RECOMMENDED);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -3915,7 +4250,7 @@ Parsing alternative multipart with the first part HTML with ASCII charset Seven 
 BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_bit7_plain_utf8_base64)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
@@ -3964,7 +4299,7 @@ encoded.
 BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_qp_plain_ascii_bit8)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4014,7 +4349,7 @@ Parsing related multipart with the first part HTML default charset Base64 encode
 BOOST_AUTO_TEST_CASE(parse_multipart_html_default_base64_text_utf8_qp)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4064,7 +4399,7 @@ Parsing alternative multipart with the first part HTML with ASCII charset Base64
 BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_base64_plain_ascii_bit7)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
 
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4113,7 +4448,7 @@ Parsing multipart with leading dots and escaping flag turned off.
 BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str =
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4258,7 +4593,7 @@ Parsing multipart with leading dots and escaping flag turned on.
 BOOST_AUTO_TEST_CASE(parse_dotted_multipart_esc)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str =
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4407,7 +4742,7 @@ long text ASCII charset Quoted Printable encoded, the fourth is long text UTF-8 
 BOOST_AUTO_TEST_CASE(parse_long_multipart)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str =
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -4607,7 +4942,7 @@ Parsing multipart message with a content.
 BOOST_AUTO_TEST_CASE(parse_multipart_content)
 {
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>, <qwerty@gmail.com>, Tomislav Karastojkovic <asdfgh@outlook.com>\r\n"
@@ -4685,8 +5020,9 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     msg_msg.parse(msg_str);
     BOOST_CHECK(msg_msg.content_type().type == mime::media_type_t::MULTIPART && msg_msg.content_type().subtype == "mixed" &&
         msg_msg.attachments_size() == 2);
-    BOOST_CHECK(msg_msg.parts().at(0).name() == "tkcv.txt" && msg_msg.parts().at(0).content_type().type ==
-        message::media_type_t::APPLICATION && msg_msg.parts().at(0).content_type().subtype == "txt");
+    BOOST_CHECK(msg_msg.parts().at(0).name() == "tkcv.txt" && msg_msg.parts().at(0).name().charset == "ASCII" &&
+        msg_msg.parts().at(0).name().codec_type == codec::codec_t::ASCII && msg_msg.parts().at(0).content_type().type == message::media_type_t::APPLICATION &&
+        msg_msg.parts().at(0).content_type().subtype == "txt");
     BOOST_CHECK(msg_msg.parts().at(1).name() == "a0.png" && msg_msg.parts().at(1).content_type().type == message::media_type_t::IMAGE &&
         msg_msg.parts().at(1).content_type().subtype == "png");
 
@@ -4793,7 +5129,8 @@ BOOST_AUTO_TEST_CASE(parse_attachment_utf8)
     string_t att_name;
     msg.attachment(1, att_file, att_name);
     att_file.close();
-    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt" && att_name.charset == codec::CHARSET_UTF8);
+    BOOST_CHECK(att_name == msg.parts()[0].name() && att_name == "TomislavKarastojković_CV.txt" && att_name.charset == codec::CHARSET_UTF8 &&
+        att_name.codec_type == codec::codec_t::BASE64);
 
     ofstream ofs(CV_FILE);
     BOOST_CHECK_EQUAL(!ofs, false);
@@ -4824,7 +5161,7 @@ BOOST_AUTO_TEST_CASE(parse_multilined_addresses)
         "Hello, World!\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
@@ -4856,7 +5193,7 @@ BOOST_AUTO_TEST_CASE(parse_long_addresses)
         "Hello, World!\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.at(0).name == "contact" && msg.recipients().addresses.at(0).address == "kontakt@mailio.dev" &&
@@ -4884,7 +5221,7 @@ BOOST_AUTO_TEST_CASE(parse_notification)
         "\r\n"
         "Hello, World!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.disposition_notification_to_string() == "karastojko <zxcvb@zoho.com>" && msg.subject() == "parse notification");
@@ -4908,13 +5245,30 @@ BOOST_AUTO_TEST_CASE(parse_qq_sender)
         "\r\n"
         "test\r\n";
 
-    message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
-        msg.recipients().addresses.at(0).name == "mailio" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
-        msg.recipients().addresses.at(1).name == "Tomislav Karastojković" && msg.recipients().addresses.at(1).address == "qwerty@gmail.com" &&
-        msg.recipients().addresses.at(2).name == "Томислав Карастојковић" && msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" &&
+            msg.from().addresses.at(0).name.charset == "UTF-8" &&
+            msg.from().addresses.at(0).name.codec_type == codec::codec_t::QUOTED_PRINTABLE &&
+            msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
+            msg.recipients().addresses.at(0).name.buffer == "mailio" &&
+            msg.recipients().addresses.at(0).address == "adresa@mailio.dev" &&
+            msg.recipients().addresses.at(1).name == "Tomislav Karastojković" &&
+            msg.recipients().addresses.at(1).name.charset == "UTF-8" &&
+            msg.recipients().addresses.at(1).name.codec_type == codec::codec_t::QUOTED_PRINTABLE &&
+            msg.recipients().addresses.at(1).address == "qwerty@gmail.com"&&
+            msg.recipients().addresses.at(2).name == "Томислав Карастојковић" &&
+            msg.recipients().addresses.at(2).name.charset == "UTF-8" &&
+            msg.recipients().addresses.at(2).name.codec_type == codec::codec_t::QUOTED_PRINTABLE &&
+            msg.recipients().addresses.at(2).address == "asdfg@zoho.com");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -4934,7 +5288,9 @@ BOOST_AUTO_TEST_CASE(parse_qb_sender)
         "test\r\n";
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио");
+    BOOST_CHECK(msg.from().addresses.at(0).name == "маилио" &&
+        msg.from().addresses.at(0).name.charset == "UTF-8" &&
+        msg.from().addresses.at(0).name.codec_type == codec::codec_t::BASE64);
 }
 
 
@@ -4954,9 +5310,12 @@ BOOST_AUTO_TEST_CASE(parse_qq_from_no_space)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "Action fran" "\xE7" "aise" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
+    BOOST_CHECK(msg.from().addresses.at(0).name == "Action fran" "\xE7" "aise" &&
+        msg.from().addresses.at(0).name.charset == "WINDOWS-1252" &&
+        msg.from().addresses.at(0).name.codec_type == codec::codec_t::QUOTED_PRINTABLE &&
+        msg.from().addresses.at(0).address == "adresa@mailio.dev");
 }
 
 
@@ -4981,7 +5340,8 @@ BOOST_AUTO_TEST_CASE(parse_qb_utf8_subject)
     local_date_time ldt(t, tz);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject() == "Re: Σχετ: Summer 2017" && msg.content() == "hello world");
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject_raw().buffer == "Re: Σχετ: Summer 2017" &&
+        msg.subject_raw().charset == "UTF-8" && msg.subject_raw().codec_type == codec::codec_t::BASE64 && msg.content() == "hello world");
 }
 
 
@@ -5007,9 +5367,8 @@ BOOST_AUTO_TEST_CASE(parse_qq_latin1_subject_raw)
     msg.parse(msg_str);
 
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject_raw().buffer == "Comprobaci\363n CV" && msg.subject_raw().charset == "ISO-8859-1" &&
-        msg.content() == "hello world");
+        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" && msg.subject_raw().buffer == "Comprobaci\363n CV" &&
+        msg.subject_raw().charset == "ISO-8859-1" && msg.subject_raw().codec_type == codec::codec_t::QUOTED_PRINTABLE && msg.content() == "hello world");
 }
 
 
@@ -5030,10 +5389,17 @@ BOOST_AUTO_TEST_CASE(parse_qq_utf8_emoji_subject_raw)
         "\r\n"
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
-    message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8"));
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.subject_raw() == string_t("🎁Živi godinu dana na račun Super Kartice", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5062,12 +5428,11 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject() == "TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO PROGRAMIRANJE ALEPHO BEOGRAD" &&
+        msg.subject_raw() == string_t("TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO PROGRAMIRANJE ALEPHO BEOGRAD", "utf-8", codec::codec_t::QUOTED_PRINTABLE) &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5092,18 +5457,24 @@ BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
         "\r\n"
         "\r\n"
         "opa bato\r\n";
-    message msg;
 
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.header_codec(message::header_codec_t::QUOTED_PRINTABLE);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
-        msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
-        msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+    {
+        message msg;
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
+            msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
+            msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64) &&
+            msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5128,15 +5499,14 @@ BOOST_AUTO_TEST_CASE(parse_qbq_long_subject)
         "\r\n"
         "opa bato\r\n";
     message msg;
-
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments" &&
+        msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "UTF-8", codec::codec_t::QUOTED_PRINTABLE) &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5156,12 +5526,10 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_dash)
         "\r\n"
         "test\r\n";
     message msg;
-
     ptime t = time_from_string("2016-02-11 22:56:22");
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "C++ Annotated: Sep – Dec 2017");
 }
@@ -5181,15 +5549,21 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_emoji)
         "Subject: =?utf-8?Q?=F0=9F=8E=81=C5=BDivi=20godinu=20dana=20na=20ra=C4=8Dun=20Super=20Kartice?=\r\n"
         "\r\n"
         "test\r\n";
-    message msg;
-
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "🎁Živi godinu dana na račun Super Kartice");
+    {
+        message msg;
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.subject_raw().buffer == "🎁Živi godinu dana na račun Super Kartice" && msg.subject_raw().charset == "UTF-8" &&
+            msg.subject_raw().codec_type == codec::codec_t::QUOTED_PRINTABLE);
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5207,15 +5581,21 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_long)
         "Subject: =?utf-8?Q?=F0=9F=8E=84=F0=9F=8E=81=F0=9F=8E=8A=C2=A0Sre=C4=87ni=20novogodi=C5=A1nji=20i=20bo=C5=BEi=C4=87ni=20praznici=C2=A0=F0=9F=8E=89=F0=9F=8E=85=F0=9F=92=9D?=\r\n"
         "\r\n"
         "test\r\n";
-    message msg;
-
-    ptime t = time_from_string("2016-02-11 22:56:22");
-    time_zone_ptr tz(new posix_time_zone("+00:00"));
-    local_date_time ldt(t, tz);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
-    msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() ==
-        u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
+    {
+        message msg;
+        ptime t = time_from_string("2016-02-11 22:56:22");
+        time_zone_ptr tz(new posix_time_zone("+00:00"));
+        local_date_time ldt(t, tz);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        BOOST_CHECK(msg.subject() ==
+            u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
 }
 
 
@@ -5237,7 +5617,7 @@ BOOST_AUTO_TEST_CASE(parse_utf8_subject)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
 }
@@ -5261,12 +5641,9 @@ BOOST_AUTO_TEST_CASE(parse_utf8_quoted_name)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojković" && msg.from().addresses.at(0).address == "qwerty@gmail.com");
-
-    msg.header_codec(mime::header_codec_t::UTF8);
-    BOOST_CHECK(msg.from_to_string() == "Tomislav Karastojković <qwerty@gmail.com>");
 }
 
 
@@ -5288,13 +5665,10 @@ BOOST_AUTO_TEST_CASE(parse_utf8_name)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "Tomislav Karastojković" && msg.recipients().addresses.at(0).address == "qwerty@gmail.com");
     BOOST_CHECK(msg.subject() == "Здраво, Свете!");
-
-    msg.header_codec(mime::header_codec_t::UTF8);
-    BOOST_CHECK(msg.recipients_to_string() == "Tomislav Karastojković <qwerty@gmail.com>");
 }
 
 
@@ -5316,11 +5690,9 @@ BOOST_AUTO_TEST_CASE(parse_utf8_address)
         "0JfQtNGA0LDQstC+LCDQodCy0LXRgtC1IQ0K";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "Tomislav Karastojkovic" && msg.from().addresses.at(0).address == "karastojković@gmail.com");
-
-    msg.header_codec(mime::header_codec_t::UTF8);
     BOOST_CHECK(msg.from_to_string() == "Tomislav Karastojkovic <karastojković@gmail.com>" && msg.content() == "Здраво, Свете!\r\n");
 }
 
@@ -5341,7 +5713,7 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_charset)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
 }
 
@@ -5362,8 +5734,36 @@ BOOST_AUTO_TEST_CASE(parse_q_subject_missing_codec)
         "test\r\n";
 
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), codec_error);
+}
+
+
+/**
+Parsing a message with several codecs in the header.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_many_codecs)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        "  <qwertyuiop@zoho.com>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
+        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        "\r\n"
+        "Hello, Sithonia!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+    msg.parse(msg_str);
+
+    BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
+    BOOST_CHECK(msg.recipients().addresses.at(0).name == "маилио" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev");
+    BOOST_CHECK(msg.recipients().addresses.at(1).name == "Томислав Карастојковић" && msg.recipients().addresses.at(1).address == "qwertyuiop@zoho.com");
+    BOOST_CHECK(msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
 }
 
 
@@ -5388,14 +5788,12 @@ BOOST_AUTO_TEST_CASE(parse_message_id)
         // strict mode
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "1234567890@mailio.dev" && msg.content_id() == "987654321@mailio.dev");
     }
     {
         // non-strict mode
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "<1234567890@mailio.dev>" && msg.content_id() == "<987654321@mailio.dev>");
     }
@@ -5418,7 +5816,6 @@ BOOST_AUTO_TEST_CASE(parse_whitespace_message_id)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     BOOST_CHECK(msg.message_id().empty() == true);
 }
@@ -5440,7 +5837,6 @@ BOOST_AUTO_TEST_CASE(parse_empty_message_id)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 }
 
@@ -5463,14 +5859,12 @@ BOOST_AUTO_TEST_CASE(parse_few_message_ids)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "1@mailio.dev");
     }
     {
         message msg;
         msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.message_id() == "<1@mailio.dev><2@mailio.dev>   <3@mailio.dev>    <4@mailio.dev>");
     }
@@ -5529,12 +5923,10 @@ BOOST_AUTO_TEST_CASE(parse_in_reply_without_monkey)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.in_reply_to().size() == 1 && msg.in_reply_to().at(0) == "<1@mailio.dev> <2 mailio.dev>");
     }
@@ -5552,7 +5944,7 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "References: <1@mailio.dev> 2@mailio.dev\r\n"
-        "In-reply-To: <3@mailio.dev> <4@mailio.dev>"
+        "In-reply-To: <3@mailio.dev> <4@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: Proba\r\n"
         "\r\n"
@@ -5560,13 +5952,11 @@ BOOST_AUTO_TEST_CASE(parse_references_without_brackets)
     {
         message msg;
         msg.strict_mode(true);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
         msg.strict_mode(false);
-        msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.references().size() == 1);
     }
@@ -5590,7 +5980,7 @@ BOOST_AUTO_TEST_CASE(parse_empty_header_strict)
         "Zdravo, Svete!\r\n";
     message msg;
     msg.strict_mode(true);
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -5613,7 +6003,7 @@ BOOST_AUTO_TEST_CASE(parse_empty_header_relaxed)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
 
     // If the headers in tests are accessed without copying, then for some reason the multimap often does not read the individual headers
@@ -5645,7 +6035,7 @@ BOOST_AUTO_TEST_CASE(parse_wrong_empty_header)
         "\r\n"
         "Zdravo, Svete!\r\n";
     message msg;
-    msg.line_policy(codec::line_len_policy_t::MANDATORY, codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
     BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
@@ -5670,7 +6060,7 @@ BOOST_AUTO_TEST_CASE(parse_headers_htab)
         "\r\n"
         "Hello, World!\r\n";
     message msg;
-    msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY, mailio::codec::line_len_policy_t::MANDATORY);
+    msg.line_policy(mailio::codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
     auto hdrs = msg.headers();
     auto rcv = hdrs.find("Received");

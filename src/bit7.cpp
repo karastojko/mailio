@@ -26,60 +26,80 @@ namespace mailio
 {
 
 
-bit7::bit7(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
-  : codec(encoder_line_policy, decoder_line_policy)
+bit7::bit7(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line1_policy, lines_policy)
 {
 }
 
 
-// TODO: is it possible to apply seven bit encoding to latin1 charset?
 vector<string> bit7::encode(const string& text) const
 {
     vector<string> enc_text;
     string line;
     string::size_type line_len = 0;
+    const string DELIMITERS = " ,;";
+    string::size_type delim_pos = 0;
+    string::size_type policy = line1_policy_;
+    const bool is_folding = (line1_policy_ != lines_policy_);
+
+    auto add_new_line = [&enc_text, &line_len, &delim_pos, &policy, this](bool is_folding, string& line)
+    {
+        if (is_folding && delim_pos > 0)
+        {
+            enc_text.push_back(line.substr(0, delim_pos));
+            line = line.substr(delim_pos);
+            line_len -= delim_pos;
+            delim_pos = 0;
+        }
+        else
+        {
+            enc_text.push_back(line);
+            line.clear();
+            line_len = 0;
+        }
+        policy = lines_policy_;
+    };
+
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
         if (is_allowed(*ch))
         {
             line += *ch;
             line_len++;
+
+            if (DELIMITERS.find(*ch) != string::npos)
+                delim_pos = line_len;
         }
         else if (*ch == '\r' && (ch + 1) != text.end() && *(ch + 1) == '\n')
         {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
-            // skip both crlf characters
+            add_new_line(is_folding, line);
+            // Skip both crlf characters.
             ch++;
         }
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
-        
-        if (line_len == string::size_type(line_policy_))
-        {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
-        }        
+
+        if (line_len == policy)
+            add_new_line(is_folding, line);
     }
     if (!line.empty())
         enc_text.push_back(line);
     while (!enc_text.empty() && enc_text.back().empty())
         enc_text.pop_back();
-    
+
     return enc_text;
 }
 
 
+// TODO: Consider the first line policy.
 string bit7::decode(const vector<string>& text) const
 {
     string dec_text;
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(decoder_line_policy_))
+        if (line.length() > lines_policy_)
             throw codec_error("Line policy overflow.");
-        
+
         for (auto ch : line)
         {
             if (!is_allowed(ch))
@@ -90,8 +110,8 @@ string bit7::decode(const vector<string>& text) const
         dec_text += "\r\n";
     }
     trim_right(dec_text);
-    
-    return dec_text;    
+
+    return dec_text;
 }
 
 

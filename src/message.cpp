@@ -23,14 +23,13 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <optional>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <mailio/codec.hpp>
-#include <mailio/base64.hpp>
-#include <mailio/quoted_printable.hpp>
 #include <mailio/bit7.hpp>
 #include <mailio/bit8.hpp>
 #include <mailio/q_codec.hpp>
@@ -115,16 +114,16 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             ct.charset = content_type_.charset;
             content_part.content_type(ct);
             content_part.content_transfer_encoding(encoding_);
-            content_part.line_policy(line_policy_, decoder_line_policy_);
+            content_part.line_policy(line_policy_);
             content_part.strict_mode(strict_mode_);
             content_part.strict_codec_mode(strict_codec_mode_);
-            content_part.header_codec(header_codec_);
             string cps;
             content_part.format(cps, opts.dot_escape);
             message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
-        // recursively format mime parts
+        // Recursively format mime parts.
+
         for (const auto& p: parts_)
         {
             string p_str;
@@ -193,7 +192,7 @@ void message::add_from(const mail_address& mail)
 
 string message::from_to_string() const
 {
-    return format_address_list(from_);
+    return format_address_list(from_, FROM_HEADER);
 }
 
 
@@ -211,7 +210,7 @@ mail_address message::sender() const
 
 string message::sender_to_string() const
 {
-    return format_address(sender_.name, sender_.address);
+    return format_address(sender_.name, sender_.address, SENDER_HEADER + HEADER_SEPARATOR_STR);
 }
 
 void message::reply_address(const mail_address& mail)
@@ -228,7 +227,7 @@ mail_address message::reply_address() const
 
 string message::reply_address_to_string() const
 {
-    return format_address(reply_address_.name, reply_address_.address);
+    return format_address(reply_address_.name, reply_address_.address, REPLY_TO_HEADER + HEADER_SEPARATOR_STR);
 }
 
 
@@ -252,7 +251,7 @@ mailboxes message::recipients() const
 
 string message::recipients_to_string() const
 {
-    return format_address_list(recipients_);
+    return format_address_list(recipients_, TO_HEADER);
 }
 
 
@@ -276,7 +275,7 @@ mailboxes message::cc_recipients() const
 
 string message::cc_recipients_to_string() const
 {
-    return format_address_list(cc_recipients_);
+    return format_address_list(cc_recipients_, CC_HEADER);
 }
 
 
@@ -300,7 +299,7 @@ mailboxes message::bcc_recipients() const
 
 string message::bcc_recipients_to_string() const
 {
-    return format_address_list(bcc_recipients_);
+    return format_address_list(bcc_recipients_, BCC_HEADER);
 }
 
 
@@ -318,7 +317,7 @@ mail_address message::disposition_notification() const
 
 string message::disposition_notification_to_string() const
 {
-    return format_address(disposition_notification_.name, disposition_notification_.address);
+    return format_address(disposition_notification_.name, disposition_notification_.address, DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR);
 }
 
 
@@ -372,12 +371,13 @@ vector<string> message::references() const
 }
 
 
-void message::subject(const string& mail_subject)
+void message::subject(const string& mail_subject, codec::codec_t sub_codec)
 {
     subject_.buffer = mail_subject;
     subject_.charset = codec::CHARSET_ASCII;
     if (codec::is_utf8_string(subject_.buffer))
         subject_.charset = codec::CHARSET_UTF8;
+    subject_.codec_type = sub_codec;
 }
 
 
@@ -389,10 +389,11 @@ void message::subject_raw(const string_t& mail_subject)
 
 #if defined(__cpp_char8_t)
 
-void message::subject(const u8string& mail_subject)
+void message::subject(const u8string& mail_subject, codec::codec_t sub_codec)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
     subject_.charset = codec::CHARSET_UTF8;
+    subject_.codec = sub_codec;
 }
 
 
@@ -400,6 +401,7 @@ void message::subject_raw(const u8string_t& mail_subject)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
     subject_.charset = mail_subject.charset;
+    subject_.codec = mail_subject.codec;
 }
 
 #endif
@@ -440,7 +442,6 @@ void message::attach(const istream& att_strm, const string& att_name, media_type
     string content = ss.str();
 
     mime m;
-    m.header_codec(this->header_codec());
     m.content_type(content_type_t(type, subtype));
     // content type charset is not set, so it will be treated as us-ascii
     m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
@@ -466,10 +467,9 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         content_part.content(content_);
         content_part.content_type(content_type_);
         content_part.content_transfer_encoding(encoding_);
-        content_part.line_policy(line_policy_, decoder_line_policy_);
+        content_part.line_policy(line_policy_);
         content_part.strict_mode(strict_mode_);
         content_part.strict_codec_mode(strict_codec_mode_);
-        content_part.header_codec(header_codec_);
         parts_.push_back(content_part);
         content_.clear();
     }
@@ -482,7 +482,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         ss << std::get<0>(att).rdbuf();
 
         mime m;
-        m.header_codec(this->header_codec());
+        m.line_policy(line_policy_);
         m.content_type(content_type_t(std::get<2>(att)));
         // content type charset is not set, so it will be treated as us-ascii
         m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
@@ -563,8 +563,11 @@ string message::format_header(bool add_bcc_header) const
     for_each(headers_.begin(), headers_.end(),
         [&header, this](const auto& hdr)
         {
-            header += hdr.first + HEADER_SEPARATOR_STR + fold_header_line(hdr.first + HEADER_SEPARATOR_STR + hdr.second, hdr.first.length() +
-                HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
+            string::size_type l1p = static_cast<string::size_type>(line_policy_) - hdr.first.length() - HEADER_SEPARATOR_STR.length();
+            bit7 b7(l1p, static_cast<string::size_type>(line_policy_));
+            vector<string> hdr_enc = b7.encode(hdr.second);
+            header += hdr.first + HEADER_SEPARATOR_STR + hdr_enc.at(0) + codec::END_OF_LINE;
+            header += fold_header_line(hdr_enc);
         }
     );
 
@@ -576,30 +579,22 @@ string message::format_header(bool add_bcc_header) const
     if(add_bcc_header)
         header += bcc_recipients_.empty() ? "" : BCC_HEADER + HEADER_SEPARATOR_STR + bcc_recipients_to_string() + codec::END_OF_LINE;
     header += disposition_notification_.empty() ? "" : DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR +
-        format_address(disposition_notification_.name,disposition_notification_.address) + codec::END_OF_LINE;
-    string msg_id = format_many_ids(message_id_);
-    header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + msg_id + codec::END_OF_LINE;
-    string in_reply = format_many_ids(in_reply_to_);
-    header += in_reply_to_.empty() ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + in_reply + codec::END_OF_LINE;
-    string references = format_many_ids(references_);
-    header += references_.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + references + codec::END_OF_LINE;
+        format_address(disposition_notification_.name, disposition_notification_.address, DISPOSITION_NOTIFICATION_HEADER + HEADER_SEPARATOR_STR) +
+        codec::END_OF_LINE;
+
+    header += message_id_.empty() ? "" : MESSAGE_ID_HEADER + HEADER_SEPARATOR_STR + format_many_ids(message_id_, MESSAGE_ID_HEADER);
+    header += in_reply_to_.size() == 0 ? "" : IN_REPLY_TO_HEADER + HEADER_SEPARATOR_STR + format_many_ids(in_reply_to_, IN_REPLY_TO_HEADER);
+    header += references_.empty() ? "" : REFERENCES_HEADER + HEADER_SEPARATOR_STR + format_many_ids(references_, REFERENCES_HEADER);
 
     // TODO: move formatting datetime to a separate method
     if (!date_time_.is_not_a_date_time())
-    {
-        stringstream ss;
-        ss.exceptions(std::ios_base::failbit);
-        local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
-        ss.imbue(locale(ss.getloc(), facet));
-        ss << date_time_;
-        header += DATE_HEADER + HEADER_SEPARATOR_STR + ss.str() + codec::END_OF_LINE;
-    }
+        header += DATE_HEADER + HEADER_SEPARATOR_STR + format_date() + codec::END_OF_LINE;
 
     if (!parts_.empty())
         header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + version_ + codec::END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject().buffer + codec::END_OF_LINE;
+    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
 
     return header;
 }
@@ -672,7 +667,7 @@ void message::parse_header_line(const string& header_line)
     else if (iequals(header_name, REFERENCES_HEADER))
         references_ = parse_many_ids(header_value);
     else if (iequals(header_name, SUBJECT_HEADER))
-        std::tie(subject_.buffer, subject_.charset) = parse_subject(header_value);
+        std::tie(subject_.buffer, subject_.charset, subject_.codec_type) = parse_subject(header_value);
     else if (iequals(header_name, DATE_HEADER))
         date_time_ = parse_date(trim_copy(header_value));
     else if (iequals(header_name, MIME_VERSION_HEADER))
@@ -688,7 +683,7 @@ void message::parse_header_line(const string& header_line)
 }
 
 
-string message::format_address_list(const mailboxes& mailbox_list) const
+string message::format_address_list(const mailboxes& mailbox_list, const string& header_name) const
 {
     const regex ATEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\./=\?\^\_`\{\|\}\~]*)"};
     smatch m;
@@ -697,9 +692,9 @@ string message::format_address_list(const mailboxes& mailbox_list) const
     for (auto ma = mailbox_list.addresses.begin(); ma != mailbox_list.addresses.end(); ma++)
     {
         if (mailbox_list.addresses.size() > 1 && ma != mailbox_list.addresses.begin())
-            mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address);
+            mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address, header_name);
         else
-            mailbox_str += format_address(ma->name, ma->address);
+            mailbox_str += format_address(ma->name, ma->address, header_name);
 
         if (ma != mailbox_list.addresses.end() - 1)
             mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
@@ -717,9 +712,9 @@ string message::format_address_list(const mailboxes& mailbox_list) const
         for (auto ma = mg->members.begin(); ma != mg->members.end(); ma++)
         {
             if (mg->members.size() > 1 && ma != mg->members.begin())
-                mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address);
+                mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address, header_name);
             else
-                mailbox_str += format_address(ma->name, ma->address);
+                mailbox_str += format_address(ma->name, ma->address, header_name);
 
             if (ma != mg->members.end() - 1)
                 mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
@@ -731,67 +726,129 @@ string message::format_address_list(const mailboxes& mailbox_list) const
 }
 
 
-string message::format_address(const string_t& name, const string& address) const
+string message::format_address(const string_t& name, const string& address, const string& header_name) const
 {
     if (name.buffer.empty() && address.empty())
         return "";
+
+    const string::size_type HEADER_LEN = header_name.length() + HEADER_SEPARATOR_STR.length();
+    const string::size_type line_policy = static_cast<string::size_type>(line_policy_);
 
     // TODO: no need for regex, simple string comparaison can be used
     const regex QTEXT_REGEX{R"([a-zA-Z0-9\ \t\!#\$%&'\(\)\*\+\,\-\.@/\:;<=>\?\[\]\^\_`\{\|\}\~]*)"};
     const regex DTEXT_REGEX{R"([a-zA-Z0-9\!#\$%&'\*\+\-\.\@/=\?\^\_`\{\|\}\~]*)"};
 
-    string name_formatted;
-    string addr;
+    vector<string> name_formatted;
     smatch m;
 
     // The charset has precedence over the header codec. Only for the non-ascii characters, consider the header encoding.
 
-    if (name.charset == codec::CHARSET_ASCII)
+    if (name.codec_type == codec::codec_t::ASCII)
     {
         // Check the name format.
 
         if (regex_match(name.buffer, m, regex(R"([A-Za-z0-9\ \t]*)")))
-            name_formatted = name.buffer;
+        {
+            bit7 b7(line_policy - HEADER_LEN, line_policy);
+            name_formatted = b7.encode(name.buffer);
+        }
         else if (regex_match(name.buffer, m, QTEXT_REGEX))
-            name_formatted = codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR;
+        {
+            bit7 b7(line_policy - HEADER_LEN + 2, line_policy);
+            name_formatted = b7.encode(codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR);
+        }
         else
             throw message_error("Formatting failure of name `" + name.buffer + "`.");
     }
-    else if (header_codec_ == header_codec_t::UTF8)
+    else if (name.codec_type == codec::codec_t::UTF8)
     {
-        name_formatted = name.buffer;
+        // TODO: Should be replaced with the eight bit codec.
+        bit7 b7(line_policy - HEADER_LEN, line_policy);
+        name_formatted = b7.encode(name.buffer);
     }
-    else
+    else if (name.codec_type == codec::codec_t::BASE64 || name.codec_type == codec::codec_t::QUOTED_PRINTABLE)
     {
-        q_codec qc(line_policy_, decoder_line_policy_);
-        vector<string> enc_name = qc.encode(name.buffer, name.charset, header_codec_);
-        for (auto sit = enc_name.begin(); sit != enc_name.end(); sit++)
-        {
-            name_formatted += *sit;
-            if (sit != enc_name.end() - 1)
-                name_formatted += codec::SPACE_STR;
-        }
+        q_codec qc(line_policy - HEADER_LEN, static_cast<string::size_type>(line_policy_));
+        name_formatted = qc.encode(name.buffer, name.charset, name.codec_type);
     }
+    else if (name.codec_type == codec::codec_t::PERCENT)
+        throw message_error("Percent codec not allowed for the mail address.");
 
     // Check address format.
 
+    string addr;
     if (!address.empty())
     {
         if (codec::is_utf8_string(address))
-        {
             addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
-        }
+        else if (regex_match(address, m, DTEXT_REGEX))
+            addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
         else
-        {
-            if (regex_match(address, m, DTEXT_REGEX))
-                addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
-            else
-                throw message_error("Formatting failure of address `" + address + "`.");
-        }
+            throw message_error("Formatting failure of address `" + address + "`.");
     }
 
-    string addr_name = (name_formatted.empty() ? addr : name_formatted + (addr.empty() ? "" : codec::SPACE_STR + addr));
-    return fold_header_line(addr_name);
+    string::size_type last_line_len = (name_formatted.empty() ? 0 : name_formatted.back().length());
+    string name_addr;
+    for (auto sit = name_formatted.begin(); sit != name_formatted.end(); sit++)
+        name_addr += (sit == name_formatted.begin() ? "" : codec::SPACE_STR + codec::SPACE_STR) +
+            *sit + (sit == name_formatted.end() - 1 ? "" : codec::END_OF_LINE);
+
+    if (!addr.empty())
+    {
+        if (last_line_len + addr.length() < line_policy)
+            name_addr += (name_formatted.empty() ? "" : codec::SPACE_STR) + addr;
+        else
+            name_addr += codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR + addr;
+    }
+
+    return name_addr;
+}
+
+
+string message::format_subject() const
+{
+    string subject;
+    const string::size_type line1_policy = static_cast<string::size_type>(line_policy_) - SUBJECT_HEADER.length() - HEADER_SEPARATOR_STR.length();
+    const string::size_type line_policy = static_cast<string::size_type>(line_policy_) - HEADER_SEPARATOR_STR.length();
+
+    if (subject_.codec_type == codec::codec_t::ASCII)
+    {
+        bit7 b7(line1_policy, line_policy);
+        vector<string> hdr = b7.encode(subject_.buffer);
+        subject += hdr.at(0) + codec::END_OF_LINE;
+        subject += fold_header_line(hdr);
+    }
+    else if (subject_.codec_type == codec::codec_t::UTF8)
+    {
+        bit8 b8(line1_policy, line_policy);
+        vector<string> hdr = b8.encode(subject_.buffer);
+        subject += hdr.at(0) + codec::END_OF_LINE;
+        subject += fold_header_line(hdr);
+    }
+    else if (subject_.codec_type == codec::codec_t::QUOTED_PRINTABLE || subject_.codec_type == codec::codec_t::BASE64)
+    {
+        q_codec qc(line1_policy, line_policy);
+        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, subject_.codec_type);
+        subject += hdr.at(0) + codec::END_OF_LINE;
+        subject += fold_header_line(hdr);
+    }
+    else if (subject_.codec_type == codec::codec_t::PERCENT)
+    {
+        throw message_error("Percent codec not allowed for the subject.");
+    }
+
+    return subject;
+}
+
+
+string message::format_date() const
+{
+    stringstream ss;
+    ss.exceptions(std::ios_base::failbit);
+    local_time_facet* facet = new local_time_facet("%a, %d %b %Y %H:%M:%S %q");
+    ss.imbue(locale(ss.getloc(), facet));
+    ss << date_time_;
+    return ss.str();
 }
 
 
@@ -1389,79 +1446,23 @@ local_date_time message::parse_date(const string& date_str) const
 }
 
 
-string message::fold_header_line(const string& header_line, string::size_type name_len) const
-{
-    const string DELIMITERS = " ,;";
-    const string::size_type hl_len = header_line.length();
-    string folded_line;
-    string::size_type pos_beg = name_len;
-    string::size_type pos_end = name_len;
-    // In the first pass, the chunk of line is reduced by the size of header name, afterwards it follows the line policy.
-    string::size_type line_len = string::size_type(line_policy_) - name_len - codec::END_OF_LINE.length();
-
-    while (hl_len - pos_end > line_len)
-    {
-        pos_beg = pos_end;
-        string::size_type pos = header_line.substr(pos_beg, line_len).find_last_of(DELIMITERS);
-        if (pos == string::npos)
-        {
-            folded_line += header_line.substr(pos_beg, line_len);
-            pos_end += line_len;
-        }
-        else
-        {
-            folded_line += header_line.substr(pos_beg, pos + 1);
-            pos_end += pos + 1;
-        }
-        folded_line += codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR;
-        line_len = string::size_type(line_policy_) - 2 * codec::SPACE_STR.length();
-    }
-    folded_line += header_line.substr(pos_end, hl_len - pos_end);
-
-    return folded_line;
-}
-
-
-string_t message::format_subject() const
-{
-    string_t subject;
-
-    if (subject_.charset != codec::CHARSET_ASCII && header_codec_ != header_codec_t::UTF8)
-    {
-        q_codec qc(line_policy_, decoder_line_policy_);
-        vector<string> hdr = qc.encode(subject_.buffer, subject_.charset, header_codec_);
-        subject.buffer += hdr.at(0) + codec::END_OF_LINE;
-        if (hdr.size() > 1)
-            for (auto h = hdr.begin() + 1; h != hdr.end(); h++)
-                subject.buffer += codec::SPACE_STR + *h + codec::END_OF_LINE;
-    }
-    else
-        subject.buffer += fold_header_line(SUBJECT_HEADER + HEADER_SEPARATOR_STR + subject_.buffer,
-            SUBJECT_HEADER.length() + HEADER_SEPARATOR_STR.length()) + codec::END_OF_LINE;
-
-    return subject;
-}
-
-
-tuple<string, string> message::parse_subject(const string& subject)
+tuple<string, string, codec::codec_t>
+message::parse_subject(const string& subject)
 {
     if (codec::is_utf8_string(subject))
-        return make_tuple(subject, codec::CHARSET_UTF8);
+        return make_tuple(subject, codec::CHARSET_UTF8, codec::codec_t::ASCII);
     else
     {
-        q_codec qc(line_policy_, decoder_line_policy_);
+        q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
         auto subject_dec = qc.check_decode(subject);
-        header_codec_t subject_encoding = get<2>(subject_dec);
-        if (subject_encoding != header_codec_t::UTF8)
-            header_codec_ = subject_encoding;
-        return make_tuple(get<0>(subject_dec), get<1>(subject_dec));
+        return make_tuple(get<0>(subject_dec), get<1>(subject_dec), get<2>(subject_dec));
     }
 }
 
 
 string_t message::parse_address_name(const string& address_name)
 {
-    q_codec qc(line_policy_, decoder_line_policy_);
+    q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
     const string::size_type Q_CODEC_SEPARATORS_NO = 4;
     string::size_type addr_len = address_name.size();
     bool is_q_encoded = address_name.size() >= Q_CODEC_SEPARATORS_NO && address_name.at(0) == codec::EQUAL_CHAR &&
@@ -1474,6 +1475,7 @@ string_t message::parse_address_name(const string& address_name)
     {
         auto parts = split_qc_string(address_name);
         string parts_str, charset;
+        std::optional<codec::codec_t> buf_codec = std::nullopt;
         for (const auto& p : parts)
         {
             string::size_type p_len = p.length();
@@ -1483,9 +1485,12 @@ string_t message::parse_address_name(const string& address_name)
                 charset = get<1>(an);
             if (charset != get<1>(an))
                 throw message_error("Inconsistent Q encodings.");
-            header_codec_ = get<2>(an);
+            if (!buf_codec)
+                buf_codec = get<2>(an);
         }
-        return string_t(parts_str, charset);
+        if (!buf_codec)
+            buf_codec = codec::codec_t::ASCII;
+        return string_t(parts_str, charset, buf_codec.value());
     }
 
     if (codec::is_utf8_string(address_name))

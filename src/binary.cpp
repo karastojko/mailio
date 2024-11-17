@@ -24,8 +24,8 @@ namespace mailio
 {
 
 
-binary::binary(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
-  : codec(encoder_line_policy, decoder_line_policy)
+binary::binary(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line1_policy, lines_policy)
 {
 }
 

@@ -410,8 +410,9 @@ public:
     Setting the subject.
 
     @param mail_subject Subject to set.
+    @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::string& mail_subject);
+    void subject(const std::string& mail_subject, codec::codec_t sub_codec = codec::codec_t::ASCII);
 
     /**
     Setting the raw subject.
@@ -426,8 +427,9 @@ public:
     Setting the subject.
 
     @param mail_subject Subject to set.
+    @param sub_codec    Codec of the subject to use.
     */
-    void subject(const std::u8string& mail_subject);
+    void subject(const std::u8string& mail_subject, codec::codec_t sub_codec = codec::codec_t::ASCII);
 
     /**
     Setting the raw subject.
@@ -644,22 +646,36 @@ protected:
     @throw message_error Formatting failure of address list, bad group name.
     @throw *             `format_address(const string&, const string&)`.
     **/
-    std::string format_address_list(const mailboxes& mailbox_list) const;
+    std::string format_address_list(const mailboxes& mailbox_list, const std::string& header_name = "") const;
 
     /**
     Formatting a name and an address.
 
-    If the name is in ASCII or the header codec set to UTF8, then it is written in raw format. Otherwise, the encoding is performed.
+    If the name is in ASCII or the header codec set to UTF8, then it is written in raw format. Otherwise, the encoding is performed. The header folding is
+    performed if necessary.
 
     @param name          Mail name.
     @param address       Mail address.
+    @param header_name   Header name of the address header.
     @return              The mail name and address formatted.
     @throw message_error Formatting failure of name.
     @throw message_error Formatting failure of address.
-    @todo                Deal with the line policy.
-    @todo                Using `q_codec` does not deal with the line folding.
     **/
-    std::string format_address(const string_t& name, const std::string& address) const;
+    std::string format_address(const string_t& name, const std::string& address, const std::string& header_name) const;
+
+    /**
+    Formatting the subject which can be ASCII or UTF-8.
+
+    @return Formatted subject.
+    **/
+    std::string format_subject() const;
+
+    /**
+    Formatting email date.
+
+    @return Date for the email format.
+    **/
+    std::string format_date() const;
 
     /**
     Parsing a string into vector of names and addresses.
@@ -693,24 +709,6 @@ protected:
     static std::vector<std::string> split_qc_string(const std::string& text);
 
     /**
-    Folding a long header.
-
-    @param header_line   Line of a header to be split into multiple lines by folding.
-    @param name_len      Header name length which is also part of the line policy.
-    @return              Header split into multiple lines.
-    @todo                Consider using `string_view` to deal with substrings.
-    **/
-    std::string fold_header_line(const std::string& header_line, std::string::size_type name_len = 0) const;
-
-    /**
-    Formatting the subject which can be ASCII or UTF-8.
-
-    @return Formatted subject.
-    @todo   Folding to be moved into `format_header()`?
-    **/
-    string_t format_subject() const;
-
-    /**
     Parsing a subject which can be ASCII or UTF-8.
 
     The result is string either ASCII or UTF-8 encoded. If another encoding is used like ISO-8859-X, then the result is undefined.
@@ -720,7 +718,8 @@ protected:
     @throw message_error Parsing failure of Q encoding.
     @throw *             `q_codec::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string> parse_subject(const std::string& subject);
+    std::tuple<std::string, std::string, codec::codec_t>
+    parse_subject(const std::string& subject);
 
     /**
     Parsing a name part of a mail ASCII or UTF-8 encoded.

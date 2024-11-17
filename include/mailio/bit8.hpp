@@ -32,13 +32,12 @@ class MAILIO_EXPORT bit8 : public codec
 public:
 
     /**
-    Setting the encoder and decoder line policy.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy Encoder line policy to set.
-    @param decoder_line_policy Decoder line policy to set.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     **/
-    bit8(codec::line_len_policy_t encoder_line_policy = codec::line_len_policy_t::NONE,
-         codec::line_len_policy_t decoder_line_policy = codec::line_len_policy_t::NONE);
+    bit8(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     bit8(const bit8&) = delete;
 
@@ -85,5 +84,3 @@ private:
 
 
 } // namespace mailio
-
-

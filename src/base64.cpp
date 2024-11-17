@@ -11,7 +11,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
-#include <string> 
+#include <string>
 #include <boost/algorithm/string/trim.hpp>
 #include <mailio/base64.hpp>
 
@@ -28,13 +28,13 @@ namespace mailio
 const string base64::CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 
-base64::base64(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy)
-  : codec(encoder_line_policy, decoder_line_policy)
+base64::base64(string::size_type line1_policy, string::size_type lines_policy) :
+    codec(line1_policy, lines_policy)
 {
 }
 
 
-vector<string> base64::encode(const string& text, string::size_type reserved) const
+vector<string> base64::encode(const string& text) const
 {
     vector<string> enc_text;
     unsigned char group_8bit[3];
@@ -42,11 +42,20 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
     int count_3_chars = 0;
     string line;
     string::size_type line_len = 0;
+    string::size_type policy = line1_policy_;
+
+    auto add_new_line = [&enc_text, &line_len, &policy, this](string& line)
+    {
+        enc_text.push_back(line);
+        line.clear();
+        line_len = 0;
+        policy = lines_policy_;
+    };
 
     for (string::size_type cur_char = 0; cur_char < text.length(); cur_char++)
     {
         group_8bit[count_3_chars++] = text[cur_char];
-        if (count_3_chars == 3) 
+        if (count_3_chars == 3)
         {
             group_6bit[0] = (group_8bit[0] & 0xfc) >> 2;
             group_6bit[1] = ((group_8bit[0] & 0x03) << 4) + ((group_8bit[1] & 0xf0) >> 4);
@@ -58,13 +67,12 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
             count_3_chars = 0;
             line_len += 4;
         }
-        
-        if (line_len >= string::size_type(line_policy_) - reserved - 2)
-        {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
-        }
+
+        // TODO: Compare against `policy`?
+        if (line_len >= line1_policy_ - 2)
+            add_new_line(line);
+        else if (line_len >= lines_policy_ - 2)
+            add_new_line(line);
     }
 
     // encode remaining characters if any
@@ -81,29 +89,21 @@ vector<string> base64::encode(const string& text, string::size_type reserved) co
 
         for (int i = 0; i < count_3_chars + 1; i++)
         {
-            if (line_len >= string::size_type(line_policy_) - reserved - 2)
-            {
-                enc_text.push_back(line);
-                line.clear();
-                line_len = 0;
-            }
+            if (line_len >= policy - 2)
+                add_new_line(line);
             line += CHARSET[group_6bit[i]];
             line_len++;
         }
 
         while (count_3_chars++ < 3)
         {
-            if (line_len >= string::size_type(line_policy_) - reserved - 2)
-            {
-                enc_text.push_back(line);
-                line.clear();
-                line_len = 0;
-            }            
+            if (line_len >= policy - 2)
+                add_new_line(line);
             line += EQUAL_CHAR;
             line_len++;
         }
     }
-    
+
     if (!line.empty())
         enc_text.push_back(line);
 
@@ -120,49 +120,49 @@ string base64::decode(const vector<string>& text) const
 
     for (const auto& line : text)
     {
-        if (line.length() > string::size_type(decoder_line_policy_) - 2)
+        if (line.length() > lines_policy_ - 2)
             throw codec_error("Bad line policy.");
 
         for (string::size_type ch = 0; ch < line.length() && line[ch] != EQUAL_CHAR; ch++)
         {
             if (!is_allowed(line[ch]))
                 throw codec_error("Bad character `" + string(1, line[ch]) + "`.");
-    
+
             group_6bit[count_4_chars++] = line[ch];
             if (count_4_chars == 4)
             {
                 for (int i = 0; i < 4; i++)
                     group_6bit[i] = static_cast<unsigned char>(CHARSET.find(group_6bit[i]));
-    
+
                 group_8bit[0] = (group_6bit[0] << 2) + ((group_6bit[1] & 0x30) >> 4);
                 group_8bit[1] = ((group_6bit[1] & 0xf) << 4) + ((group_6bit[2] & 0x3c) >> 2);
                 group_8bit[2] = ((group_6bit[2] & 0x3) << 6) + group_6bit[3];
-    
+
                 for (int i = 0; i < 3; i++)
                     dec_text += group_8bit[i];
                 count_4_chars = 0;
             }
         }
-    
+
         // decode remaining characters if any
-    
-        if (count_4_chars > 0) 
+
+        if (count_4_chars > 0)
         {
             for (int i = count_4_chars; i < 4; i++)
                 group_6bit[i] = '\0';
-    
+
             for (int i = 0; i < 4; i++)
                 group_6bit[i] = static_cast<unsigned char>(CHARSET.find(group_6bit[i]));
-    
+
             group_8bit[0] = (group_6bit[0] << 2) + ((group_6bit[1] & 0x30) >> 4);
             group_8bit[1] = ((group_6bit[1] & 0xf) << 4) + ((group_6bit[2] & 0x3c) >> 2);
             group_8bit[2] = ((group_6bit[2] & 0x3) << 6) + group_6bit[3];
-    
+
             for (int i = 0; i < count_4_chars - 1; i++)
                 dec_text += group_8bit[i];
         }
     }
-    
+
     return dec_text;
 }
 

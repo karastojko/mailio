@@ -39,13 +39,14 @@ class MAILIO_EXPORT q_codec : public codec
 public:
 
     /**
-    Setting the encoder and decoder line policy to recommended one.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy  Line policy to apply.
-    @param decoder_line_policy  Line policy to apply.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     @param codec_method Method for encoding/decoding.
+    @throw codec_error  Bad encoding method.
     **/
-    q_codec(codec::line_len_policy_t encoder_line_policy, codec::line_len_policy_t decoder_line_policy);
+    q_codec(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     q_codec(const q_codec&) = delete;
 
@@ -65,10 +66,12 @@ public:
 
     @param text    String to encode.
     @param charset Charset used by the string.
+    @param method  Allowed encoding methods.
     @return        Encoded string.
     @todo          Merge text and charset into a single parameter of type `string_t`.
+    @todo          It must take another parameter for the header name length in order to remove the hardcoded constant.
     **/
-    std::vector<std::string> encode(const std::string& text, const std::string& charset, header_codec_t method) const;
+    std::vector<std::string> encode(const std::string& text, const std::string& charset, codec_t method) const;
 
     /**
     Decoding a string.
@@ -81,7 +84,7 @@ public:
     @throw codec_error Bad encoding method.
     @throw *           `decode_qp(const string&)`, `base64::decode(const string&)`.
     **/
-    std::tuple<std::string, std::string, header_codec_t> decode(const std::string& text) const;
+    std::tuple<std::string, std::string, codec_t> decode(const std::string& text) const;
 
     /**
     Checking if a string is Q encoded and decodes it.
@@ -91,7 +94,7 @@ public:
     @throw codec_error Bad Q codec format.
     @todo              Returning value to hold `string_t` instead of two `std::string`.
     **/
-    std::tuple<std::string, std::string, header_codec_t> check_decode(const std::string& text) const;
+    std::tuple<std::string, std::string, codec_t> check_decode(const std::string& text) const;
 
 private:
 
@@ -121,10 +124,6 @@ private:
     @return   True if allowed, false if not.
     **/
     bool is_q_allowed(char ch) const;
-
-    /**
-    Method used for encoding/decoding.
-    **/
 };
 
 

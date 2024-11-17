@@ -25,19 +25,20 @@ namespace mailio
 
 /**
 Quoted Printable codec.
+
+@todo Remove the Q codec flag.
 **/
 class MAILIO_EXPORT quoted_printable : public codec
 {
 public:
 
     /**
-    Setting the encoder and decoder line policy.
+    Setting the encoder and decoder line policies.
 
-    @param encoder_line_policy Encoder line length policy to set.
-    @param decoder_line_policy Decoder line length policy to set.
+    @param line1_policy First line policy to set.
+    @param lines_policy Other lines policy than the first one to set.
     **/
-    quoted_printable(codec::line_len_policy_t encoder_line_policy = codec::line_len_policy_t::NONE,
-                     codec::line_len_policy_t decoder_line_policy = codec::line_len_policy_t::NONE);
+    quoted_printable(std::string::size_type line1_policy, std::string::size_type lines_policy);
 
     quoted_printable(const quoted_printable&) = delete;
 
@@ -56,12 +57,11 @@ public:
     Encoding a string into vector of quoted printable encoded strings by applying the line policy.
 
     @param text        String to encode.
-    @param reserved    Number of characters to subtract from the line policy.
     @return            Vector of quoted printable strings.
     @throw codec_error Bad character.
     @throw codec_error Bad CRLF sequence.
     **/
-    std::vector<std::string> encode(const std::string& text, std::string::size_type reserved = 0) const;
+    std::vector<std::string> encode(const std::string& text) const;
 
     /**
     Decoding a vector of quoted printable strings to string by applying the line policy.
@@ -92,7 +92,7 @@ private:
     bool is_allowed(char ch) const;
 
     /**
-    Flag for Q codec mode.
+    Flag for the Q codec mode.
     **/
     bool q_codec_mode_;
 };
