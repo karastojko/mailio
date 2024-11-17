@@ -1,6 +1,8 @@
 
 # mailio #
 
+[![C++](https://img.shields.io/badge/C++-17-blue)](https://en.cppreference.com/w/cpp/17)
+
 [中文文档](README_zh.md)
 
 *mailio* is a cross platform C++ library for MIME format and SMTP, POP3 and IMAP protocols. It is based on the standard C++ 17 and Boost library.
