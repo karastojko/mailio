@@ -2,6 +2,7 @@
 # mailio #
 
 [![C++](https://img.shields.io/badge/C++-17-blue)](https://en.cppreference.com/w/cpp/17)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 [中文文档](README_zh.md)
 
