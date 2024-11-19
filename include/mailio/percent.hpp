@@ -14,6 +14,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #pragma once
 
 #include <string>
+#include <vector>
 #include "codec.hpp"
 #include "export.hpp"
 
