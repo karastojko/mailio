@@ -4,6 +4,7 @@
 [![C++](https://img.shields.io/badge/C++-17-blue)](https://en.cppreference.com/w/cpp/17)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![Conan Center](https://img.shields.io/conan/v/mailio)](https://conan.io/center/recipes/mailio)
+[![Vcpkg](https://img.shields.io/vcpkg/v/mailio)](https://vcpkg.link/ports/mailio)
 
 [中文文档](README_zh.md)
 
