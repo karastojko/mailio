@@ -354,6 +354,104 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 }
 
 
+void imap::fetch_flags(unsigned long message_no, std::vector<std::string>& flags, bool is_uids) {
+    std::list<messages_range_t> messages_range;
+    std::map<unsigned long, std::vector<std::string>> found_flags;
+    messages_range.push_back(imap::messages_range_t(message_no, message_no));
+    fetch_flags(messages_range, found_flags, is_uids);
+    if (found_flags.begin() != found_flags.end()) {
+        flags = found_flags.begin()->second;
+    }
+}
+
+void imap::fetch_flags(const std::string& mailbox, unsigned long message_no, std::vector<std::string>& flags, bool is_uids) {
+    select(mailbox);
+    fetch_flags(message_no, flags, is_uids);
+}
+
+void imap::fetch_flags(const std::list<messages_range_t>& messages_range, std::map<unsigned long, std::vector<std::string>>& found_flags, bool is_uids)
+{
+    if (messages_range.empty()) {
+        throw imap_error("Empty messages range.");
+    }
+
+    string cmd;
+    if (is_uids) {
+        cmd.append("UID ");
+    }
+
+    cmd.append("FETCH " + messages_range_list_to_string(messages_range) + TOKEN_SEPARATOR_STR + "(FLAGS)");
+    dlg_->send(format(cmd));
+
+    bool has_more = true;
+    try
+    {
+        while (has_more)
+        {
+            reset_response_parser();
+            string line = dlg_->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
+
+            if (parsed_line.tag == UNTAGGED_RESPONSE)
+            {
+                parse_response(parsed_line.response);
+
+                if (mandatory_part_.empty() || mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM) {
+                    throw imap_error("Fetching message failure.");
+                }
+
+                unsigned long msg_no = stoul(mandatory_part_.front()->atom);
+                mandatory_part_.pop_front();
+
+                if (msg_no == 0) {
+                    throw imap_error("Invalid message number.");
+                }
+
+                if (mandatory_part_.empty() || !iequals(mandatory_part_.front()->atom, "FETCH")) {
+                    throw imap_error("Fetching message failure.");
+                }
+
+                mandatory_part_.pop_front();
+
+                if (mandatory_part_.empty() || mandatory_part_.front()->token_type != response_token_t::token_type_t::LIST) {
+                    throw imap_error("Expected a list of flags.");
+                }
+
+                auto flag_list = mandatory_part_.front()->parenthesized_list;
+
+                for (auto it = flag_list.begin(); it != flag_list.end(); ++it) {
+                    if ((*it)->token_type == response_token_t::token_type_t::ATOM && iequals((*it)->atom, "FLAGS")) {
+                        ++it; // Move to the actual list of flags
+                        if (it != flag_list.end() && (*it)->token_type == response_token_t::token_type_t::LIST) {
+                            for (const auto& flag_token : (*it)->parenthesized_list) {
+                                if (flag_token->token_type == response_token_t::token_type_t::ATOM) {
+                                    found_flags[msg_no].emplace_back(flag_token->atom);
+                                }
+                            }
+                        }
+                        break; // Once FLAGS are found and processed, we break out of the loop
+                    }
+                }
+            }
+            else if (parsed_line.tag == to_string(tag_))
+            {
+                if (parsed_line.result.value() != tag_result_response_t::OK) {
+                    throw imap_error("Fetching flags failed.");
+                }
+                has_more = false;
+            }
+            else
+            {
+                throw imap_error("Unexpected response during flags fetch.");
+            }
+        }
+    }
+    catch (const std::exception& e)
+    {
+        throw imap_error(std::string("Parsing failure: ") + e.what());
+    }
+    reset_response_parser();
+}
 // Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
 void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
     codec::line_len_policy_t line_policy)
@@ -367,11 +465,12 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
     string cmd;
     if (is_uids)
         cmd.append("UID ");
-    cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
+    cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + "(" + RFC822_TOKEN + TOKEN_SEPARATOR_STR + "FLAGS)");
     dlg_->send(format(cmd));
 
     // Stores messages as string literals for parsing after the OK response.
     map<unsigned long, string> msg_str;
+    list<string> flags;
     bool has_more = true;
     try
     {
@@ -415,7 +514,14 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                                     if (token == part->parenthesized_list.end() || (*token)->token_type != response_token_t::token_type_t::LITERAL)
                                         throw imap_error("Parsing failure.");
                                     literal_token = *token;
-                                    break;
+                                }
+                                else if (iequals((*token)->atom, "FLAGS"))
+                                {
+                                    token++;
+                                    if (token == part->parenthesized_list.end() || (*token)->token_type != response_token_t::token_type_t::LIST)
+                                        throw imap_error("Parsing failure.");
+                                    for (auto flag_token : (*token)->parenthesized_list)
+                                        flags.push_back(flag_token->atom);
                                 }
                             }
 
@@ -457,6 +563,9 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         message msg;
                         msg.line_policy(line_policy);
                         msg.parse(ms.second);
+                        for (const auto& flag : flags) {
+                            msg.set_flag(flag);
+                        }
                         found_messages.emplace(ms.first, move(msg));
                     }
                 }

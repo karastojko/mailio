@@ -312,6 +312,39 @@ public:
         bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
 
     /**
+     Fetches the flags of a message in the specified mailbox.
+    
+     @param message_no the number of the message
+     @param flags a vector to store the found flags
+     @param is_uids whether the message number is a UID
+     @throws imap_error if the fetch operation fails
+    */
+    void fetch_flags(unsigned long message_no, std::vector<std::string>& flags, bool is_uids = false);
+    
+    /**
+     Fetches the flags of a message in the specified mailbox.
+    
+     @param mailbox the name of the mailbox
+     @param message_no the number of the message
+     @param flags a vector to store the found flags
+     @param is_uids whether the message number is a UID
+    
+     @throws imap_error if an IMAP error occurs
+    */    
+    void fetch_flags(const std::string& mailbox, unsigned long message_no, std::vector<std::string>& flags, bool is_uids = false);
+    /**
+     * Fetches flags for a range of messages from the mailbox.
+     *
+     * @param messages_range The range of messages to fetch flags for.
+     * @param found_flags    A map to store the fetched flags.
+     * @param is_uids        Flag indicating whether to use UIDs or not.
+     *
+     * @throws imap_error Fetching flags failure.
+     * @throws imap_error Parsing failure.
+     */
+    void fetch_flags(const std::list<messages_range_t>& messages_range, std::map<unsigned long, std::vector<std::string>>& found_flags, bool is_uids = false);
+
+    /**
     Appending a message to the given folder.
 
     @param folder_name Folder to append the message.
