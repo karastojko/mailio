@@ -178,7 +178,7 @@ in case I missed someone please let me know.
 * [Don Yihtseu](https://github.com/tsurumi-yizhou): Add Chinese ReadMe.
 * [Leonhard Kipp](mailto:Leonhard.Kipp@ppro.com): Proper way to build the shared library. Message formatting options.
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
-* [Abril Rincón Blanco](git@rinconblanco.es): Compilation fix for Clang earlier than the version 14.
+* [Abril Rincón Blanco](mailto:git@rinconblanco.es): Compilation fix for Clang earlier than the version 14.
 
 
 # References #
