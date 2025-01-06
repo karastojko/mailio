@@ -350,7 +350,8 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
     messages_range.push_back(imap::messages_range_t(message_no, message_no));
     map<unsigned long, message> found_messages;
     fetch(messages_range, found_messages, is_uid, header_only, msg.line_policy());
-    msg = std::move(found_messages.begin()->second);
+    if (!found_messages.empty())
+        msg = std::move(found_messages.begin()->second);
 }
 
 
