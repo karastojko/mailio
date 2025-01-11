@@ -144,6 +144,13 @@ protected:
     void check_timeout();
 
     /**
+    Timeout handler which sets the timer flag to expired.
+
+    @param error Result of the asynchronous operation.
+    **/
+    void timeout_handler(const boost::system::error_code& error);
+
+    /**
     Server hostname.
     **/
     const std::string hostname_;
@@ -166,7 +173,7 @@ protected:
     /**
     Timer to check the timeout.
     **/
-    std::shared_ptr<boost::asio::deadline_timer> timer_;
+    std::shared_ptr<boost::asio::steady_timer> timer_;
 
     /**
     Timeout on I/O operations in milliseconds.
