@@ -144,15 +144,7 @@ void dialog::connect_async()
             else
                 connect_error = true;
         });
-    do
-    {
-        if (timer_expired_)
-            throw dialog_error("Server connecting timed out.");
-        if (connect_error)
-            throw dialog_error("Server connecting failed.");
-        ios_.run_one();
-    }
-    while (!has_connected);
+    wait_async(has_connected, connect_error, "Network connecting timed out.", "Network connecting failed.");
 }
 
 
@@ -169,15 +161,7 @@ void dialog::send_async(Socket& socket, string line)
             else
                 send_error = true;
         });
-    do
-    {
-        if (timer_expired_)
-            throw dialog_error("Network sending timed out.");
-        if (send_error)
-            throw dialog_error("Network sending failed.");
-        ios_.run_one();
-    }
-    while (!has_written);
+    wait_async(has_written, send_error, "Network sending timed out.", "Network sending failed.");
 }
 
 
@@ -199,17 +183,22 @@ string dialog::receive_async(Socket& socket, bool raw)
             else
                 receive_error = true;
         });
+    wait_async(has_read, receive_error, "Network receiving timed out.", "Network receiving failed.");
+    return line;
+}
+
+
+void dialog::wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg)
+{
     do
     {
         if (timer_expired_)
-            throw dialog_error("Network receiving timed out.");
-        if (receive_error)
-            throw dialog_error("Network receiving failed.");
+            throw dialog_error(expired_msg);
+        if (op_error)
+            throw dialog_error(op_msg);
         ios_.run_one();
     }
-    while (!has_read);
-
-    return line;
+    while (!has_op);
 }
 
 

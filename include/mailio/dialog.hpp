@@ -138,6 +138,17 @@ protected:
     template<typename Socket>
     std::string receive_async(Socket& socket, bool raw);
 
+
+    /**
+    Waiting for an asynchronous, reporting an error when the timer expires.
+
+    @param has_op      Asynchronous operation flag whether it finishes.
+    @param op_error    Flag whether an operation encountered an error.
+    @param expired_msg Message when an operation times out.
+    @param op_msg      Message when a network operation fails.
+    **/
+    void wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg);
+
     /**
     Checking if the timeout is reached.
     **/
@@ -182,6 +193,8 @@ protected:
 
     /**
     Flag to show whether the timeout has expired.
+
+    @todo Should be atomic?
     **/
     bool timer_expired_;
 
