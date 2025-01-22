@@ -344,6 +344,13 @@ void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, 
 }
 
 
+void imap::fetch(const string& mailbox, unsigned long message_no, bool is_uid, message& msg, bool header_only)
+{
+    select(mailbox);
+    fetch(message_no, msg, is_uid, header_only);
+}
+
+
 void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool header_only)
 {
     list<messages_range_t> messages_range;
