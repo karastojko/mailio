@@ -446,19 +446,6 @@ public:
     void date_time(const boost::local_time::local_date_time& mail_dt);
 
     /**
-    Attaching a file with the given media type.
-
-    @param att_strm Stream to read the attachment.
-    @param att_name Attachment name to set.
-    @param type     Attachment media type to set.
-    @param subtype  Attachment media subtype to set.
-    @throw *        `mime::content_type(const content_type_t&)`, `mime::content_transfer_encoding(content_transfer_encoding_t)`,
-                    `mime::content_disposition(content_disposition_t)`.
-    **/
-    [[deprecated]]
-    void attach(const std::istream& att_strm, const std::string& att_name, media_type_t type, const std::string& subtype);
-
-    /**
     Attaching a list of streams.
 
     If the content is set, attaching a file moves the content to the first MIME part. Thus, the content and the attached files are MIME parts, as described in

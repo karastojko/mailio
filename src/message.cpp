@@ -430,28 +430,6 @@ void message::date_time(const boost::local_time::local_date_time& mail_dt)
 }
 
 
-void message::attach(const istream& att_strm, const string& att_name, media_type_t type, const string& subtype)
-{
-    if (boundary_.empty())
-        boundary_ = make_boundary();
-    content_type_.type = media_type_t::MULTIPART;
-    content_type_.subtype = "mixed";
-
-    stringstream ss;
-    ss << att_strm.rdbuf();
-    string content = ss.str();
-
-    mime m;
-    m.content_type(content_type_t(type, subtype));
-    // content type charset is not set, so it will be treated as us-ascii
-    m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
-    m.content_disposition(content_disposition_t::ATTACHMENT);
-    m.name(att_name);
-    m.content(content);
-    parts_.push_back(m);
-}
-
-
 void message::attach(const list<tuple<istream&, string_t, content_type_t>>& attachments)
 {
     if (boundary_.empty())
