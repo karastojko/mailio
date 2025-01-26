@@ -362,7 +362,16 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 }
 
 
-// Fetching literal is the only place where line is ended with LF only, instead of CRLF. Thus, `receive(true)` and counting EOLs is performed.
+/*
+Although the RFC mandates MIME messages to have lines ending with CRLF, some email clients put LF only. For that reason, the method `dialog::receive(true)`
+is being used for fetching a literal. That way, the EOL counting is properly performed. This is probably the case for the strict mode policy.
+
+According to the RFC 3501 section 6.4.5, the untagged response of the fetch command is not mandatory. Thus, some servers return just the tagged response if
+no message is found.
+
+The fetch untagged responses provide messages. In the last tagged response the status is obtained. Then, string literals can be parsed to validate the MIME
+format.
+*/
 void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
     codec::line_len_policy_t line_policy)
 {
@@ -378,8 +387,9 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
     cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
     dlg_->send(format(cmd));
 
-    // Stores messages as string literals for parsing after the OK response.
+    // Stores messages as strings indexed by the messages number.
     map<unsigned long, string> msg_str;
+    // Flag whether the response line is the last one i.e. the tagged response.
     bool has_more = true;
     try
     {
@@ -389,21 +399,22 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
 
+            // The untagged response collects all messages.
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
                 parse_response(parsed_line.response);
 
                 if (mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM)
                     throw imap_error("Fetching message failure.");
-                unsigned long msg_no = stoul(mandatory_part_.front()->atom);
+                unsigned long sequence_no = stoul(mandatory_part_.front()->atom);
                 mandatory_part_.pop_front();
-                if (msg_no == 0)
+                if (sequence_no == 0)
                     throw imap_error("Fetching message failure.");
 
                 if (!iequals(mandatory_part_.front()->atom, "FETCH"))
                     throw imap_error("Fetching message failure.");
 
-                unsigned long uid = 0;
+                unsigned long uid_no = 0;
                 shared_ptr<response_token_t> literal_token = nullptr;
                 for (auto part : mandatory_part_)
                     if (part->token_type == response_token_t::token_type_t::LIST)
@@ -415,7 +426,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                                     token++;
                                     if (token == part->parenthesized_list.end())
                                         throw imap_error("Parsing failure.");
-                                    uid = stoul((*token)->atom);
+                                    uid_no = stoul((*token)->atom);
                                 }
                                 else if (iequals((*token)->atom, RFC822_TOKEN))
                                 {
@@ -446,15 +457,16 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         // There could be a parenthesized list after the string literal. Read it and do nothing.
                         parse_response(line);
                     }
-                    msg_str.emplace(is_uids ? uid : msg_no, move(literal_token->literal));
+                    msg_str.emplace(is_uids ? uid_no : sequence_no, move(literal_token->literal));
 
                     // If no UID was found, but we asked for them, it's an error.
-                    if (is_uids && uid == 0)
+                    if (is_uids && uid_no == 0)
                     {
                         throw imap_error("Parsing failure.");
                     }
                 }
             }
+            // The tagged response determines status and parses provided messages in `msg_str`.
             else if (parsed_line.tag == to_string(tag_))
             {
                 if (parsed_line.result.value() == tag_result_response_t::OK)
