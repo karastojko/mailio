@@ -179,6 +179,7 @@ in case I missed someone please let me know.
 * [Leonhard Kipp](mailto:Leonhard.Kipp@ppro.com): Proper way to build the shared library. Message formatting options.
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
 * [Abril Rincón Blanco](mailto:git@rinconblanco.es): Compilation fix for Clang earlier than the version 14.
+* [yjm6560](https://github.com/yjm6560): Various IMAP bugs.
 
 
 # References #
