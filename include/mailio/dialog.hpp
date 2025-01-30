@@ -146,8 +146,10 @@ protected:
     @param op_error    Flag whether an operation encountered an error.
     @param expired_msg Message when an operation times out.
     @param op_msg      Message when a network operation fails.
+    @todo              `op_error` becomes redundant by `error`.
     **/
-    void wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg);
+    void wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg,
+        const boost::system::error_code& error);
 
     /**
     Checking if the timeout is reached.
@@ -314,20 +316,36 @@ public:
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit dialog_error(const std::string& msg) : std::runtime_error(msg)
+    dialog_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
 
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit dialog_error(const char* msg) : std::runtime_error(msg)
+    dialog_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
+
+    /**
+    Gets the detailed error message.
+
+    @return Detailed error message.
+    **/
+    std::string details() const;
+
+protected:
+
+    /**
+    Message provided by Asio.
+    **/
+    std::string details_;
 };
 
 

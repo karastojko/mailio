@@ -10,6 +10,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */
 
+
 #include <string>
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
@@ -70,9 +71,9 @@ void dialog::connect()
         else
             connect_async();
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Server connecting failed.");
+        throw dialog_error("Server connecting failed.", exc.code().message());
     }
 }
 
@@ -104,9 +105,9 @@ void dialog::send_sync(Socket& socket, const string& line)
         string l = line + "\r\n";
         write(socket, buffer(l, l.size()));
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Network sending error.");
+        throw dialog_error("Network sending error.", exc.code().message());
     }
 }
 
@@ -123,9 +124,9 @@ string dialog::receive_sync(Socket& socket, bool raw)
             trim_if(line, is_any_of("\r\n"));
         return line;
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Network receiving error.");
+        throw dialog_error("Network receiving error.", exc.code().message());
     }
 }
 
@@ -136,15 +137,17 @@ void dialog::connect_async()
     check_timeout();
 
     bool has_connected{false}, connect_error{false};
+    error_code errc;
     async_connect(*socket_, res.resolve(hostname_, to_string(port_)),
-        [&has_connected, &connect_error](const error_code& error, const boost::asio::ip::tcp::endpoint&)
+        [&has_connected, &connect_error, &errc](const error_code& error, const boost::asio::ip::tcp::endpoint&)
         {
             if (!error)
                 has_connected = true;
             else
                 connect_error = true;
+            errc = error;
         });
-    wait_async(has_connected, connect_error, "Network connecting timed out.", "Network connecting failed.");
+    wait_async(has_connected, connect_error, "Network connecting timed out.", "Network connecting failed.", errc);
 }
 
 
@@ -154,14 +157,17 @@ void dialog::send_async(Socket& socket, string line)
     check_timeout();
     string l = line + "\r\n";
     bool has_written{false}, send_error{false};
-    async_write(socket, buffer(l, l.size()), [&has_written, &send_error](const error_code& error, size_t)
+    error_code errc;
+    async_write(socket, buffer(l, l.size()),
+        [&has_written, &send_error, &errc](const error_code& error, size_t)
         {
             if (!error)
                 has_written = true;
             else
                 send_error = true;
+            errc = error;
         });
-    wait_async(has_written, send_error, "Network sending timed out.", "Network sending failed.");
+    wait_async(has_written, send_error, "Network sending timed out.", "Network sending failed.", errc);
 }
 
 
@@ -171,7 +177,9 @@ string dialog::receive_async(Socket& socket, bool raw)
     check_timeout();
     bool has_read{false}, receive_error{false};
     string line;
-    async_read_until(socket, *strmbuf_, "\n", [&has_read, &receive_error, this, &line, raw](const error_code& error, size_t)
+    error_code errc;
+    async_read_until(socket, *strmbuf_, "\n",
+        [&has_read, &receive_error, this, &line, &errc, raw](const error_code& error, size_t)
         {
             if (!error)
             {
@@ -182,20 +190,21 @@ string dialog::receive_async(Socket& socket, bool raw)
             }
             else
                 receive_error = true;
+            errc = error;
         });
-    wait_async(has_read, receive_error, "Network receiving timed out.", "Network receiving failed.");
+    wait_async(has_read, receive_error, "Network receiving timed out.", "Network receiving failed.", errc);
     return line;
 }
 
 
-void dialog::wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg)
+void dialog::wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg, const error_code& error)
 {
     do
     {
         if (timer_expired_)
-            throw dialog_error(expired_msg);
+            throw dialog_error(expired_msg, error.message());
         if (op_error)
-            throw dialog_error(op_msg);
+            throw dialog_error(op_msg, error.message());
         ios_.run_one();
     }
     while (!has_op);
@@ -234,10 +243,10 @@ dialog_ssl::dialog_ssl(const dialog& other, const ssl_options_t& options) : dial
         ssl_socket_->handshake(boost::asio::ssl::stream_base::client);
         ssl_ = true;
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
         // TODO: perhaps the message is confusing
-        throw dialog_error("Switching to SSL failed.");
+        throw dialog_error("Switching to SSL failed.", exc.code().message());
     }
 }
 
@@ -269,11 +278,16 @@ string dialog_ssl::receive(bool raw)
         else
             return receive_async(*ssl_socket_, raw);
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Network receiving error.");
+        throw dialog_error("Network receiving error.", exc.code().message());
     }
 }
 
+
+string dialog_error::details() const
+{
+    return details_;
+}
 
 } // namespace mailio
