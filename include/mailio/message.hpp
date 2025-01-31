@@ -765,32 +765,8 @@ protected:
     std::multimap<std::string, std::string> headers_;
 };
 
-
-/**
-Exception reported by `message` class.
-**/
-class message_error : public std::runtime_error
-{
-public:
-
-    /**
-    Calling parent constructor.
-
-    @param msg Error message.
-    **/
-    explicit message_error(const std::string& msg) : std::runtime_error(msg)
-    {
-    }
-
-    /**
-    Calling parent constructor.
-
-    @param msg Error message.
-    **/
-    explicit message_error(const char* msg) : std::runtime_error(msg)
-    {
-    }
-};
+[[deprecated]]
+typedef mime_error message_error;
 
 
 } // namespace mailio
