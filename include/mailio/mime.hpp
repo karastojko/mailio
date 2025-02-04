@@ -942,22 +942,37 @@ class mime_error : public std::runtime_error
 public:
 
     /**
-    Calling parent constructor.
+    Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Error message details.
     **/
-    explicit mime_error(const std::string& msg) : std::runtime_error(msg)
+    explicit mime_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
 
     /**
-    Calling parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Error message details.
     **/
-    explicit mime_error(const char* msg) : std::runtime_error(msg)
+    explicit mime_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
+
+    /**
+    Gets the error message details.
+
+    @return Detailed error message.
+    **/
+    std::string details() const;
+
+protected:
+
+    /**
+    Error message details which could provide more insights into a problem.
+    **/
+    std::string details_;
 };
 
 
