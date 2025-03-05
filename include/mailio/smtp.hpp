@@ -318,20 +318,36 @@ public:
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit smtp_error(const std::string& msg) : std::runtime_error(msg)
+    explicit smtp_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
 
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit smtp_error(const char* msg) : std::runtime_error(msg)
+    explicit smtp_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
+
+    /**
+    Gets the detailed error message.
+
+    @return Detailed error message.
+    **/
+    std::string details() const;
+
+protected:
+
+    /**
+    Message provided by Asio.
+    **/
+    std::string details_;
 };
 
 
