@@ -316,9 +316,10 @@ public:
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit pop3_error(const std::string& msg) : std::runtime_error(msg)
+    explicit pop3_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
 
@@ -326,11 +327,27 @@ public:
     Calling the parent constructor.
 
     @param msg Error message.
+    @param details Detailed message.
     **/
-    explicit pop3_error(const char* msg) : std::runtime_error(msg)
+    explicit pop3_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
+
+    /**
+    Gets the detailed error message.
+
+    @return Detailed error message.
+    **/
+    std::string details() const;
+
+protected:
+
+    /**
+    Message provided by a POP3 server.
+    **/
+    std::string details_;
 };
+
 
 } // namespace mailio
 
