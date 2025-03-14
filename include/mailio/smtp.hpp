@@ -345,7 +345,7 @@ public:
 protected:
 
     /**
-    Message provided by Asio.
+    Message provided by an SMTP server.
     **/
     std::string details_;
 };
