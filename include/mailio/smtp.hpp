@@ -311,7 +311,7 @@ protected:
 /**
 Error thrown by SMTP client.
 **/
-class smtp_error : public std::runtime_error
+class smtp_error : public dialog_error
 {
 public:
 
@@ -321,9 +321,7 @@ public:
     @param msg     Error message.
     @param details Detailed message.
     **/
-    explicit smtp_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
-    {
-    }
+    smtp_error(const std::string& msg, const std::string& details);
 
     /**
     Calling the parent constructor.
@@ -331,23 +329,17 @@ public:
     @param msg     Error message.
     @param details Detailed message.
     **/
-    explicit smtp_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
-    {
-    }
+    smtp_error(const char* msg, const std::string& details);
 
-    /**
-    Gets the detailed error message.
+    smtp_error(const smtp_error&) = default;
 
-    @return Detailed error message.
-    **/
-    std::string details() const;
+    smtp_error(smtp_error&&) = default;
 
-protected:
+    ~smtp_error() = default;
 
-    /**
-    Message provided by an SMTP server.
-    **/
-    std::string details_;
+    smtp_error& operator=(const smtp_error&) = default;
+
+    smtp_error& operator=(smtp_error&&) = default;
 };
 
 

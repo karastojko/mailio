@@ -1440,9 +1440,13 @@ void imaps::switch_to_ssl()
 }
 
 
-string imap_error::details() const
+imap_error::imap_error(const string& msg, const string& details) : dialog_error(msg, details)
 {
-    return details_;
+}
+
+
+imap_error::imap_error(const char* msg, const string& details) : dialog_error(msg, details)
+{
 }
 
 

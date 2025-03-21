@@ -361,9 +361,13 @@ void smtps::switch_to_ssl()
 }
 
 
-string smtp_error::details() const
+smtp_error::smtp_error(const string& msg, const string& details) : dialog_error(msg, details)
 {
-    return details_;
+}
+
+
+smtp_error::smtp_error(const char* msg, const string& details) : dialog_error(msg, details)
+{
 }
 
 

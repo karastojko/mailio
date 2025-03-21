@@ -309,7 +309,7 @@ protected:
 /**
 Error thrown by POP3 client.
 **/
-class pop3_error : public std::runtime_error
+class pop3_error : public dialog_error
 {
 public:
 
@@ -319,33 +319,25 @@ public:
     @param msg     Error message.
     @param details Detailed message.
     **/
-    explicit pop3_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
-    {
-    }
+    pop3_error(const std::string& msg, const std::string& details);
 
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
     @param details Detailed message.
     **/
-    explicit pop3_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
-    {
-    }
+    pop3_error(const char* msg, const std::string& details);
 
-    /**
-    Gets the detailed error message.
+    pop3_error(const pop3_error&) = default;
 
-    @return Detailed error message.
-    **/
-    std::string details() const;
+    pop3_error(pop3_error&&) = default;
 
-protected:
+    ~pop3_error() = default;
 
-    /**
-    Message provided by a POP3 server.
-    **/
-    std::string details_;
+    pop3_error& operator=(const pop3_error&) = default;
+
+    pop3_error& operator=(pop3_error&&) = default;
 };
 
 

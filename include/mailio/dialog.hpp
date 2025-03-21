@@ -333,6 +333,16 @@ public:
     {
     }
 
+    dialog_error(const dialog_error&) = default;
+
+    dialog_error(dialog_error&&) = default;
+
+    ~dialog_error() = default;
+
+    dialog_error& operator=(const dialog_error&) = default;
+
+    dialog_error& operator=(dialog_error&&) = default;
+
     /**
     Gets the detailed error message.
 

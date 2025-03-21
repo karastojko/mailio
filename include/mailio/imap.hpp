@@ -989,7 +989,7 @@ protected:
 /**
 Error thrown by IMAP client.
 **/
-class imap_error : public std::runtime_error
+class imap_error : public dialog_error
 {
 public:
 
@@ -999,9 +999,7 @@ public:
     @param msg  Error message.
     @param details Detailed message.
     **/
-    explicit imap_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
-    {
-    }
+    imap_error(const std::string& msg, const std::string& details);
 
     /**
     Calling parent constructor.
@@ -1009,23 +1007,17 @@ public:
     @param msg  Error message.
     @param details Detailed message.
     **/
-    explicit imap_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
-    {
-    }
+    explicit imap_error(const char* msg, const std::string& details);
 
-    /**
-    Gets the detailed error message.
+    imap_error(const imap_error&) = default;
 
-    @return Detailed error message.
-    **/
-    std::string details() const;
+    imap_error(imap_error&&) = default;
 
-protected:
+    ~imap_error() = default;
 
-    /**
-    Message provided by a POP3 server.
-    **/
-    std::string details_;
+    imap_error& operator=(const imap_error&) = default;
+
+    imap_error& operator=(imap_error&&) = default;
 };
 
 

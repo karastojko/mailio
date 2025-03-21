@@ -393,9 +393,13 @@ void pop3s::switch_to_ssl()
 }
 
 
-string pop3_error::details() const
+pop3_error::pop3_error(const string& msg, const string& details) : dialog_error(msg, details)
 {
-    return details_;
+}
+
+
+pop3_error::pop3_error(const char* msg, const string& details) : dialog_error(msg, details)
+{
 }
 
 
