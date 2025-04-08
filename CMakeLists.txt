@@ -113,16 +113,13 @@ if(${MAILIO_BUILD_DOCUMENTATION})
         set(DOXYGEN_OUTPUT_PATH ${DOCOUTDIR})
 
         doxygen_add_docs(docs ${PROJECT_SOURCE_DIR}/include ALL WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-        # install the documentation
-        install(DIRECTORY ${DOXYGEN_OUTPUT_DIRECTORY} DESTINATION docs)
     else(DOXYGEN_FOUND)
         message(STATUS "doxygen was not found, documentation will not be built")
     endif(DOXYGEN_FOUND)
 endif(${MAILIO_BUILD_DOCUMENTATION})
 
 add_library(${PROJECT_NAME} ${project_sources} ${project_headers})
-
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # pkg-config support
 set(prefix "${CMAKE_INSTALL_PREFIX}")
@@ -179,16 +176,47 @@ endif()
 
 install(DIRECTORY include/mailio DESTINATION ${INCLUDE_INSTALL_DIR})
 
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
+# Target
 install(TARGETS ${PROJECT_NAME}
-    EXPORT ${PROJECT_NAME}Config
-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-    ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+    EXPORT ${PROJECT_NAME}-export
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
+export(
+    EXPORT ${PROJECT_NAME}-export
+    NAMESPACE ${PROJECT_NAME}::
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake
+)
 
-install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
+install(EXPORT ${PROJECT_NAME}-export
+    NAMESPACE ${PROJECT_NAME}::
+    FILE ${PROJECT_NAME}-targets.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}/
+)
+
+# Config and version
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}/
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
 
 # optionally build examples
 if(${MAILIO_BUILD_EXAMPLES})
@@ -198,6 +226,7 @@ if(${MAILIO_BUILD_EXAMPLES})
 endif(${MAILIO_BUILD_EXAMPLES})
 
 if(${MAILIO_BUILD_TESTS})
+    enable_testing()
     add_subdirectory(test)
     file(GLOB PNGS "${PROJECT_SOURCE_DIR}/test/aleph0.png")
     install(FILES ${PNGS} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/test/")
