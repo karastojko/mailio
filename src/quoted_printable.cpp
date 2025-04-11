@@ -42,7 +42,9 @@ vector<string> quoted_printable::encode(const string& text) const
     string::size_type line_len = 0;
     // Soon as the first line is added, switch the policy to the other lines policy.
     string::size_type policy = line1_policy_;
-    const string QMARK_HEX = EQUAL_STR + (std::stringstream() << std::hex << static_cast<int>(QUESTION_MARK_CHAR)).str();
+    std::stringstream strstream;
+    strstream << std::hex << static_cast<int>(QUESTION_MARK_CHAR);
+    const string QMARK_HEX = EQUAL_STR + strstream.str();
 
     auto add_new_line = [&enc_text, &line_len, &policy, this](string& line)
     {
