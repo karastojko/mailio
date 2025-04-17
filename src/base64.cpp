@@ -68,10 +68,7 @@ vector<string> base64::encode(const string& text) const
             line_len += 4;
         }
 
-        // TODO: Compare against `policy`?
-        if (line_len >= line1_policy_ - 2)
-            add_new_line(line);
-        else if (line_len >= lines_policy_ - 2)
+        if (line_len >= policy - 2)
             add_new_line(line);
     }
 

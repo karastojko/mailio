@@ -2069,8 +2069,8 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+INCx0LjQsdC70LjQvtGC0LXQutCwINC30LAg0YDQsNC0?=\r\n"
-        "  =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQ?=\r\n"
-        "  =?UTF-8?B?v9C70YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>,\r\n"
+        "  =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQv9C7?=\r\n"
+        "  =?UTF-8?B?0YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>,\r\n"
         "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw?=\r\n"
         "  =?UTF-8?B?==?= <the_library@mailio.dev>\r\n"
         "Sender: mailio <adresa@mailio.dev>\r\n"
