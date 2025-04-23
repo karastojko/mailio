@@ -46,6 +46,10 @@ public:
     /**
     Setting the encoder and decoder line policies.
 
+    Since Base64 encodes three characters into four, the split is made after each fourth character. It seems that email clients do not merge properly
+    many lines of encoded text if the split is not grouped by four characters. For that reason, the constructor sets line policies to be divisible by
+    the number four.
+
     @param line1_policy First line policy to set.
     @param lines_policy Other lines policy than the first one to set.
     **/

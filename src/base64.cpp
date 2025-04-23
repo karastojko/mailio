@@ -31,6 +31,9 @@ const string base64::CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv
 base64::base64(string::size_type line1_policy, string::size_type lines_policy) :
     codec(line1_policy, lines_policy)
 {
+    // Line policies to be divisible by four.
+    line1_policy_ -= line1_policy_ % 4;
+    lines_policy_ -= lines_policy_ % 4;
 }
 
 
@@ -68,7 +71,7 @@ vector<string> base64::encode(const string& text) const
             line_len += 4;
         }
 
-        if (line_len >= policy - 2)
+        if (line_len >= policy)
             add_new_line(line);
     }
 
@@ -76,6 +79,11 @@ vector<string> base64::encode(const string& text) const
 
     if (count_3_chars > 0)
     {
+        // If the remaining three characters match exatcly rest of the line, then move them onto next line. Email clients do not show properly subject when
+        // the next line has the empty content, containing only the encoding stuff.
+        if (line_len >= policy - 3)
+            add_new_line(line);
+
         for (int i = count_3_chars; i < 3; i++)
             group_8bit[i] = '\0';
 
@@ -86,7 +94,7 @@ vector<string> base64::encode(const string& text) const
 
         for (int i = 0; i < count_3_chars + 1; i++)
         {
-            if (line_len >= policy - 2)
+            if (line_len >= policy)
                 add_new_line(line);
             line += CHARSET[group_6bit[i]];
             line_len++;
@@ -94,7 +102,7 @@ vector<string> base64::encode(const string& text) const
 
         while (count_3_chars++ < 3)
         {
-            if (line_len >= policy - 2)
+            if (line_len >= policy)
                 add_new_line(line);
             line += EQUAL_CHAR;
             line_len++;
@@ -117,7 +125,7 @@ string base64::decode(const vector<string>& text) const
 
     for (const auto& line : text)
     {
-        if (line.length() > lines_policy_ - 2)
+        if (line.length() > lines_policy_)
             throw codec_error("Bad line policy.");
 
         for (string::size_type ch = 0; ch < line.length() && line[ch] != EQUAL_CHAR; ch++)
