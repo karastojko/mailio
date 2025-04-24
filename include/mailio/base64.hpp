@@ -104,6 +104,16 @@ private:
     @return   True if it is, false if not.
     **/
     bool is_allowed(char ch) const;
+
+	/**
+	Number of six bit chunks.
+	**/
+	static constexpr unsigned short SEXTETS_NO = 4;
+
+	/**
+	Number of eight bit characters.
+	**/
+	static constexpr unsigned short OCTETS_NO = SEXTETS_NO - 1;
 };
 
 
