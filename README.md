@@ -180,6 +180,7 @@ in case I missed someone please let me know.
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
 * [Abril Rincón Blanco](mailto:git@rinconblanco.es): Compilation fix for Clang earlier than the version 14.
 * [yjm6560](https://github.com/yjm6560): Various IMAP bugs.
+* [Hannah Sauermann](mailto:hannah.sauermann[at]seclous.com): Fix for the `stringstream` usage in older standard libraries.
 
 
 # References #
