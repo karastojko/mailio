@@ -181,6 +181,7 @@ in case I missed someone please let me know.
 * [Abril Rincón Blanco](mailto:git@rinconblanco.es): Compilation fix for Clang earlier than the version 14.
 * [yjm6560](https://github.com/yjm6560): Various IMAP bugs.
 * [Hannah Sauermann](mailto:hannah.sauermann[at]seclous.com): Fix for the `stringstream` usage in older standard libraries.
+* [Matheus Gabriel Werny](mailto:matheusgwdl[at]protonmail.com): CMake fixes and improvements.
 
 
 # References #
