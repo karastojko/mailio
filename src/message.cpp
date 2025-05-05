@@ -521,7 +521,7 @@ void message::remove_header(const std::string& name)
 }
 
 
-multimap<string, string> message::headers() const
+multimap<string, string, message::attr_comp_t> message::headers() const
 {
     return headers_;
 }

@@ -6069,6 +6069,32 @@ BOOST_AUTO_TEST_CASE(parse_headers_htab)
 
 
 /**
+Parsing a header by ignoring the letter case.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_icase_header)
+{
+    string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "USER-AGENT: Mailio\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Subject: Proba\r\n"
+        "Hello: World\r\n"
+        "\r\n"
+        "Zdravo, Svete!\r\n";
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    msg.parse(msg_str);
+
+    auto headers = msg.headers();
+    auto user_agent = headers.find("User-Agent");
+    BOOST_CHECK(user_agent->first == "USER-AGENT" && user_agent->second == "Mailio");
+}
+
+
+/**
 Copying the message by using the constructor and the assignment operator.
 
 @pre  None.
