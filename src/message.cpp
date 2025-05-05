@@ -521,7 +521,7 @@ void message::remove_header(const std::string& name)
 }
 
 
-message::headers_t message::headers() const
+const message::headers_t& message::headers() const
 {
     return headers_;
 }

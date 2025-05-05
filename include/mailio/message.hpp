@@ -500,7 +500,7 @@ public:
 
     @return Message headers.
     **/
-    headers_t headers() const;
+    const headers_t& headers() const;
 
 protected:
 
