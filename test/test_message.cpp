@@ -6091,6 +6091,8 @@ BOOST_AUTO_TEST_CASE(parse_icase_header)
     auto headers = msg.headers();
     auto user_agent = headers.find("User-Agent");
     BOOST_CHECK(user_agent->first == "USER-AGENT" && user_agent->second == "Mailio");
+    auto hello_world = headers.find("HELLO");
+    BOOST_CHECK(hello_world->first == "Hello" && hello_world->second == "World");
 }
 
 
