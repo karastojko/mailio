@@ -460,7 +460,7 @@ protected:
     /**
     Comparator for the attributes map based on case insensitivity.
     **/
-    struct attr_comp_t : public std::less<std::string>
+    struct icase_comp_t : public std::less<std::string>
     {
         bool operator()(const std::string& lhs, const std::string& rhs) const
         {
@@ -471,7 +471,12 @@ protected:
     /**
     Attributes map with the custom comparator.
     **/
-    typedef std::map<std::string, string_t, attr_comp_t> attributes_t;
+    using attributes_t = std::map<std::string, string_t, icase_comp_t>;
+
+    /**
+    Headers multimap with the custom comparator.
+    **/
+    using headers_t = std::multimap<std::string, std::string, icase_comp_t>;
 
     /**
     Content type header name.
