@@ -500,7 +500,7 @@ public:
 
     @return Message headers.
     **/
-    std::multimap<std::string, std::string> headers() const;
+    const headers_t& headers() const;
 
 protected:
 
@@ -762,7 +762,7 @@ protected:
     /**
     Other headers not included into the known ones.
     **/
-    std::multimap<std::string, std::string> headers_;
+    headers_t headers_;
 };
 
 [[deprecated]]
