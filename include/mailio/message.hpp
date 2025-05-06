@@ -762,7 +762,7 @@ protected:
     /**
     Other headers not included into the known ones.
     **/
-    std::multimap<std::string, std::string, icase_comp_t> headers_;
+    headers_t headers_;
 };
 
 [[deprecated]]
