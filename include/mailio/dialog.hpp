@@ -218,6 +218,7 @@ Secure version of `dialog` class.
 class dialog_ssl : public dialog
 {
 public:
+    using ssl_context = boost::asio::ssl::context;
 
     /**
     SSL options to set on a socket.
@@ -253,6 +254,14 @@ public:
     @param options SSL options to set.
     **/
     dialog_ssl(const dialog& other, const ssl_options_t& options);
+
+    /**
+    Calling the parent constructor, initializing the SSL socket.
+
+    @param other   Plain connection to use for the SSL.
+    @param options SSL context to use.
+    **/
+    dialog_ssl(const dialog& other, std::shared_ptr<ssl_context> context);
 
     /**
     Default copy constructor.
