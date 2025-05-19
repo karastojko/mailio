@@ -573,7 +573,8 @@ string message::format_header(bool add_bcc_header) const
         header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + version_ + codec::END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
+    if (!subject_.buffer.empty())
+        header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
 
     return header;
 }
