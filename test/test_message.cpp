@@ -152,8 +152,16 @@ BOOST_AUTO_TEST_CASE(format_no_subject)
     message msg;
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ptime t = time_from_string("2025-05-20 19:28:17");
+    time_zone_ptr tz(new posix_time_zone("+02:00"));
+    local_date_time ldt(t, tz);
+    msg.date_time(ldt);
+
     string msg_str;
     BOOST_CHECK_NO_THROW(msg.format(msg_str));
+    BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Tue, 20 May 2025 21:28:17 +0200\r\n");
 }
 
 
