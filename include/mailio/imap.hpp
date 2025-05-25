@@ -245,7 +245,7 @@ public:
     Selecting a mailbox.
 
     @param mailbox    Mailbox to select.
-    @param read_only  Flag if the selected mailbox is only readable of also writable.
+    @param read_only  Flag if the selected mailbox is only readable or also writable.
     @return           Mailbox statistics.
     @throw imap_error Selecting mailbox failure.
     @throw imap_error Parsing failure.
