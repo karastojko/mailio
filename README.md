@@ -176,13 +176,14 @@ in case I missed someone please let me know.
 * [ostermal](https://github.com/ostermal): Bug with the horizontal tab in MIME headers.
 * [MRsoymilk](mailto:313958485[at]qq.com): Bug in the sending attachment example.
 * [Don Yihtseu](https://github.com/tsurumi-yizhou): Add Chinese ReadMe.
-* [Leonhard Kipp](mailto:Leonhard.Kipp@ppro.com): Proper way to build the shared library. Message formatting options. Optional message subject.
+* [Leonhard Kipp](mailto:Leonhard.Kipp[at]ppro.com): Proper way to build the shared library. Message formatting options. Optional message subject.
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
-* [Abril Rincón Blanco](mailto:git@rinconblanco.es): Compilation fix for Clang earlier than the version 14.
+* [Abril Rincón Blanco](mailto:git[at]rinconblanco.es): Compilation fix for Clang earlier than the version 14.
 * [yjm6560](https://github.com/yjm6560): Various IMAP bugs.
 * [Hannah Sauermann](mailto:hannah.sauermann[at]seclous.com): Fix for the `stringstream` usage in older standard libraries.
 * [Matheus Gabriel Werny](mailto:matheusgwdl[at]protonmail.com): CMake fixes and improvements.
 * [stitch3210](https://github.com/stitch3210): Case insensitive headers.
+* [Luigi Masdea](luigimasdea0[at]gmail.com): Typo error.
 
 
 # References #
