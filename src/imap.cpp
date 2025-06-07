@@ -965,6 +965,30 @@ void imap::auth_login(const string& username, const string& password)
 }
 
 
+void imaps::auth_login_with_authenticate(const std::string& mechanism, const std::string& token) {
+    auto user_esc = to_astring(mechanism);
+    auto pass_esc = to_astring(token);
+    auto cmd = format("AUTHENTICATE" + TOKEN_SEPARATOR_STR + user_esc + TOKEN_SEPARATOR_STR + pass_esc);
+    dlg_->send(cmd);
+
+    bool has_more = true;
+    while (has_more)
+    {
+        string line = dlg_->receive();
+        tag_result_response_t parsed_line = parse_tag_result(line);
+
+        if (parsed_line.tag == UNTAGGED_RESPONSE)
+            continue;
+        if (parsed_line.tag != to_string(tag_))
+            throw imap_error("Incorrect tag.", "Tag=`" + parsed_line.tag + "`.");
+        if (parsed_line.result.value() != tag_result_response_t::OK)
+            throw imap_error("Authentication failure.", "line=`" + line + "`.");
+
+        has_more = false;
+    }
+
+}
+
 void imap::search(const string& conditions, list<unsigned long>& results, bool want_uids)
 {
     string cmd;
@@ -1410,6 +1434,20 @@ string imaps::authenticate(const string& username, const string& password, auth_
         start_tls();
         auth_login(username, password);
     }
+    else if (method == auth_method_t::LOGIN_SASL)
+    {
+        switch_to_ssl();
+        greeting = connect();
+        auth_login_with_authenticate(username, password);
+    }
+    else if (method == auth_method_t::START_TLS_SASL)
+    {
+        greeting = connect();
+        start_tls();
+        auth_login_with_authenticate(username, password);
+    }
+    else
+        throw imap_error("Unknown authentication method.", "Method=" + to_string(static_cast<int>(method)) + ".");
     return greeting;
 }
 

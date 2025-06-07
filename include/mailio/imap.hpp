@@ -915,7 +915,7 @@ public:
     - LOGIN: The username and password are sent in plain format.
     - START_TLS: For the TCP connection, a TLS negotiation is asked before sending the login parameters.
     **/
-    enum class auth_method_t {LOGIN, START_TLS};
+    enum class auth_method_t {LOGIN, START_TLS, LOGIN_SASL, START_TLS_SASL};
 
     /**
     Making a connection to the server.
@@ -983,6 +983,11 @@ protected:
     SSL options to set.
     **/
     dialog_ssl::ssl_options_t ssl_options_;
+
+    /**
+    Use AUTHENTICATE command instead of LOGIN.
+    **/
+    void auth_login_with_authenticate(const std::string& mechanism, const std::string& token);
 };
 
 
