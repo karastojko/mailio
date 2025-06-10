@@ -91,6 +91,7 @@ mime::content_type_t& mime::content_type_t::operator=(const mime::content_type_t
         type = cont_type.type;
         subtype = to_lower_copy(cont_type.subtype);
         charset = cont_type.charset;
+        attributes.insert(cont_type.attributes.begin(), cont_type.attributes.end());
     }
     return *this;
 }
@@ -569,6 +570,9 @@ string mime::format_content_type() const
     if (content_type_.type != media_type_t::NONE)
     {
         line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(content_type_.type) + CONTENT_SUBTYPE_SEPARATOR + content_type_.subtype;
+        for(auto attribute : content_type_.attributes){
+            line += ATTRIBUTES_SEPARATOR_STR + attribute.first + NAME_VALUE_SEPARATOR_STR + attribute.second;
+        }
         if (!content_type_.charset.empty())
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset;
         if (!name_.buffer.empty())
