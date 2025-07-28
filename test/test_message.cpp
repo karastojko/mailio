@@ -37,6 +37,9 @@ using boost::local_time::time_zone_ptr;
 using boost::local_time::local_date_time;
 using boost::local_time::posix_time_zone;
 using mailio::string_t;
+#if defined(__cpp_char8_t)
+using mailio::u8string_t;
+#endif
 using mailio::codec;
 using mailio::mail_address;
 using mailio::mail_group;
@@ -2232,7 +2235,11 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_dash)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
+#if defined(__cpp_char8_t)
+    msg.subject_raw(u8string_t(u8"C++ Annotated: Sep \u2013 Dec 2017", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
+#else
     msg.subject_raw(string_t(u8"C++ Annotated: Sep \u2013 Dec 2017", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
+#endif
     msg.content("test");
 
     string msg_str;
@@ -2262,7 +2269,11 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
+#if defined(__cpp_char8_t)
+    msg.subject_raw(u8string_t(u8"\U0001F381\u017Divi godinu dana na ra\u010Dun Super Kartice", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
+#else
     msg.subject_raw(string_t(u8"\U0001F381\u017Divi godinu dana na ra\u010Dun Super Kartice", "utf-8", codec::codec_t::QUOTED_PRINTABLE));
+#endif
     msg.content("test");
 
     string msg_str;
@@ -5611,8 +5622,13 @@ BOOST_AUTO_TEST_CASE(parse_qq_subject_long)
         local_date_time ldt(t, tz);
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
+#if defined(__cpp_char8_t)
+        BOOST_CHECK(msg.subject() == reinterpret_cast<const char*>
+            (u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D"));
+#else
         BOOST_CHECK(msg.subject() ==
             u8"\U0001F384\U0001F381\U0001F38A\u00A0Sre\u0107ni novogodi\u0161nji i bo\u017Ei\u0107ni praznici\u00A0\U0001F389\U0001F385\U0001F49D");
+#endif
     }
     {
         message msg;
