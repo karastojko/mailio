@@ -251,6 +251,22 @@ dialog_ssl::dialog_ssl(const dialog& other, const ssl_options_t& options) : dial
 }
 
 
+dialog_ssl::dialog_ssl(const dialog& other, shared_ptr<ssl_context> context) : dialog(other), context_(context),
+    ssl_socket_(make_shared<boost::asio::ssl::stream<tcp::socket&>>(*socket_, *context_))
+{
+    try
+    {
+        ssl_socket_->handshake(boost::asio::ssl::stream_base::client);
+        ssl_ = true;
+    }
+    catch (system_error&)
+    {
+        // TODO: perhaps the message is confusing
+        throw dialog_error("Switching to SSL failed.");
+    }
+}
+
+
 void dialog_ssl::send(const string& line)
 {
     if (!ssl_)

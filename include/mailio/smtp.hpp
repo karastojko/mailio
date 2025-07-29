@@ -272,10 +272,11 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
+    @param ssl_context The SSL context to use for the socket.
     @return         The server greeting message.
     @throw *        `start_tls()`, `switch_to_ssl()`, `ehlo()`, `auth_login(const string&, const string&)`, `connect()`.
     **/
-    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
+    std::string authenticate(const std::string& username, const std::string& password, auth_method_t method, std::shared_ptr<dialog_ssl::ssl_context> ssl_context = nullptr);
 
     /**
     Setting SSL options.
@@ -292,14 +293,14 @@ protected:
     @throw smtp_error Start TLS refused by server.
     @throw *          `parse_line(const string&)`, `ehlo()`, `dialog::send(const string&)`, `dialog::receive()`, `switch_to_ssl()`.
     **/
-    void start_tls();
+    void start_tls(std::shared_ptr<dialog_ssl::ssl_context> ssl_context);
 
     /**
     Replacing a TCP socket with an SSL one.
 
     @throw * `dialog_ssl::dialog_ssl(dialog&, const ssl_options_t&)`.
     **/
-    void switch_to_ssl();
+    void switch_to_ssl(std::shared_ptr<dialog_ssl::ssl_context> ssl_context);
 
     /**
     SSL options to set.
