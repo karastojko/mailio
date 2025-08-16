@@ -314,13 +314,13 @@ string smtps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::NONE)
     {
-        switch_to_ssl();
+        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
         greeting = connect();
         ehlo();
     }
     else if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
+        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
         greeting = connect();
         ehlo();
         auth_login(username, password);
@@ -350,14 +350,8 @@ void smtps::start_tls()
     if (std::get<1>(tokens) && std::get<0>(tokens) != SERVICE_READY_STATUS)
         throw smtp_error("Start tls refused by server.", std::get<2>(tokens));
 
-    switch_to_ssl();
+    dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
     ehlo();
-}
-
-
-void smtps::switch_to_ssl()
-{
-    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 

@@ -352,7 +352,7 @@ string pop3s::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
+        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
         greeting = connect();
         auth_login(username, password);
     }
@@ -383,13 +383,7 @@ void pop3s::start_tls()
     if (iequals(std::get<0>(stat_msg), "-ERR"))
         throw pop3_error("Start TLS failure.", std::get<1>(stat_msg));
 
-    switch_to_ssl();
-}
-
-
-void pop3s::switch_to_ssl()
-{
-    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
+    dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
 }
 
 

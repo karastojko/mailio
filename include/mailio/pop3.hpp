@@ -293,13 +293,6 @@ protected:
     void start_tls();
 
     /**
-    Replacing a TCP socket with an SSL one.
-
-    @throw * `dialog_ssl::dialog_ssl(dialog&, const ssl_options_t&)`.
-    **/
-    void switch_to_ssl();
-
-    /**
     SSL options to set.
     **/
     dialog_ssl::ssl_options_t ssl_options_;

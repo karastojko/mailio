@@ -1400,7 +1400,7 @@ string imaps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
+        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
         greeting = connect();
         auth_login(username, password);
     }
@@ -1430,13 +1430,7 @@ void imaps::start_tls()
     if (parsed_line.result.value() != tag_result_response_t::OK)
         throw imap_error("Start TLS refused by server.", "");
 
-    switch_to_ssl();
-}
-
-
-void imaps::switch_to_ssl()
-{
-    dlg_ = std::make_shared<dialog_ssl>(*dlg_, ssl_options_);
+    dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
 }
 
 
