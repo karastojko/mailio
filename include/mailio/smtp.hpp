@@ -247,7 +247,7 @@ protected:
 /**
 Secure version of SMTP client.
 **/
-class MAILIO_EXPORT smtps : public smtp
+class MAILIO_DEPRECATED smtps : public smtp
 {
 public:
 
