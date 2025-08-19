@@ -44,6 +44,11 @@ namespace mailio
 
 smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) : dlg_(make_shared<dialog>(hostname, port, timeout))
 {
+    *ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_none
+        };
     src_host_ = read_hostname();
     dlg_->connect();
 }
@@ -63,16 +68,15 @@ smtp::~smtp()
 
 string smtp::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    if (ssl_options_.has_value())
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+
     string greeting = connect();
+        ehlo();
     if (method == auth_method_t::NONE)
-    {
-        ehlo();
-    }
+        ;
     else if (method == auth_method_t::LOGIN)
-    {
-        ehlo();
         auth_login(username, password);
-    }
     return greeting;
 }
 
@@ -257,6 +261,24 @@ string smtp::read_hostname()
     }
 }
 
+void smtp::start_tls()
+{
+    dlg_->send("STARTTLS");
+    string line = dlg_->receive();
+    tuple<int, bool, string> tokens = parse_line(line);
+    if (std::get<1>(tokens) && std::get<0>(tokens) != SERVICE_READY_STATUS)
+        throw smtp_error("Start tls refused by server.", std::get<2>(tokens));
+
+    dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+    ehlo();
+}
+
+
+void smtp::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
+}
+
 
 tuple<int, bool, string> smtp::parse_line(const string& line)
 {
@@ -301,7 +323,7 @@ inline bool smtp::permanent_negative(int status)
 
 smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp(hostname, port, timeout)
 {
-    ssl_options_ =
+    *ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
@@ -314,13 +336,13 @@ string smtps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::NONE)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
         greeting = connect();
         ehlo();
     }
     else if (method == auth_method_t::LOGIN)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
         greeting = connect();
         ehlo();
         auth_login(username, password);
@@ -338,20 +360,7 @@ string smtps::authenticate(const string& username, const string& password, auth_
 
 void smtps::ssl_options(const dialog_ssl::ssl_options_t& options)
 {
-    ssl_options_ = options;
-}
-
-
-void smtps::start_tls()
-{
-    dlg_->send("STARTTLS");
-    string line = dlg_->receive();
-    tuple<int, bool, string> tokens = parse_line(line);
-    if (std::get<1>(tokens) && std::get<0>(tokens) != SERVICE_READY_STATUS)
-        throw smtp_error("Start tls refused by server.", std::get<2>(tokens));
-
-    dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
-    ehlo();
+    *ssl_options_ = options;
 }
 
 

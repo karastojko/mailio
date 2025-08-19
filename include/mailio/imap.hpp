@@ -26,6 +26,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <string>
 #include <tuple>
 #include <variant>
+#include <optional>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -519,6 +520,23 @@ public:
     bool rename_folder(const std::list<std::string>& old_name, const std::list<std::string>& new_name);
 
     /**
+    Switching to TLS layer.
+
+    @throw imap_error Bad server response.
+    @throw imap_error Start TLS refused by server.
+    @throw *          `parse_tag_result(const std::string&)`, `switch_to_ssl()`, `dialog::send(const std::string&)`, `dialog::receive()`.
+    **/
+    void start_tls();
+
+    /**
+    Setting SSL options.
+
+    @param options SSL options to set.
+    **/
+    void ssl_options(const std::optional<dialog_ssl::ssl_options_t> options);
+
+
+    /**
     Determining folder delimiter of a mailbox.
 
     It is required to know the folder delimiter string in case one wants to deal with the folder names as strings.
@@ -794,6 +812,11 @@ protected:
     std::shared_ptr<dialog> dlg_;
 
     /**
+    SSL options to set.
+    **/
+    std::optional<dialog_ssl::ssl_options_t> ssl_options_;
+
+    /**
     Tag used to identify requests and responses.
     **/
     unsigned tag_;
@@ -960,22 +983,6 @@ public:
     @param options SSL options to set.
     **/
     void ssl_options(const dialog_ssl::ssl_options_t& options);
-
-protected:
-
-    /**
-    Switching to TLS layer.
-
-    @throw imap_error Bad server response.
-    @throw imap_error Start TLS refused by server.
-    @throw *          `parse_tag_result(const std::string&)`, `switch_to_ssl()`, `dialog::send(const std::string&)`, `dialog::receive()`.
-    **/
-    void start_tls();
-
-    /**
-    SSL options to set.
-    **/
-    dialog_ssl::ssl_options_t ssl_options_;
 };
 
 

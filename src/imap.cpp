@@ -216,6 +216,9 @@ imap::~imap()
 
 string imap::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    if (ssl_options_.has_value())
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+
     string greeting = connect();
     if (method == auth_method_t::LOGIN)
         auth_login(username, password);
@@ -1025,6 +1028,27 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
 }
 
 
+
+void imap::start_tls()
+{
+    dlg_->send(format("STARTTLS"));
+    string line = dlg_->receive();
+    tag_result_response_t parsed_line = parse_tag_result(line);
+    if (parsed_line.tag == UNTAGGED_RESPONSE)
+        throw imap_error("Bad server response.", "");
+    if (parsed_line.result.value() != tag_result_response_t::OK)
+        throw imap_error("Start TLS refused by server.", "");
+
+    dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+}
+
+
+void imap::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
+}
+
+
 string imap::folder_delimiter()
 {
     try
@@ -1387,7 +1411,7 @@ list<shared_ptr<imap::response_token_t>>* imap::find_last_token_list(list<shared
 
 imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap(hostname, port, timeout)
 {
-    ssl_options_ =
+    *ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
@@ -1400,7 +1424,7 @@ string imaps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
         greeting = connect();
         auth_login(username, password);
     }
@@ -1416,21 +1440,7 @@ string imaps::authenticate(const string& username, const string& password, auth_
 
 void imaps::ssl_options(const dialog_ssl::ssl_options_t& options)
 {
-    ssl_options_ = options;
-}
-
-
-void imaps::start_tls()
-{
-    dlg_->send(format("STARTTLS"));
-    string line = dlg_->receive();
-    tag_result_response_t parsed_line = parse_tag_result(line);
-    if (parsed_line.tag == UNTAGGED_RESPONSE)
-        throw imap_error("Bad server response.", "");
-    if (parsed_line.result.value() != tag_result_response_t::OK)
-        throw imap_error("Start TLS refused by server.", "");
-
-    dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
+    *ssl_options_ = options;
 }
 
 

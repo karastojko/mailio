@@ -67,6 +67,9 @@ pop3::~pop3()
 
 string pop3::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    if (ssl_options_.has_value())
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+
     string greeting = connect();
     if (method == auth_method_t::LOGIN)
     {
@@ -294,6 +297,27 @@ void pop3::remove(unsigned long message_no)
 }
 
 
+/*
+For details see [rfc 2595/4616].
+*/
+void pop3::start_tls()
+{
+    dlg_->send("STLS");
+    string response = dlg_->receive();
+    tuple<string, string> stat_msg = parse_status(response);
+    if (iequals(std::get<0>(stat_msg), "-ERR"))
+        throw pop3_error("Start TLS failure.", std::get<1>(stat_msg));
+
+    dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+}
+
+
+void pop3::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
+}
+
+
 string pop3::connect()
 {
     string line = dlg_->receive();
@@ -339,7 +363,7 @@ tuple<string, string> pop3::parse_status(const string& line)
 
 pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3(hostname, port, timeout)
 {
-    ssl_options_ =
+    *ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
@@ -352,7 +376,7 @@ string pop3s::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
         greeting = connect();
         auth_login(username, password);
     }
@@ -368,22 +392,7 @@ string pop3s::authenticate(const string& username, const string& password, auth_
 
 void pop3s::ssl_options(const dialog_ssl::ssl_options_t& options)
 {
-    ssl_options_ = options;
-}
-
-
-/*
-For details see [rfc 2595/4616].
-*/
-void pop3s::start_tls()
-{
-    dlg_->send("STLS");
-    string response = dlg_->receive();
-    tuple<string, string> stat_msg = parse_status(response);
-    if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Start TLS failure.", std::get<1>(stat_msg));
-
-    dlg_ = dialog_ssl::to_ssl(dlg_, ssl_options_);
+    *ssl_options_ = options;
 }
 
 
