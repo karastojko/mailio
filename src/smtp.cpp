@@ -42,9 +42,10 @@ namespace mailio
 {
 
 
-smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) : dlg_(make_shared<dialog>(hostname, port, timeout))
+smtp::smtp(const string& hostname, unsigned port, milliseconds timeout) :
+    dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true)
 {
-    *ssl_options_ =
+    ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
@@ -68,11 +69,14 @@ smtp::~smtp()
 
 string smtp::authenticate(const string& username, const string& password, auth_method_t method)
 {
-    if (ssl_options_.has_value())
+    if (ssl_options_.has_value() && !is_start_tls_)
         dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
 
     string greeting = connect();
-        ehlo();
+    ehlo();
+    if (is_start_tls_)
+        switch_tls();
+
     if (method == auth_method_t::NONE)
         ;
     else if (method == auth_method_t::LOGIN)
@@ -175,6 +179,18 @@ string smtp::source_hostname() const
 }
 
 
+void smtp::start_tls(bool is_tls)
+{
+    is_start_tls_ = is_tls;
+}
+
+
+void smtp::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
+}
+
+
 string smtp::connect()
 {
     string greeting;
@@ -261,7 +277,8 @@ string smtp::read_hostname()
     }
 }
 
-void smtp::start_tls()
+
+void smtp::switch_tls()
 {
     dlg_->send("STARTTLS");
     string line = dlg_->receive();
@@ -270,13 +287,6 @@ void smtp::start_tls()
         throw smtp_error("Start tls refused by server.", std::get<2>(tokens));
 
     dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
-    ehlo();
-}
-
-
-void smtp::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
-{
-    ssl_options_ = options;
 }
 
 
@@ -323,7 +333,7 @@ inline bool smtp::permanent_negative(int status)
 
 smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp(hostname, port, timeout)
 {
-    *ssl_options_ =
+    ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
@@ -351,7 +361,7 @@ string smtps::authenticate(const string& username, const string& password, auth_
     {
         greeting = connect();
         ehlo();
-        start_tls();
+        switch_tls();
         auth_login(username, password);
     }
     return greeting;
@@ -360,7 +370,7 @@ string smtps::authenticate(const string& username, const string& password, auth_
 
 void smtps::ssl_options(const dialog_ssl::ssl_options_t& options)
 {
-    *ssl_options_ = options;
+    ssl_options_ = options;
 }
 
 

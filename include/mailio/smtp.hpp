@@ -122,12 +122,11 @@ public:
     std::string source_hostname() const;
 
     /**
-    Switching to TLS layer.
+    Setting the start TLS option.
 
-    @throw smtp_error Start TLS refused by server.
-    @throw *          `parse_line(const string&)`, `ehlo()`, `dialog::send(const string&)`, `dialog::receive()`, `dialog_ssl::to_ssl()`.
+    @param is_tls If true, the start TLS option is turned on, otherwise is turned off.
     **/
-    void start_tls();
+    void start_tls(bool is_tls);
 
     /**
     Setting SSL options.
@@ -172,6 +171,14 @@ protected:
     @throw *          `parse_line(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     **/
     void ehlo();
+
+    /**
+    Switching to TLS layer.
+
+    @throw smtp_error Start TLS refused by server.
+    @throw *          `parse_line(const string&)`, `ehlo()`, `dialog::send(const string&)`, `dialog::receive()`, `dialog_ssl::to_ssl()`.
+    **/
+    void switch_tls();
 
     /**
     Reading the source hostname.
@@ -241,6 +248,11 @@ protected:
     SSL options to set.
     **/
     std::optional<dialog_ssl::ssl_options_t> ssl_options_;
+
+    /**
+    Flag to switch to the TLS.
+    **/
+    bool is_start_tls_;
 };
 
 

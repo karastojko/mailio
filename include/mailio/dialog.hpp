@@ -294,7 +294,7 @@ public:
     @param options SSL options of the socket.
     @throw *       `dialog_ssl::dialog_ssl(dialog&, const ssl_options_t&)`.
     **/
-    static std::shared_ptr<dialog_ssl> to_ssl(const std::shared_ptr<dialog> dlg, dialog_ssl::ssl_options_t options);
+    static std::shared_ptr<dialog_ssl> to_ssl(const std::shared_ptr<dialog> dlg, const dialog_ssl::ssl_options_t& options);
 
 protected:
 

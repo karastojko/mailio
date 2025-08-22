@@ -285,7 +285,7 @@ string dialog_ssl::receive(bool raw)
 }
 
 
-shared_ptr<dialog_ssl> dialog_ssl::to_ssl(const shared_ptr<dialog> dlg, dialog_ssl::ssl_options_t options)
+shared_ptr<dialog_ssl> dialog_ssl::to_ssl(const shared_ptr<dialog> dlg, const dialog_ssl::ssl_options_t& options)
 {
     return make_shared<dialog_ssl>(*dlg, options);
 }
