@@ -520,13 +520,11 @@ public:
     bool rename_folder(const std::list<std::string>& old_name, const std::list<std::string>& new_name);
 
     /**
-    Switching to TLS layer.
+    Setting the start TLS option.
 
-    @throw imap_error Bad server response.
-    @throw imap_error Start TLS refused by server.
-    @throw *          `parse_tag_result(const std::string&)`, `switch_to_ssl()`, `dialog::send(const std::string&)`, `dialog::receive()`.
+    @param is_tls If true, the start TLS option is turned on, otherwise is turned off.
     **/
-    void start_tls();
+    void start_tls(bool is_tls);
 
     /**
     Setting SSL options.
@@ -534,7 +532,6 @@ public:
     @param options SSL options to set.
     **/
     void ssl_options(const std::optional<dialog_ssl::ssl_options_t> options);
-
 
     /**
     Determining folder delimiter of a mailbox.
@@ -663,6 +660,15 @@ protected:
     @todo             Add server error messages to exceptions.
     **/
     std::string connect();
+
+    /**
+    Switching to TLS layer.
+
+    @throw imap_error Bad server response.
+    @throw imap_error Start TLS refused by server.
+    @throw *          `parse_tag_result(const std::string&)`, `dialog::to_ssl()`, `dialog::send(const std::string&)`, `dialog::receive()`.
+    **/
+    void switch_tls();
 
     /**
     Performing an authentication by using the login method.
@@ -815,6 +821,11 @@ protected:
     SSL options to set.
     **/
     std::optional<dialog_ssl::ssl_options_t> ssl_options_;
+
+    /**
+    Flag to switch to the TLS.
+    **/
+    bool is_start_tls_;
 
     /**
     Tag used to identify requests and responses.
@@ -973,7 +984,7 @@ public:
     @param username Username to authenticate.
     @param password Password to authenticate.
     @param method   Authentication method to use.
-    @throw *        `connect()`, `switch_to_ssl()`, `start_tls()`, `auth_login(const std::string&, const std::string&)`.
+    @throw *        `connect()`, `dialog::to_ssl()`, `start_tls()`, `auth_login(const std::string&, const std::string&)`.
     **/
     std::string authenticate(const std::string& username, const std::string& password, auth_method_t method);
 
