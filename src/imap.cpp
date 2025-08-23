@@ -1429,6 +1429,7 @@ imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
         };
+    is_start_tls_ = false;
 }
 
 
@@ -1437,15 +1438,13 @@ string imaps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
-        greeting = connect();
-        auth_login(username, password);
+        is_start_tls_ = false;
+        greeting = imap::authenticate(username, password, imap::auth_method_t::LOGIN);
     }
     else if (method == auth_method_t::START_TLS)
     {
-        greeting = connect();
-        switch_tls();
-        auth_login(username, password);
+        is_start_tls_ = true;
+        greeting = imap::authenticate(username, password, imap::auth_method_t::LOGIN);
     }
     return greeting;
 }

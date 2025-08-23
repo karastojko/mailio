@@ -331,13 +331,15 @@ inline bool smtp::permanent_negative(int status)
 }
 
 
-smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) : smtp(hostname, port, timeout)
+smtps::smtps(const string& hostname, unsigned port, milliseconds timeout) :
+    smtp(hostname, port, timeout)
 {
     ssl_options_ =
         {
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
         };
+    is_start_tls_ = false;
 }
 
 
@@ -346,23 +348,18 @@ string smtps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::NONE)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
-        greeting = connect();
-        ehlo();
+        is_start_tls_ = false;
+        greeting = smtp::authenticate(username, password, smtp::auth_method_t::NONE);
     }
     else if (method == auth_method_t::LOGIN)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
-        greeting = connect();
-        ehlo();
-        auth_login(username, password);
+        is_start_tls_ = false;
+        greeting = smtp::authenticate(username, password, smtp::auth_method_t::LOGIN);
     }
     else if (method == auth_method_t::START_TLS)
     {
-        greeting = connect();
-        ehlo();
-        switch_tls();
-        auth_login(username, password);
+        is_start_tls_ = true;
+        greeting = smtp::authenticate(username, password, smtp::auth_method_t::LOGIN);
     }
     return greeting;
 }

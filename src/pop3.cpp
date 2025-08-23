@@ -383,6 +383,7 @@ pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
         };
+    is_start_tls_ = false;
 }
 
 
@@ -391,15 +392,13 @@ string pop3s::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
-        greeting = connect();
-        auth_login(username, password);
+        is_start_tls_ = false;
+        greeting = pop3::authenticate(username, password, pop3::auth_method_t::LOGIN);
     }
     if (method == auth_method_t::START_TLS)
     {
-        greeting = connect();
-        switch_tls();
-        auth_login(username, password);
+        is_start_tls_ = true;
+        greeting = pop3::authenticate(username, password, pop3::auth_method_t::LOGIN);
     }
     return greeting;
 }
