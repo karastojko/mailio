@@ -3,7 +3,7 @@
 pop3s_attachment.cpp
 --------------------
 
-Fetches attachments of a message on POP3 server.
+Fetches attachments of a message from a POP3 server via START_TLS.
 
 For this sample to be executed properly, use the message sent by `smtps_attachment.cpp`.
 
@@ -26,7 +26,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 using mailio::message;
 using mailio::string_t;
 using mailio::codec;
-using mailio::pop3s;
+using mailio::pop3;
 using mailio::pop3_error;
 using mailio::dialog_error;
 using std::cout;
@@ -45,9 +45,9 @@ int main()
         msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
         // use a server with SSL connectivity
-        pop3s conn("pop3.mailserver.com", 995);
+        pop3 conn("pop3.mailserver.com", 110);
         // modify to use real account
-        conn.authenticate("mailio@mailserver.com", "mailiopass", pop3s::auth_method_t::LOGIN);
+        conn.authenticate("mailio@mailserver.com", "mailiopass", pop3::auth_method_t::LOGIN);
         // fetch the first message from mailbox
         conn.fetch(1, msg);
         

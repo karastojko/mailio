@@ -3,7 +3,7 @@
 pop3_remove_msg.cpp
 -------------------
 
-Connects to POP3 server and removes first message in mailbox.
+Connects to a POP3 server and removes the first message in mailbox.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -31,6 +31,8 @@ int main()
     {
         // use a server with plain (non-SSL) connectivity
         pop3 conn("pop.mailserver.com", 110);
+        conn.ssl_options(std::nullopt);// no SSL settings means no TLS connection
+        conn.start_tls(false);// disable the start tls too
         // modify to use real account
         conn.authenticate("mailio@mailserver.com", "mailiopass", pop3::auth_method_t::LOGIN);
         // remove first message from mailbox
