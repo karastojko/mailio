@@ -3,7 +3,7 @@
 imap_remove_msg.cpp
 -------------------
   
-Connects to IMAP server and removes a message in mailbox.
+Connects to an IMAP server and removes a message in mailbox.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -31,6 +31,8 @@ int main()
     {
         // use a server with plain (non-SSL) connectivity
         imap conn("imap.mailserver.com", 143);
+        conn.ssl_options(std::nullopt);// no SSL settings means no TLS connection
+        conn.start_tls(false);// disable the start tls too
         // modify to use real account
         conn.authenticate("mailio@mailserver.com", "mailiopass", imap::auth_method_t::LOGIN);
         // remove first message from mailbox
