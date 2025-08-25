@@ -3,7 +3,7 @@
 smtp_utf8_qp_msg.cpp
 --------------------
 
-Connects to SMTP server and sends a message with UTF8 content and subject.
+Connects to an SMTP server and sends a message with UTF8 content and subject.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -68,6 +68,8 @@ int main()
 
         // use a server with plain (non-SSL) connectivity
         smtp conn("smtp.mailserver.com", 587);
+        conn.ssl_options(std::nullopt);// no SSL settings means no TLS connection
+        conn.start_tls(false);// disable the start tls too
         // modify username/password to use real credentials
         conn.authenticate("mailio@mailserver.com", "mailiopass", smtp::auth_method_t::LOGIN);
         conn.submit(msg);

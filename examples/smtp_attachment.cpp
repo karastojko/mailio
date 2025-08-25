@@ -3,7 +3,7 @@
 smtps_attachment.cpp
 --------------------
  
-Connects to SMTP server via SSL and sends a message with attached files.
+Connects to an SMTP server via SSL and sends a message with attached files.
 
  
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -24,7 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 using mailio::message;
 using mailio::string_t;
 using mailio::mail_address;
-using mailio::smtps;
+using mailio::smtp;
 using mailio::smtp_error;
 using mailio::dialog_error;
 using std::cout;
@@ -54,10 +54,11 @@ int main()
         atts.push_back(make_tuple(std::ref(ifs2), "infinity.png", message::content_type_t(message::media_type_t::IMAGE, "png")));
         msg.attach(atts);
 
-        // use a server with plain (non-SSL) connectivity
-        smtps conn("smtp.mailserver.com", 465);
+        // use a server to login over tls connectivity
+        smtp conn("smtp.mailserver.com", 465);
+        conn.start_tls(false);
         // modify username/password to use real credentials
-        conn.authenticate("mailio@mailserver.com", "mailiopass", smtps::auth_method_t::LOGIN);
+        conn.authenticate("mailio@mailserver.com", "mailiopass", smtp::auth_method_t::LOGIN);
         conn.submit(msg);
     }
     catch (smtp_error& exc)

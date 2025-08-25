@@ -3,7 +3,7 @@
 pop3s_fetch_one.cpp
 -------------------
 
-Connects to POP3 server via SSL and fetches first message from mailbox.
+Connects to POP3 server via SSL and fetches the first message from mailbox.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -21,7 +21,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 using mailio::message;
 using mailio::codec;
-using mailio::pop3s;
+using mailio::pop3;
 using mailio::pop3_error;
 using mailio::dialog_error;
 using std::cout;
@@ -38,9 +38,10 @@ int main()
         msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
 
         // connect to server
-        pop3s conn("pop.mail.yahoo.com", 995);
+        pop3 conn("pop.mail.yahoo.com", 995);
+        conn.start_tls(false);
         // modify to use existing yahoo account
-        conn.authenticate("mailio@yahoo.com", "mailiopass", pop3s::auth_method_t::LOGIN);
+        conn.authenticate("mailio@yahoo.com", "mailiopass", pop3::auth_method_t::LOGIN);
         // fetch the first message from mailbox
         conn.fetch(1, msg);
         cout << msg.subject() << endl;

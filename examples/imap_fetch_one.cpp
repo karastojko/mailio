@@ -1,9 +1,9 @@
 /*
 
-imap_remove_msg.cpp
--------------------
+imaps_stat.cpp
+--------------
   
-Connects to an IMAP server and removes a message in mailbox.
+Connects to an IMAP server over SSL and gets the number of messages in mailbox.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -18,6 +18,8 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/imap.hpp>
 
 
+using mailio::message;
+using mailio::codec;
 using mailio::imap;
 using mailio::imap_error;
 using mailio::dialog_error;
@@ -29,14 +31,13 @@ int main()
 {
     try
     {
-        // use a server with plain (non-SSL) connectivity
-        imap conn("imap.mailserver.com", 143);
-        conn.ssl_options(std::nullopt);// no SSL settings means no TLS connection
-        conn.start_tls(false);// disable the start tls too
-        // modify to use real account
-        conn.authenticate("mailio@mailserver.com", "mailiopass", imap::auth_method_t::LOGIN);
-        // remove first message from mailbox
-        conn.remove("inbox", 1);
+        imap conn("imap.zoho.com", 993);
+        conn.start_tls(false);
+        conn.authenticate("mailio@zoho.com", "mailiopass", imap::auth_method_t::LOGIN);
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        conn.fetch("inbox", 1, msg);
+        cout << "msg.content()=" << msg.content() << endl;
     }
     catch (imap_error& exc)
     {

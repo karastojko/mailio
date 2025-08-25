@@ -3,7 +3,7 @@
 imaps_folders.cpp
 -----------------
 
-Connects to IMAP server and lists recursively all folders.
+Connects to an IMAP server over SSL and lists recursively all folders.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -20,7 +20,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/imap.hpp>
 
 
-using mailio::imaps;
+using mailio::imap;
 using mailio::imap_error;
 using mailio::dialog_error;
 using std::for_each;
@@ -29,7 +29,7 @@ using std::endl;
 using std::string;
 
 
-void print_folders(unsigned tabs, const imaps::mailbox_folder_t& folder)
+void print_folders(unsigned tabs, const imap::mailbox_folder_t& folder)
 {
     string indent(tabs, '\t');
     for (auto& f : folder.folders)
@@ -45,10 +45,11 @@ int main()
 {
     try
     {
-        imaps conn("imap.mailserver.com", 993);
+        imap conn("imap.mailserver.com", 993);
+        conn.start_tls(false);
         // modify username/password to use real credentials
-        conn.authenticate("mailio@mailserver.com", "mailiopass", imaps::auth_method_t::LOGIN);
-        imaps::mailbox_folder_t fld = conn.list_folders("");
+        conn.authenticate("mailio@mailserver.com", "mailiopass", imap::auth_method_t::LOGIN);
+        imap::mailbox_folder_t fld = conn.list_folders("");
         print_folders(0, fld);
     }
     catch (imap_error& exc)
