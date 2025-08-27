@@ -18,26 +18,26 @@
 # Examples #
 
 To send a mail, one has to create `message` object and set it's attributes as author, recipient, subject and so on. Then, an SMTP connection
-is created by constructing `smtp` (or `smtps`) class. The message is sent over the connection:
+is created by constructing `smtp` (~~or smtps~~) class. The message is sent over the connection:
 
 ```cpp
 message msg;
 msg.from(mail_address("mailio library", "mailio@gmail.com"));
 msg.add_recipient(mail_address("mailio library", "mailio@gmail.com"));
-msg.subject("smtps simple message");
+msg.subject("smtp simple message");
 msg.content("Hello, World!");
 
-smtps conn("smtp.gmail.com", 587);
-conn.authenticate("mailio@gmail.com", "mailiopass", smtps::auth_method_t::START_TLS);
+smtp conn("smtp.gmail.com", 587);
+conn.authenticate("mailio@gmail.com", "mailiopass", smtp::auth_method_t::LOGIN);
 conn.submit(msg);
 ```
 
 To receive a mail, a `message` object is created to store the received message. Mail can be received over POP3 or IMAP, depending of mail server setup.
-If POP3 is used, then instance of `pop3` (or `pop3s`) class is created and message is fetched:
+If POP3 is used, then instance of `pop3` (~~or pop3s~~) class is created and message is fetched:
 
 ```cpp
-pop3s conn("pop.mail.yahoo.com", 995);
-conn.authenticate("mailio@yahoo.com", "mailiopass", pop3s::auth_method_t::LOGIN);
+pop3 conn("pop.mail.yahoo.com", 110);
+conn.authenticate("mailio@yahoo.com", "mailiopass", pop3::auth_method_t::LOGIN);
 message msg;
 conn.fetch(1, msg);
 ```
@@ -45,7 +45,7 @@ conn.fetch(1, msg);
 Receiving a message over IMAP is analogous. Since IMAP recognizes folders, then one has to be specified, like *inbox*:
 
 ```cpp
-imaps conn("imap.gmail.com", 993);
+imap conn("imap.gmail.com", 143);
 conn.authenticate("mailio@gmail.com", "mailiopass", imap::auth_method_t::LOGIN);
 message msg;
 conn.fetch("inbox", 1, msg);
