@@ -1,12 +1,14 @@
 
 # mailio #
 
-[![C++](https://img.shields.io/badge/C++-17-blue)](https://en.cppreference.com/w/cpp/17)
-[![C++](https://img.shields.io/badge/C++-20-blue)](https://en.cppreference.com/w/cpp/20)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+![C++](https://img.shields.io/badge/C++-17-blue)
+![C++](https://img.shields.io/badge/C++-20-blue)
+[![License](https://img.shields.io/badge/License-MIT-darkgreen)](LICENSE)
 [![Conan Center](https://img.shields.io/conan/v/mailio)](https://conan.io/center/recipes/mailio)
 [![Vcpkg](https://img.shields.io/vcpkg/v/mailio)](https://vcpkg.io/en/package/mailio)
-[![FreeBSD](https://img.shields.io/badge/-FreeBSD-%23870000?style=for-the-badge&logo=freebsd&logoColor=white)](www.freebsd.org)
+![FreeBSD](https://img.shields.io/badge/OS-FreeBSD-870000)
+![Linux](https://img.shields.io/badge/OS-Linux-870000)
+![Windows](https://img.shields.io/badge/OS-Windows-870000)
 
 [中文文档](README_zh.md)
 
