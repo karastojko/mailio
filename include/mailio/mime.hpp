@@ -23,6 +23,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <unordered_map>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include "codec.hpp"
@@ -122,6 +123,9 @@ public:
         Charset attribute.
         **/
         std::string charset;
+
+        /** additional attributes **/
+        std::unordered_map<std::string, std::string> attributes;
 
         /**
         Initializing the media type to none, subtype and charset to empty strings.
