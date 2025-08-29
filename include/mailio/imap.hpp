@@ -264,24 +264,6 @@ public:
     @param mailbox     Mailbox to fetch from.
     @param message_no  Number of the message to fetch.
     @param msg         Message to store the result.
-    @param header_only Flag if only the message header should be fetched.
-    @throw imap_error  Fetching message failure.
-    @throw imap_error  Parsing failure.
-    @throw *           `fetch(const list<messages_range_t>&, map<unsigned long, message>&, bool, bool, codec::line_len_policy_t)`.
-    @todo              Add server error messages to exceptions.
-    **/
-    [[deprecated]]
-    void fetch(const std::string& mailbox, unsigned long message_no, message& msg, bool header_only = false);
-
-    /**
-    Fetching a message from the mailbox.
-
-    Some servers report success if a message with the given number does not exist, so the method returns with the empty `msg`. Other considers
-    fetching non-existing message to be an error, and an exception is thrown.
-
-    @param mailbox     Mailbox to fetch from.
-    @param message_no  Number of the message to fetch.
-    @param msg         Message to store the result.
     @param is_uid      Using a message uid number instead of a message sequence number.
     @param header_only Flag if only the message header should be fetched.
     @throw imap_error  Fetching message failure.

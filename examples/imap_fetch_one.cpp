@@ -3,7 +3,7 @@
 imaps_stat.cpp
 --------------
   
-Connects to an IMAP server over SSL and gets the number of messages in mailbox.
+Connects to an IMAP server over SSL and gets the first message from the inbox.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -36,7 +36,7 @@ int main()
         conn.authenticate("mailio@zoho.com", "mailiopass", imap::auth_method_t::LOGIN);
         message msg;
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
-        conn.fetch("inbox", 1, msg);
+        conn.fetch("inbox", 1, false, msg);
         cout << "msg.content()=" << msg.content() << endl;
     }
     catch (imap_error& exc)

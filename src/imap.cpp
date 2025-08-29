@@ -348,13 +348,6 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 }
 
 
-void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, bool header_only)
-{
-    select(mailbox);
-    fetch(message_no, msg, false, header_only);
-}
-
-
 void imap::fetch(const string& mailbox, unsigned long message_no, bool is_uid, message& msg, bool header_only)
 {
     select(mailbox);
