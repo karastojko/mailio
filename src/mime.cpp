@@ -91,7 +91,7 @@ mime::content_type_t& mime::content_type_t::operator=(const mime::content_type_t
         type = cont_type.type;
         subtype = to_lower_copy(cont_type.subtype);
         charset = cont_type.charset;
-        attributes.insert(cont_type.attributes.begin(), cont_type.attributes.end());
+        attributes = cont_type.attributes;
     }
     return *this;
 }
@@ -277,6 +277,16 @@ void mime::content_type(media_type_t media_type, const string& media_subtype, co
 {
     content_type_t c(media_type, media_subtype);
     c.charset = to_lower_copy(charset);
+    content_type(c);
+}
+
+
+void mime::content_type(media_type_t media_type, const string& media_subtype, const attributes_t& attributes,
+	const string& charset)
+{
+    content_type_t c(media_type, media_subtype);
+    c.charset = to_lower_copy(charset);
+	c.attributes = attributes;
     content_type(c);
 }
 
@@ -570,8 +580,8 @@ string mime::format_content_type() const
     if (content_type_.type != media_type_t::NONE)
     {
         line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(content_type_.type) + CONTENT_SUBTYPE_SEPARATOR + content_type_.subtype;
-        for(auto attribute : content_type_.attributes){
-            line += ATTRIBUTES_SEPARATOR_STR + attribute.first + NAME_VALUE_SEPARATOR_STR + attribute.second;
+        for(const auto& [attr_name, attr_val] : content_type_.attributes){
+            line += ATTRIBUTES_SEPARATOR_STR + attr_name + NAME_VALUE_SEPARATOR_STR + attr_val.buffer;
         }
         if (!content_type_.charset.empty())
             line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset;

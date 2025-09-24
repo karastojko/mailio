@@ -23,7 +23,6 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <vector>
 #include <stdexcept>
 #include <map>
-#include <unordered_map>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include "codec.hpp"
@@ -95,6 +94,22 @@ public:
     enum class media_type_t {NONE, TEXT, IMAGE, AUDIO, VIDEO, APPLICATION, MULTIPART, MESSAGE};
 
     /**
+    Comparator for the attributes map based on case insensitivity.
+    **/
+    struct icase_comp_t : public std::less<std::string>
+    {
+        bool operator()(const std::string& lhs, const std::string& rhs) const
+        {
+            return boost::to_lower_copy(lhs) < boost::to_lower_copy(rhs);
+        }
+    };
+
+    /**
+    Attributes map with the custom comparator.
+    **/
+    using attributes_t = std::map<std::string, string_t, icase_comp_t>;
+
+    /**
     Content type.
     **/
     struct MAILIO_EXPORT content_type_t
@@ -124,8 +139,10 @@ public:
         **/
         std::string charset;
 
-        /** additional attributes **/
-        std::unordered_map<std::string, std::string> attributes;
+        /**
+        Additional attributes.
+        **/
+        attributes_t attributes;
 
         /**
         Initializing the media type to none, subtype and charset to empty strings.
@@ -279,6 +296,18 @@ public:
     @throw *             `content_type(const content_type_t&)`.
     **/
     void content_type(media_type_t media_type, const std::string& media_subtype, const std::string& charset = "");
+
+    /**
+    Setting the content type.
+
+    @param media_type    Media type to set.
+    @param media_subtype Media subtype to set.
+    @param charset       Charset to set.
+    @param attributes    Content type attributes which are optional.
+    @throw *             `content_type(const content_type_t&)`.
+    **/
+    void content_type(media_type_t media_type, const std::string& media_subtype, const attributes_t& attributes,
+		const std::string& charset = "");
 
     /**
     Getting the content type.
@@ -460,22 +489,6 @@ public:
     header_codec_t header_codec() const;
 
 protected:
-
-    /**
-    Comparator for the attributes map based on case insensitivity.
-    **/
-    struct icase_comp_t : public std::less<std::string>
-    {
-        bool operator()(const std::string& lhs, const std::string& rhs) const
-        {
-            return boost::to_lower_copy(lhs) < boost::to_lower_copy(rhs);
-        }
-    };
-
-    /**
-    Attributes map with the custom comparator.
-    **/
-    using attributes_t = std::map<std::string, string_t, icase_comp_t>;
 
     /**
     Headers multimap with the custom comparator.
