@@ -112,8 +112,10 @@ public:
     /**
     Content type.
     **/
-    struct MAILIO_EXPORT content_type_t
+    class MAILIO_EXPORT content_type_t
     {
+    public:
+
         /**
         Charset attribute name.
         **/
@@ -124,25 +126,29 @@ public:
         **/
         static const std::string ATTR_BOUNDARY;
 
+    protected:
+
         /**
         Media type attribute.
         **/
-        media_type_t type;
+        media_type_t media_type_;
 
         /**
         Media subtype attribute.
         **/
-        std::string subtype;
+        std::string media_subtype_;
 
         /**
         Charset attribute.
         **/
-        std::string charset;
+        std::string charset_;
 
         /**
         Additional attributes.
         **/
-        attributes_t attributes;
+        attributes_t attributes_;
+
+    public:
 
         /**
         Initializing the media type to none, subtype and charset to empty strings.
@@ -159,9 +165,19 @@ public:
 
         @param media_type      Media type to set.
         @param media_subtype   Media subtype to set.
-        @param content_charset Charset to set.
+        @param charset         Charset to set.
         **/
-        content_type_t(media_type_t media_type, const std::string& media_subtype, const std::string& content_charset = "");
+        content_type_t(media_type_t media_type, const std::string& media_subtype, const std::string& charset = "");
+
+        /**
+        Initializing the content type with the given media type and subtype.
+
+        @param media_type      Media type to set.
+        @param media_subtype   Media subtype to set.
+        @param attributes      Attributes to be set.
+        @param charset         Charset to set.
+        **/
+        content_type_t(media_type_t media_type, const std::string& media_subtype, const attributes_t& attributes, const std::string& charset = "");
 
         /**
         Assignment operator.
@@ -170,6 +186,26 @@ public:
         @return          Object itself.
         **/
         content_type_t& operator=(const content_type_t& cont_type);
+
+        /**
+        Getting the media type set for the content type.
+        **/
+        media_type_t media_type() const;
+
+        /**
+        Getting the media subtype set for the content type.
+        **/
+        std::string media_subtype() const;
+
+        /**
+        Getting the charset set for the content type.
+        **/
+        std::string charset() const;
+
+        /**
+        Getting the attributes set for the content type.
+        **/
+        attributes_t attributes() const;
     };
 
     /**

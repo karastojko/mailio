@@ -111,8 +111,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
         {
             mime content_part;
             content_part.content(content_);
-            content_type_t ct(media_type_t::TEXT, "plain");
-            ct.charset = content_type_.charset;
+            content_type_t ct(media_type_t::TEXT, "plain", content_type_.charset());
             content_part.content_type(ct);
             content_part.content_transfer_encoding(encoding_);
             content_part.line_policy(line_policy_);
@@ -439,7 +438,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
     // the content goes to the first mime part, and then it's deleted
     if (!content_.empty())
     {
-        if (content_type_.type == media_type_t::NONE)
+        if (content_type_.media_type() == media_type_t::NONE)
             content_type_ = content_type_t(media_type_t::TEXT, "plain");
 
         mime content_part;
@@ -453,8 +452,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         content_.clear();
     }
 
-    content_type_.type = media_type_t::MULTIPART;
-    content_type_.subtype = "mixed";
+    content_type_ = content_type_t(media_type_t::MULTIPART, "mixed");
     for (const auto& att : attachments)
     {
         stringstream ss;
@@ -529,7 +527,7 @@ const message::headers_t& message::headers() const
 
 string message::format_header(bool add_bcc_header) const
 {
-    if (!boundary_.empty() && content_type_.type != media_type_t::MULTIPART)
+    if (!boundary_.empty() && content_type_.media_type() != media_type_t::MULTIPART)
         throw message_error("No boundary for multipart message.", "");
 
     if (from_.addresses.size() == 0)

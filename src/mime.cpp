@@ -71,16 +71,25 @@ const string mime::content_type_t::ATTR_CHARSET{"charset"};
 const string mime::content_type_t::ATTR_BOUNDARY{"boundary"};
 
 
-mime::content_type_t::content_type_t() : type(media_type_t::NONE)
+mime::content_type_t::content_type_t() : media_type_(media_type_t::NONE)
 {
 }
 
 
-mime::content_type_t::content_type_t(media_type_t media_type, const string& media_subtype, const string& content_charset)
+mime::content_type_t::content_type_t(media_type_t media_type, const string& media_subtype, const string& charset)
 {
-    type = media_type;
-    subtype = to_lower_copy(media_subtype);
-    charset = content_charset;
+    media_type_ = media_type;
+    media_subtype_ = to_lower_copy(media_subtype);
+    charset_ = charset;
+}
+
+
+mime::content_type_t::content_type_t(media_type_t media_type, const string& media_subtype, const attributes_t& attributes, const string& charset)
+{
+    media_type_ = media_type;
+    media_subtype_ = to_lower_copy(media_subtype);
+    charset_ = charset;
+    attributes_ = attributes;
 }
 
 
@@ -88,12 +97,35 @@ mime::content_type_t& mime::content_type_t::operator=(const mime::content_type_t
 {
     if (this != &cont_type)
     {
-        type = cont_type.type;
-        subtype = to_lower_copy(cont_type.subtype);
-        charset = cont_type.charset;
-        attributes = cont_type.attributes;
+        media_type_ = cont_type.media_type_;
+        media_subtype_ = to_lower_copy(cont_type.media_subtype_);
+        charset_ = cont_type.charset_;
+        attributes_ = cont_type.attributes_;
     }
     return *this;
+}
+
+
+mime::media_type_t mime::content_type_t::media_type() const
+{
+    return media_type_;
+}
+
+string mime::content_type_t::media_subtype() const
+{
+    return media_subtype_;
+}
+
+
+string mime::content_type_t::charset() const
+{
+    return charset_;
+}
+
+
+mime::attributes_t mime::content_type_t::attributes() const
+{
+    return attributes_;
 }
 
 
@@ -133,7 +165,7 @@ mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::MANDATORY
 
 void mime::format(string& mime_str, bool dot_escape) const
 {
-    if (!boundary_.empty() && content_type_.type != media_type_t::MULTIPART)
+    if (!boundary_.empty() && content_type_.media_type() != media_type_t::MULTIPART)
         throw mime_error("Formatting failure, non multipart message with boundary.", "");
 
     mime_str += format_header() + codec::END_OF_LINE;
@@ -267,16 +299,15 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
 
 void mime::content_type(const content_type_t& cont_type)
 {
-    if (cont_type.type != media_type_t::NONE && cont_type.subtype.empty())
-        throw mime_error("Bad content type.", "Media type is none, subtype is `" + cont_type.subtype + "`.");
+    if (cont_type.media_type() != media_type_t::NONE && cont_type.media_subtype().empty())
+        throw mime_error("Bad content type.", "Media type is none, subtype is `" + cont_type.media_subtype() + "`.");
     content_type_ = cont_type;
 }
 
 
 void mime::content_type(media_type_t media_type, const string& media_subtype, const string& charset)
 {
-    content_type_t c(media_type, media_subtype);
-    c.charset = to_lower_copy(charset);
+    content_type_t c(media_type, media_subtype, to_lower_copy(charset));
     content_type(c);
 }
 
@@ -284,9 +315,7 @@ void mime::content_type(media_type_t media_type, const string& media_subtype, co
 void mime::content_type(media_type_t media_type, const string& media_subtype, const attributes_t& attributes,
 	const string& charset)
 {
-    content_type_t c(media_type, media_subtype);
-    c.charset = to_lower_copy(charset);
-	c.attributes = attributes;
+    content_type_t c(media_type, media_subtype, attributes, to_lower_copy(charset));
     content_type(c);
 }
 
@@ -577,14 +606,15 @@ string mime::format_content_type() const
 {
     string line;
 
-    if (content_type_.type != media_type_t::NONE)
+    if (content_type_.media_type() != media_type_t::NONE)
     {
-        line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(content_type_.type) + CONTENT_SUBTYPE_SEPARATOR + content_type_.subtype;
-        for(const auto& [attr_name, attr_val] : content_type_.attributes){
+        line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(content_type_.media_type()) + CONTENT_SUBTYPE_SEPARATOR +
+            content_type_.media_subtype();
+        for(const auto& [attr_name, attr_val] : content_type_.attributes()){
             line += ATTRIBUTES_SEPARATOR_STR + attr_name + NAME_VALUE_SEPARATOR_STR + attr_val.buffer;
         }
-        if (!content_type_.charset.empty())
-            line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset;
+        if (!content_type_.charset().empty())
+            line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset();
         if (!name_.buffer.empty())
         {
             string attrs = split_attributes(ATTRIBUTE_NAME, name_);
@@ -758,14 +788,13 @@ void mime::parse_header_line(const string& header_line)
         parse_content_type(header_value, media_type, media_subtype, attributes);
         merge_attributes(attributes);
 
-        content_type_.type = media_type;
-        content_type_.subtype = to_lower_copy(media_subtype);
+        content_type_ = content_type_t(media_type, to_lower_copy(media_subtype));
         attributes_t::iterator bound_it = attributes.find(content_type_t::ATTR_BOUNDARY);
         if (bound_it != attributes.end())
             boundary_ = bound_it->second.buffer;
         attributes_t::iterator charset_it = attributes.find(content_type_t::ATTR_CHARSET);
         if (charset_it != attributes.end())
-            content_type_.charset = to_lower_copy(charset_it->second.buffer);
+            content_type_ = content_type_t(media_type, to_lower_copy(media_subtype), to_lower_copy(charset_it->second.buffer));
         attributes_t::iterator name_it = attributes.find(ATTRIBUTE_NAME);
         // name is set if not already set by content disposition
         if (name_it != attributes.end() && name_.buffer.empty())

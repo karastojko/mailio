@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(format_addresses)
         "  \"Tomislav @ Karastojkovic\" <qwertyuiop@gmail.com>,\r\n"
         "  mailio <adresa@mailio.dev>");
     BOOST_CHECK(msg.date_time() == ldt);
-    BOOST_CHECK(msg.content_type().type == mime::media_type_t::NONE && msg.content_type().subtype.empty() && msg.content_type().charset.empty());
+    BOOST_CHECK(msg.content_type().media_type() == mime::media_type_t::NONE && msg.content_type().media_subtype().empty() && msg.content_type().charset().empty());
     BOOST_CHECK(msg.content_transfer_encoding() == mime::content_transfer_encoding_t::NONE);
     BOOST_CHECK(msg.content() == "Hello, World!");
 }
@@ -1694,11 +1694,11 @@ BOOST_AUTO_TEST_CASE(format_attachment)
     atts.push_back(tp2);
     msg.attach(atts);
 
-    BOOST_CHECK(msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "mixed" && msg.attachments_size() == 2);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::APPLICATION && msg.parts().at(0).content_type().subtype == "txt" &&
+    BOOST_CHECK(msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "mixed" && msg.attachments_size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::APPLICATION && msg.parts().at(0).content_type().media_subtype() == "txt" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(0).content_disposition() ==
         mime::content_disposition_t::ATTACHMENT);
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::IMAGE && msg.parts().at(1).content_type().subtype == "png" &&
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::IMAGE && msg.parts().at(1).content_type().media_subtype() == "png" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(1).content_disposition() ==
         mime::content_disposition_t::ATTACHMENT);
 }
@@ -1850,13 +1850,14 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
 
     string msg_str;
     msg.format(msg_str);
+
     BOOST_CHECK(msg_str ==
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/mixed; charset=utf-8; boundary=\"mybnd\"\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
         "Content-Transfer-Encoding: Quoted-Printable\r\n"
         "Subject: format message attachment\r\n"
         "\r\n"
@@ -1976,7 +1977,7 @@ BOOST_AUTO_TEST_CASE(format_html_att)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "MIME-Version: 1.0\r\n"
-        "Content-Type: multipart/mixed; charset=utf-8; boundary=\"mybnd\"\r\n"
+        "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
         "Content-Transfer-Encoding: Quoted-Printable\r\n"
         "Subject: format html attachment\r\n"
         "\r\n"
@@ -3584,7 +3585,7 @@ BOOST_AUTO_TEST_CASE(parse_content_type)
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
+    BOOST_CHECK(msg.content_type().media_type() == mailio::mime::media_type_t::TEXT && msg.content_type().media_subtype() == "plain" && msg.content_type().charset() == "utf-8");
 }
 
 
@@ -3615,7 +3616,7 @@ BOOST_AUTO_TEST_CASE(parse_malformed_content_type)
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.strict_mode(false);
         msg.parse(msg_str);
-        BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8");
+        BOOST_CHECK(msg.content_type().media_type() == mailio::mime::media_type_t::TEXT && msg.content_type().media_subtype() == "plain" && msg.content_type().charset() == "utf-8");
     }
 }
 
@@ -3639,7 +3640,7 @@ BOOST_AUTO_TEST_CASE(parse_attribute_backslash_non_strict)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::APPLICATION && msg.content_type().subtype == "octet-stream");
+    BOOST_CHECK(msg.content_type().media_type() == mailio::mime::media_type_t::APPLICATION && msg.content_type().media_subtype() == "octet-stream");
 }
 
 
@@ -3686,7 +3687,7 @@ BOOST_AUTO_TEST_CASE(parse_quoted_attribute_backslash)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.content_type().type == mailio::mime::media_type_t::TEXT && msg.content_type().subtype == "plain");
+    BOOST_CHECK(msg.content_type().media_type() == mailio::mime::media_type_t::TEXT && msg.content_type().media_subtype() == "plain");
 }
 
 
@@ -3980,8 +3981,8 @@ BOOST_AUTO_TEST_CASE(parse_long_text_default_default)
 
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "parse long text default default" && msg.content_type().type == mime::media_type_t::TEXT &&
-        msg.content_type().subtype == "plain" && msg.content_type().charset.empty() &&
+    BOOST_CHECK(msg.subject() == "parse long text default default" && msg.content_type().media_type() == mime::media_type_t::TEXT &&
+        msg.content_type().media_subtype() == "plain" && msg.content_type().charset().empty() &&
         msg.content_transfer_encoding() == mime::content_transfer_encoding_t::NONE);
     BOOST_CHECK(msg.content() ==
         "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. N\r\n"
@@ -4039,8 +4040,8 @@ BOOST_AUTO_TEST_CASE(parse_long_text_default_base64)
 
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "parse long text default base64" && msg.content_type().type == mime::media_type_t::NONE &&
-        msg.content_type().subtype.empty() && msg.content_type().charset.empty() &&
+    BOOST_CHECK(msg.subject() == "parse long text default base64" && msg.content_type().media_type() == mime::media_type_t::NONE &&
+        msg.content_type().media_subtype().empty() && msg.content_type().charset().empty() &&
         msg.content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64);
     BOOST_CHECK(msg.content() ==
         "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. N\r\n"
@@ -4113,8 +4114,8 @@ BOOST_AUTO_TEST_CASE(parse_long_text_default_qp)
 
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "parse long text default quoted printable" && msg.content_type().type == mime::media_type_t::NONE &&
-        msg.content_type().subtype.empty() && msg.content_type().charset.empty() &&
+    BOOST_CHECK(msg.subject() == "parse long text default quoted printable" && msg.content_type().media_type() == mime::media_type_t::NONE &&
+        msg.content_type().media_subtype().empty() && msg.content_type().charset().empty() &&
         msg.content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     BOOST_CHECK(msg.content() == "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
@@ -4178,8 +4179,8 @@ BOOST_AUTO_TEST_CASE(parse_long_text_utf8_base64)
 
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "parse long text utf8 base64" && msg.content_type().type == mime::media_type_t::TEXT &&
-        msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8" &&
+    BOOST_CHECK(msg.subject() == "parse long text utf8 base64" && msg.content_type().media_type() == mime::media_type_t::TEXT &&
+        msg.content_type().media_subtype() == "plain" && msg.content_type().charset() == "utf-8" &&
         msg.content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64);
     BOOST_CHECK(msg.content() == "Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
         "па се надам да ће то овај текст показати.\r\n"
@@ -4279,8 +4280,8 @@ BOOST_AUTO_TEST_CASE(parse_long_text_utf8_qp)
 
     message msg;
     msg.parse(msg_str);
-    BOOST_CHECK(msg.subject() == "parse long text utf8 quoted printable" && msg.content_type().type == mime::media_type_t::TEXT &&
-        msg.content_type().subtype == "plain" && msg.content_type().charset == "utf-8" &&
+    BOOST_CHECK(msg.subject() == "parse long text utf8 quoted printable" && msg.content_type().media_type() == mime::media_type_t::TEXT &&
+        msg.content_type().media_subtype() == "plain" && msg.content_type().charset() == "utf-8" &&
         msg.content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     BOOST_CHECK(msg.content() == "Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
         "па се надам да ће то овај текст показати.\r\n"
@@ -4336,14 +4337,14 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_bit7_plain_utf8_base64)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.boundary() == "my_bound" && msg.subject() == "parse multipart html ascii bit7 plain utf8 base64" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "alternative" && msg.parts().size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 &&
-        msg.parts().at(0).content_type().charset == "us-ascii" &&
+        msg.parts().at(0).content_type().charset() == "us-ascii" &&
         msg.parts().at(0).content() == "<html><head></head><body><h1>Hello, World!</h1></body></html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
+        msg.parts().at(1).content_type().charset() == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
 }
 
 
@@ -4387,14 +4388,14 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_qp_plain_ascii_bit8)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse multipart html ascii qp plain ascii bit8" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "alternative" && msg.parts().size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(0).content_type().charset == "us-ascii" && msg.parts().at(0).content() ==
+        msg.parts().at(0).content_type().charset() == "us-ascii" && msg.parts().at(0).content() ==
         "<html><head></head><body><h1>Hello, World!</h1></body></html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_8 &&
-        msg.parts().at(1).content_type().charset == "us-ascii" && msg.parts().at(1).content() == "Zdravo, Svete!");
+        msg.parts().at(1).content_type().charset() == "us-ascii" && msg.parts().at(1).content() == "Zdravo, Svete!");
 }
 
 
@@ -4438,13 +4439,13 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_default_base64_text_utf8_qp)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse multipart html default base64 text utf8 qp" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "related" && msg.parts().size() == 2);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(0).content_type().charset.empty() && msg.parts().at(0).content() == "<html><head></head><body><h1>Hello, World!</h1></body></html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+        msg.parts().at(0).content_type().charset().empty() && msg.parts().at(0).content() == "<html><head></head><body><h1>Hello, World!</h1></body></html>");
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
+        msg.parts().at(1).content_type().charset() == "utf-8" && msg.parts().at(1).content() == "Здраво, Свете!");
 }
 
 
@@ -4487,13 +4488,13 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_base64_plain_ascii_bit7)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse multipart html ascii base64 plain ascii bit7" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 2 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "related" && msg.parts().size() == 2);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 2);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(0).content_type().charset == "us-ascii" && msg.parts().at(0).content() == "<html><head></head><body>Hello, World!</body></html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+        msg.parts().at(0).content_type().charset() == "us-ascii" && msg.parts().at(0).content() == "<html><head></head><body>Hello, World!</body></html>");
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 &&
-        msg.parts().at(1).content_type().charset == "us-ascii" && msg.parts().at(1).content() == "Zdravo, Svete!");
+        msg.parts().at(1).content_type().charset() == "us-ascii" && msg.parts().at(1).content() == "Zdravo, Svete!");
 }
 
 
@@ -4581,10 +4582,10 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse dotted multipart no esc" && msg.boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 4 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "related" && msg.parts().size() == 4);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 4);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 &&
-        msg.parts().at(0).content_type().charset == "us-ascii" && msg.parts().at(0).content() == "<html>\r\n"
+        msg.parts().at(0).content_type().charset() == "us-ascii" && msg.parts().at(0).content() == "<html>\r\n"
         "\t<head>\r\n"
         "\t\t<title>.naslov</title>\r\n"
         "\t</head>\r\n"
@@ -4600,9 +4601,9 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
         "\t.<p>Ima li koga?</p>\r\n"
         "\t</body>\r\n"
         "</html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == ".Zdravo svete!\r\n"
+        msg.parts().at(1).content_type().charset() == "utf-8" && msg.parts().at(1).content() == ".Zdravo svete!\r\n"
         "..\r\n"
         "Ima li koga?\r\n"
         "\r\n"
@@ -4611,18 +4612,18 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
         "\r\n"
         "\r\n"
         "..yabadabadoo...");
-    BOOST_CHECK(msg.parts().at(2).content_type().type == mime::media_type_t::TEXT && msg.parts().at(2).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(2).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(2).content_type().media_subtype() == "plain" &&
         msg.parts().at(2).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(2).content_type().charset == "utf-8" && msg.parts().at(2).content() == ".Здраво, Свете!\r\n"
+        msg.parts().at(2).content_type().charset() == "utf-8" && msg.parts().at(2).content() == ".Здраво, Свете!\r\n"
         "..\r\n"
         "Има ли кога?\r\n"
         "\r\n\r\n"
         ".\r\n"
         "\r\n\r\n"
         "..јабадабадуу...");
-    BOOST_CHECK(msg.parts().at(3).content_type().type == mime::media_type_t::TEXT && msg.parts().at(3).content_type().subtype == "html" &&
+    BOOST_CHECK(msg.parts().at(3).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(3).content_type().media_subtype() == "html" &&
         msg.parts().at(3).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(3).content_type().charset == "us-ascii" && msg.parts().at(3).content() == "<html>\r\n"
+        msg.parts().at(3).content_type().charset() == "us-ascii" && msg.parts().at(3).content() == "<html>\r\n"
         "\t<head>\r\n"
         "\t\t<title>.naslov</title>\r\n"
         "\t</head>\r\n"
@@ -4727,10 +4728,10 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_esc)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse dotted multipart esc" && msg.boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 4 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "related" && msg.parts().size() == 4);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 4);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 &&
-        msg.parts().at(0).content_type().charset == "us-ascii" && msg.parts().at(0).content() == "<html>\r\n"
+        msg.parts().at(0).content_type().charset() == "us-ascii" && msg.parts().at(0).content() == "<html>\r\n"
         "\t<head>\r\n"
         "\t\t<title>.naslov</title>\r\n"
         "\t</head>\r\n"
@@ -4746,9 +4747,9 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_esc)
         "\t.<p>Ima li koga?</p>\r\n"
         "\t</body>\r\n"
         "</html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content() == ".Zdravo svete!\r\n"
+        msg.parts().at(1).content_type().charset() == "utf-8" && msg.parts().at(1).content() == ".Zdravo svete!\r\n"
         "..\r\n"
         "Ima li koga?\r\n"
         "\r\n"
@@ -4757,18 +4758,18 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_esc)
         "\r\n"
         "\r\n"
         "..yabadabadoo...");
-    BOOST_CHECK(msg.parts().at(2).content_type().type == mime::media_type_t::TEXT && msg.parts().at(2).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(2).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(2).content_type().media_subtype() == "plain" &&
         msg.parts().at(2).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(2).content_type().charset == "utf-8" && msg.parts().at(2).content() == ".Здраво, Свете!\r\n"
+        msg.parts().at(2).content_type().charset() == "utf-8" && msg.parts().at(2).content() == ".Здраво, Свете!\r\n"
         "..\r\n"
         "Има ли кога?\r\n"
         "\r\n\r\n"
         ".\r\n"
         "\r\n\r\n"
         "..јабадабадуу...");
-    BOOST_CHECK(msg.parts().at(3).content_type().type == mime::media_type_t::TEXT && msg.parts().at(3).content_type().subtype == "html" &&
+    BOOST_CHECK(msg.parts().at(3).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(3).content_type().media_subtype() == "html" &&
         msg.parts().at(3).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(3).content_type().charset == "us-ascii" && msg.parts().at(3).content() == "<html>\r\n"
+        msg.parts().at(3).content_type().charset() == "us-ascii" && msg.parts().at(3).content() == "<html>\r\n"
         "\t<head>\r\n"
         "\t\t<title>.naslov</title>\r\n"
         "\t</head>\r\n"
@@ -4932,13 +4933,13 @@ BOOST_AUTO_TEST_CASE(parse_long_multipart)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse long multipart" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "related" && msg.parts().size() == 4);
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
-        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 && msg.parts().at(0).content_type().charset == "us-ascii" &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 4);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
+        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BIT_7 && msg.parts().at(0).content_type().charset() == "us-ascii" &&
         msg.parts().at(0).content() == "<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa Bato\r\n"
         "!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
-        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(1).content_type().charset == "us-ascii"
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
+        msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(1).content_type().charset() == "us-ascii"
         && msg.parts().at(1).content() ==
         "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
@@ -4954,9 +4955,9 @@ BOOST_AUTO_TEST_CASE(parse_long_multipart)
         " a isto to treba proveriti sa parsiranjem.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
-    BOOST_CHECK(msg.parts().at(2).content_type().type == mime::media_type_t::TEXT && msg.parts().at(2).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(2).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(2).content_type().media_subtype() == "plain" &&
         msg.parts().at(2).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(2).content_type().charset == "us-ascii" && msg.parts().at(2).content() ==
+        msg.parts().at(2).content_type().charset() == "us-ascii" && msg.parts().at(2).content() ==
         "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
         "pa se nadam da cce to ovaj test pokazati.\r\n"
         "\r\n"
@@ -4971,9 +4972,9 @@ BOOST_AUTO_TEST_CASE(parse_long_multipart)
         " a isto to treba proveriti sa parsiranjem.\r\n"
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.");
-    BOOST_CHECK(msg.parts().at(3).content_type().type == mime::media_type_t::TEXT && msg.parts().at(3).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(3).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(3).content_type().media_subtype() == "plain" &&
         msg.parts().at(3).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(3).content_type().charset == "utf-8" && msg.parts().at(3).content() ==
+        msg.parts().at(3).content_type().charset() == "utf-8" && msg.parts().at(3).content() ==
         "Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
         "па се надам да ће то овај текст показати.\r\n"
         "\r\n"
@@ -5033,15 +5034,15 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
     local_date_time ldt(t, tz);
     BOOST_CHECK(msg.subject() == "parse multipart content" && msg.content() == "This is a multipart message." && msg.boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 3 &&
-        msg.content_type().type == mime::media_type_t::MULTIPART && msg.content_type().subtype == "alternative" && msg.parts().size() == 2 &&
+        msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "alternative" && msg.parts().size() == 2 &&
         msg.content_id() == "<zero@mailio.dev>");
-    BOOST_CHECK(msg.parts().at(0).content_type().type == mime::media_type_t::TEXT && msg.parts().at(0).content_type().subtype == "html" &&
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
         msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 &&
-        msg.parts().at(0).content_type().charset == "utf-8" && msg.parts().at(0).content_id() == "<first@mailio.dev>" &&
+        msg.parts().at(0).content_type().charset() == "utf-8" && msg.parts().at(0).content_id() == "<first@mailio.dev>" &&
         msg.parts().at(0).content() == "<html><head></head><body><h1>Ćao, Svete!</h1></body></html>");
-    BOOST_CHECK(msg.parts().at(1).content_type().type == mime::media_type_t::TEXT && msg.parts().at(1).content_type().subtype == "plain" &&
+    BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(1).content_type().media_subtype() == "plain" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
-        msg.parts().at(1).content_type().charset == "utf-8" && msg.parts().at(1).content_id() == "<second@mailio.dev>" &&
+        msg.parts().at(1).content_type().charset() == "utf-8" && msg.parts().at(1).content_id() == "<second@mailio.dev>" &&
         msg.parts().at(1).content() == "Здраво, Свете!");
 }
 
@@ -5076,13 +5077,13 @@ BOOST_AUTO_TEST_CASE(parse_attachment)
     msg.format(msg_str);
     message msg_msg;
     msg_msg.parse(msg_str);
-    BOOST_CHECK(msg_msg.content_type().type == mime::media_type_t::MULTIPART && msg_msg.content_type().subtype == "mixed" &&
+    BOOST_CHECK(msg_msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg_msg.content_type().media_subtype() == "mixed" &&
         msg_msg.attachments_size() == 2);
     BOOST_CHECK(msg_msg.parts().at(0).name() == "tkcv.txt" && msg_msg.parts().at(0).name().charset == "ASCII" &&
-        msg_msg.parts().at(0).name().codec_type == codec::codec_t::ASCII && msg_msg.parts().at(0).content_type().type == message::media_type_t::APPLICATION &&
-        msg_msg.parts().at(0).content_type().subtype == "txt");
-    BOOST_CHECK(msg_msg.parts().at(1).name() == "a0.png" && msg_msg.parts().at(1).content_type().type == message::media_type_t::IMAGE &&
-        msg_msg.parts().at(1).content_type().subtype == "png");
+        msg_msg.parts().at(0).name().codec_type == codec::codec_t::ASCII && msg_msg.parts().at(0).content_type().media_type() == message::media_type_t::APPLICATION &&
+        msg_msg.parts().at(0).content_type().media_subtype() == "txt");
+    BOOST_CHECK(msg_msg.parts().at(1).name() == "a0.png" && msg_msg.parts().at(1).content_type().media_type() == message::media_type_t::IMAGE &&
+        msg_msg.parts().at(1).content_type().media_subtype() == "png");
 
     const char* CV_FILE = "tkcv.txt";
     ofstream ofs1(CV_FILE);
@@ -5141,13 +5142,13 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
 
     message msg_msg;
     msg_msg.parse(msg_str);
-    BOOST_CHECK(msg_msg.content_type().type == mime::media_type_t::MULTIPART && msg_msg.content_type().subtype == "mixed" && msg_msg.attachments_size() == 2);
-    BOOST_CHECK(msg_msg.parts().at(0).content() == "<h1>Naslov</h1><p>Ovo je poruka.</p>" && msg_msg.parts().at(0).content_type().type ==
-        mime::media_type_t::TEXT && msg_msg.parts().at(0).content_type().subtype == "html");
-    BOOST_CHECK(msg_msg.parts().at(1).name() == "tkcv.txt" && msg_msg.parts().at(1).content_type().type ==
-        message::media_type_t::APPLICATION && msg_msg.parts().at(1).content_type().subtype == "txt");
-    BOOST_CHECK(msg_msg.parts().at(2).name() == "a0.png" && msg_msg.parts().at(2).content_type().type ==
-        message::media_type_t::IMAGE && msg_msg.parts().at(2).content_type().subtype == "png");
+    BOOST_CHECK(msg_msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg_msg.content_type().media_subtype() == "mixed" && msg_msg.attachments_size() == 2);
+    BOOST_CHECK(msg_msg.parts().at(0).content() == "<h1>Naslov</h1><p>Ovo je poruka.</p>" && msg_msg.parts().at(0).content_type().media_type() ==
+        mime::media_type_t::TEXT && msg_msg.parts().at(0).content_type().media_subtype() == "html");
+    BOOST_CHECK(msg_msg.parts().at(1).name() == "tkcv.txt" && msg_msg.parts().at(1).content_type().media_type() ==
+        message::media_type_t::APPLICATION && msg_msg.parts().at(1).content_type().media_subtype() == "txt");
+    BOOST_CHECK(msg_msg.parts().at(2).name() == "a0.png" && msg_msg.parts().at(2).content_type().media_type() ==
+        message::media_type_t::IMAGE && msg_msg.parts().at(2).content_type().media_subtype() == "png");
 }
 
 
