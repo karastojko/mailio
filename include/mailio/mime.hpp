@@ -126,30 +126,6 @@ public:
         **/
         static const std::string ATTR_BOUNDARY;
 
-    protected:
-
-        /**
-        Media type attribute.
-        **/
-        media_type_t media_type_;
-
-        /**
-        Media subtype attribute.
-        **/
-        std::string media_subtype_;
-
-        /**
-        Charset attribute.
-        **/
-        std::string charset_;
-
-        /**
-        Additional attributes.
-        **/
-        attributes_t attributes_;
-
-    public:
-
         /**
         Initializing the media type to none, subtype and charset to empty strings.
         **/
@@ -206,6 +182,28 @@ public:
         Getting the attributes set for the content type.
         **/
         attributes_t attributes() const;
+
+    protected:
+
+        /**
+        Media type attribute.
+        **/
+        media_type_t media_type_;
+
+        /**
+        Media subtype attribute.
+        **/
+        std::string media_subtype_;
+
+        /**
+        Charset attribute.
+        **/
+        std::string charset_;
+
+        /**
+        Additional attributes.
+        **/
+        attributes_t attributes_;
     };
 
     /**

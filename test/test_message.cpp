@@ -3086,7 +3086,7 @@ Formatting header attributes.
 @pre  None.
 @post None.
 **/
-BOOST_AUTO_TEST_CASE(format_header_attributes)
+BOOST_AUTO_TEST_CASE(format_content_type_attributes)
 {
     message msg;
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
@@ -3094,7 +3094,7 @@ BOOST_AUTO_TEST_CASE(format_header_attributes)
     time_zone_ptr tz(new posix_time_zone("+00:00"));
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
-    msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::UTF8), "qwerty@hotmail.com"));
+    msg.from(mail_address(string_t("mailio", codec::CHARSET_UTF8, codec::codec_t::UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
 	message::attributes_t attrs;
 	attrs["method"] = "request";
@@ -3105,7 +3105,7 @@ BOOST_AUTO_TEST_CASE(format_header_attributes)
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str ==
-        "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
+        "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Content-Type: text/calendar; method=request\r\n"
