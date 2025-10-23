@@ -788,13 +788,13 @@ void mime::parse_header_line(const string& header_line)
         parse_content_type(header_value, media_type, media_subtype, attributes);
         merge_attributes(attributes);
 
-        content_type_ = content_type_t(media_type, to_lower_copy(media_subtype));
+        content_type_ = content_type_t(media_type, to_lower_copy(media_subtype), attributes);
         attributes_t::iterator bound_it = attributes.find(content_type_t::ATTR_BOUNDARY);
         if (bound_it != attributes.end())
             boundary_ = bound_it->second.buffer;
         attributes_t::iterator charset_it = attributes.find(content_type_t::ATTR_CHARSET);
         if (charset_it != attributes.end())
-            content_type_ = content_type_t(media_type, to_lower_copy(media_subtype), to_lower_copy(charset_it->second.buffer));
+            content_type_ = content_type_t(media_type, to_lower_copy(media_subtype), attributes, to_lower_copy(charset_it->second.buffer));
         attributes_t::iterator name_it = attributes.find(ATTRIBUTE_NAME);
         // name is set if not already set by content disposition
         if (name_it != attributes.end() && name_.buffer.empty())

@@ -3576,7 +3576,7 @@ Parsing the content type which follows the specification.
 BOOST_AUTO_TEST_CASE(parse_content_type)
 {
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
-        "Content-Type: text/plain; charset=\"UTF-8\"\r\n"
+        "Content-Type: text/plain; charset=\"UTF-8\"; method=request\r\n"
         "To: adresa@mailio.dev\r\n"
         "Subject: parse content type\r\n"
         "\r\n"
@@ -3585,7 +3585,9 @@ BOOST_AUTO_TEST_CASE(parse_content_type)
     message msg;
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.content_type().media_type() == mailio::mime::media_type_t::TEXT && msg.content_type().media_subtype() == "plain" && msg.content_type().charset() == "utf-8");
+    BOOST_CHECK(msg.content_type().media_type() == mailio::mime::media_type_t::TEXT && msg.content_type().media_subtype() == "plain" &&
+        msg.content_type().charset() == "utf-8" && msg.content_type().attributes().size() == 2 && msg.content_type().attributes().at("method") == "request");
+
 }
 
 
