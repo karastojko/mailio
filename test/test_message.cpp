@@ -819,8 +819,8 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_ascii_bit7_text_ascii_base64)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format multipart html ascii bit7 text ascii base64");
-    msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
@@ -879,8 +879,8 @@ BOOST_AUTO_TEST_CASE(format_multipart_html_ascii_qp_text_ascii_bit8)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format multipart html ascii qp text ascii bit8");
-    msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "alternative");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
@@ -940,8 +940,8 @@ BOOST_AUTO_TEST_CASE(format_related_html_default_base64_text_utf8_qp)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format related html default base64 text utf8 qp");
-    msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.line_policy(codec::line_len_policy_t::RECOMMENDED);
@@ -1003,8 +1003,8 @@ BOOST_AUTO_TEST_CASE(format_alternative_html_ascii_bit8_text_utf8_base64)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format alternative html ascii bit8 text utf8 base64");
-    msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "alternative");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
@@ -1070,8 +1070,8 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.date_time(ldt);
     msg.subject("format dotted multipart");
-    msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
@@ -1323,8 +1323,8 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
     local_date_time ldt(t, tz);
     msg.date_time(ldt);
     msg.subject("format long multipart");
-    msg.boundary("my_bound");
     msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
@@ -1543,12 +1543,12 @@ BOOST_AUTO_TEST_CASE(format_parse_nested_multipart)
     msg.date_time(ldt);
     msg.subject("format nested multipart");
     msg.content_type(message::media_type_t::MULTIPART, "related");
-    msg.boundary("my_global_bound");
+    msg.content_type().boundary("my_global_bound");
     msg.content("global content");
 
     mime m1;
     m1.content_type(message::media_type_t::MULTIPART, "related");
-    m1.boundary("my_first_boundary");
+    m1.content_type().boundary("my_first_boundary");
 
     mime m11;
     m11.content_type(message::media_type_t::TEXT, "plain", "utf-8");
@@ -1571,7 +1571,7 @@ BOOST_AUTO_TEST_CASE(format_parse_nested_multipart)
 
     mime m2;
     m2.content_type(message::media_type_t::MULTIPART, "related");
-    m2.boundary("my_second_boundary");
+    m2.content_type().boundary("my_second_boundary");
 
     mime m21;
     m21.content_type(message::media_type_t::TEXT, "plain", "utf-8");
@@ -1616,9 +1616,9 @@ BOOST_AUTO_TEST_CASE(format_multipart_content)
     msg.reply_address(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format multipart content");
-    msg.boundary("my_bound");
     msg.content_id("zero@mailio.dev");
     msg.content_type(message::media_type_t::MULTIPART, "related");
+    msg.content_type().boundary("my_bound");
     msg.content("This is a multipart message.");
 
     mime m1;
@@ -1722,7 +1722,7 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_b64)
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format utf8 attachment base64");
-    msg.boundary("mybnd");
+    msg.content_type().boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
@@ -1773,7 +1773,7 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format utf8 attachment quoted printable");
-    msg.boundary("mybnd");
+    msg.content_type().boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
@@ -1823,9 +1823,9 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format message attachment");
-    msg.boundary("mybnd");
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.content_type(message::media_type_t::TEXT, "plain", "utf-8");
+    msg.content_type().boundary("mybnd");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content("Ово је јако дугачка порука која има и празних линија и предугачких линија. Није јасно како ће се текст преломити\r\n"
         "па се надам да ће то овај текст показати.\r\n"
@@ -1957,8 +1957,8 @@ BOOST_AUTO_TEST_CASE(format_html_att)
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format html attachment");
-    msg.boundary("mybnd");
     msg.content_type(message::media_type_t::TEXT, "html", "utf-8");
+    msg.content_type().boundary("mybnd");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
 
@@ -2013,7 +2013,7 @@ BOOST_AUTO_TEST_CASE(format_mime_no_content_type)
     msg.reply_address(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("mime no content type");
-    msg.boundary("my_bound");
+    msg.content_type().boundary("my_bound");
 
     mime m1;
     m1.content_type(message::media_type_t::TEXT, "html", "us-ascii");
@@ -2295,7 +2295,7 @@ BOOST_AUTO_TEST_CASE(format_continued_ascii_attachment_bit7)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.strict_mode(false);
     // The default attribute codec is seven bit.
-    msg.boundary("mybnd");
+    msg.content_type().boundary("mybnd");
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.subject("format continued filename format continued filename format continued filename format continued filename");
     ifstream ifs1("cv.txt");
@@ -2353,7 +2353,7 @@ BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_b64)
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format long utf8 attachment base64");
-    msg.boundary("mybnd");
+    msg.content_type().boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
@@ -2404,7 +2404,7 @@ BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_qp)
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format long utf8 attachment quoted printable");
-    msg.boundary("mybnd");
+    msg.content_type().boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
@@ -2455,7 +2455,7 @@ BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_pct)
     msg.from(mail_address("mailio", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format long utf8 attachment percentage");
-    msg.boundary("mybnd");
+    msg.content_type().boundary("mybnd");
 
     std::ifstream ifs("cv.txt");
     message::content_type_t ct(message::media_type_t::TEXT, "plain");
@@ -3830,7 +3830,7 @@ BOOST_AUTO_TEST_CASE(parse_continued_content_type)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
+    BOOST_CHECK(msg.content_type().boundary() == "my_boundary_which_is_very_long_id_and_should_test_the_continuation_of_the_attribute_in_headers");
     BOOST_CHECK(msg.name() == "veoma_dugachko_ime_za_zaglavlje_content_type_koje_ide_u_dva_reda" && msg.name().charset == "ASCII" &&
         msg.name().codec_type == codec::codec_t::ASCII);
 }
@@ -4337,7 +4337,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_bit7_plain_utf8_base64)
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.boundary() == "my_bound" && msg.subject() == "parse multipart html ascii bit7 plain utf8 base64" && msg.date_time() == ldt &&
+    BOOST_CHECK(msg.content_type().boundary() == "my_bound" && msg.subject() == "parse multipart html ascii bit7 plain utf8 base64" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "alternative" && msg.parts().size() == 2);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -4388,7 +4388,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_qp_plain_ascii_bit8)
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse multipart html ascii qp plain ascii bit8" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
+    BOOST_CHECK(msg.subject() == "parse multipart html ascii qp plain ascii bit8" &&  msg.content_type().boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "alternative" && msg.parts().size() == 2);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -4439,7 +4439,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_default_base64_text_utf8_qp)
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse multipart html default base64 text utf8 qp" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
+    BOOST_CHECK(msg.subject() == "parse multipart html default base64 text utf8 qp" &&  msg.content_type().boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 2);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -4488,7 +4488,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_html_ascii_base64_plain_ascii_bit7)
     ptime t = time_from_string("2016-02-12 12:22:22");
     time_zone_ptr tz(new posix_time_zone("+01:00"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse multipart html ascii base64 plain ascii bit7" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
+    BOOST_CHECK(msg.subject() == "parse multipart html ascii base64 plain ascii bit7" &&  msg.content_type().boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 2 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 2);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -4582,7 +4582,7 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_no_esc)
     ptime t = time_from_string("2016-03-15 13:13:32");
     time_zone_ptr tz(new posix_time_zone("-00:00"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse dotted multipart no esc" && msg.boundary() == "my_bound" &&
+    BOOST_CHECK(msg.subject() == "parse dotted multipart no esc" && msg.content_type().boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 4 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 4);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -4728,7 +4728,7 @@ BOOST_AUTO_TEST_CASE(parse_dotted_multipart_esc)
     ptime t = time_from_string("2016-03-15 13:13:32");
     time_zone_ptr tz(new posix_time_zone("-00:00"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse dotted multipart esc" && msg.boundary() == "my_bound" &&
+    BOOST_CHECK(msg.subject() == "parse dotted multipart esc" && msg.content_type().boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 4 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 4);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -4933,7 +4933,7 @@ BOOST_AUTO_TEST_CASE(parse_long_multipart)
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse long multipart" &&  msg.boundary() == "my_bound" && msg.date_time() == ldt &&
+    BOOST_CHECK(msg.subject() == "parse long multipart" &&  msg.content_type().boundary() == "my_bound" && msg.date_time() == ldt &&
         msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 1 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "related" && msg.parts().size() == 4);
     BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::TEXT && msg.parts().at(0).content_type().media_subtype() == "html" &&
@@ -5034,7 +5034,7 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
     ptime t = time_from_string("2014-01-17 13:09:22");
     time_zone_ptr tz(new posix_time_zone("-07:30"));
     local_date_time ldt(t, tz);
-    BOOST_CHECK(msg.subject() == "parse multipart content" && msg.content() == "This is a multipart message." && msg.boundary() == "my_bound" &&
+    BOOST_CHECK(msg.subject() == "parse multipart content" && msg.content() == "This is a multipart message." && msg.content_type().boundary() == "my_bound" &&
         msg.date_time() == ldt && msg.from_to_string() == "mailio <adresa@mailio.dev>" && msg.recipients().addresses.size() == 3 &&
         msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "alternative" && msg.parts().size() == 2 &&
         msg.content_id() == "<zero@mailio.dev>");
@@ -5123,8 +5123,8 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
     msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("parse html attachment");
-    msg.boundary("mybnd");
     msg.content_type(message::media_type_t::TEXT, "html", "utf-8");
+    msg.content_type().boundary("mybnd");
     msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
     msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
 

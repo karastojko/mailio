@@ -176,12 +176,35 @@ public:
         /**
         Getting the charset set for the content type.
         **/
-        std::string charset() const;
+        string_t charset() const;
+
+        /**
+        Getting the boundary of the mime part.
+
+        @return Boundary of the mime part.
+        **/
+        std::string boundary() const;
+
+        /**
+        Setting the boundary of the mime part.
+
+        @param bound String to be used as the boundary.
+        **/
+        void boundary(const std::string& bound);
 
         /**
         Getting the attributes set for the content type.
         **/
         attributes_t attributes() const;
+
+        void add_attribute(std::string name, string_t value);
+
+        /**
+        Creating the random boundary for the mime part.
+
+        @return Boundary for the mime part.
+        **/
+        std::string make_boundary() const;
 
     protected:
 
@@ -194,11 +217,6 @@ public:
         Media subtype attribute.
         **/
         std::string media_subtype_;
-
-        /**
-        Charset attribute.
-        **/
-        std::string charset_;
 
         /**
         Additional attributes.
@@ -348,7 +366,7 @@ public:
 
     @return Content type.
     **/
-    content_type_t content_type() const;
+    content_type_t& content_type();
 
     /**
     Setting the content ID.
@@ -869,13 +887,6 @@ protected:
     string_t decode_value_attribute(const std::string& attr_value) const;
 
     /**
-    Creating the random boundary for the mime part.
-
-    @return Boundary for the mime part.
-    **/
-    std::string make_boundary() const;
-
-    /**
     Top level mime type represented as a string.
 
     @param media_type_val Mime type to be converted.
@@ -896,11 +907,6 @@ protected:
     Removing trailing empty lines from the body.
     **/
     void strip_body();
-
-    /**
-    Boundary for the mime part.
-    **/
-    std::string boundary_;
 
     /**
     Mime version, should always be 1.0.

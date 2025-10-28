@@ -42,8 +42,8 @@ int main()
         msg.from(mail_address("mailio library", "mailio@mailserver.com"));// set the correct sender name and address
         msg.add_recipient(mail_address("mailio library", "mailio@mailserver.com"));// set the correct recipent name and address
         msg.subject("smtps multipart message");
-        msg.boundary("012456789@mailio.dev");
         msg.content_type(message::media_type_t::MULTIPART, "related");
+        msg.content_type().boundary("012456789@mailio.dev");
 
         mime title;
         title.content_type(message::media_type_t::TEXT, "html", "utf-8");

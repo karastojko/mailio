@@ -80,7 +80,8 @@ mime::content_type_t::content_type_t(media_type_t media_type, const string& medi
 {
     media_type_ = media_type;
     media_subtype_ = to_lower_copy(media_subtype);
-    charset_ = charset;
+    if (!charset.empty())
+        attributes_[ATTR_CHARSET] = charset;
 }
 
 
@@ -88,8 +89,9 @@ mime::content_type_t::content_type_t(media_type_t media_type, const string& medi
 {
     media_type_ = media_type;
     media_subtype_ = to_lower_copy(media_subtype);
-    charset_ = charset;
     attributes_ = attributes;
+    if (!charset.empty())
+        attributes_[ATTR_CHARSET] = charset;
 }
 
 
@@ -99,10 +101,15 @@ mime::content_type_t& mime::content_type_t::operator=(const mime::content_type_t
     {
         media_type_ = cont_type.media_type_;
         media_subtype_ = to_lower_copy(cont_type.media_subtype_);
-        charset_ = cont_type.charset_;
         attributes_ = cont_type.attributes_;
     }
     return *this;
+}
+
+
+mime::content_type_t& mime::content_type()
+{
+    return content_type_;
 }
 
 
@@ -117,15 +124,50 @@ string mime::content_type_t::media_subtype() const
 }
 
 
-string mime::content_type_t::charset() const
+string_t mime::content_type_t::charset() const
 {
-    return charset_;
+    if (attributes_.find(ATTR_CHARSET) != attributes_.end())
+        return attributes_.at(ATTR_CHARSET);
+    return "";
+}
+
+
+string mime::content_type_t::boundary() const
+{
+    if (attributes_.find(ATTR_BOUNDARY) != attributes_.end())
+        return attributes_.at(ATTR_BOUNDARY);
+    return "";
+}
+
+
+void mime::content_type_t::boundary(const string& bound)
+{
+    attributes_[ATTR_BOUNDARY] = bound;
 }
 
 
 mime::attributes_t mime::content_type_t::attributes() const
 {
     return attributes_;
+}
+
+
+void mime::content_type_t::add_attribute(string name, string_t value)
+{
+    attributes_[name] = value;
+}
+
+
+string mime::content_type_t::make_boundary() const
+{
+    string bound;
+    static string::size_type BOUND_LEN = 10;
+    bound.reserve(BOUND_LEN);
+    std::random_device rng;
+    std::uniform_int_distribution<> index_dist(0, codec::HEX_DIGITS.size() - 1);
+    for (string::size_type i = 0; i < BOUND_LEN; i++)
+        bound += codec::HEX_DIGITS[index_dist(rng)];
+    return BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + bound;
 }
 
 
@@ -165,7 +207,7 @@ mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::MANDATORY
 
 void mime::format(string& mime_str, bool dot_escape) const
 {
-    if (!boundary_.empty() && content_type_.media_type() != media_type_t::MULTIPART)
+    if (!content_type_.boundary().empty() && content_type_.media_type() != media_type_t::MULTIPART)
         throw mime_error("Formatting failure, non multipart message with boundary.", "");
 
     mime_str += format_header() + codec::END_OF_LINE;
@@ -183,9 +225,9 @@ void mime::format(string& mime_str, bool dot_escape) const
         {
             string p_str;
             p.format(p_str, dot_escape);
-            mime_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
+            mime_str += BOUNDARY_DELIMITER + content_type_.boundary() + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
-        mime_str += BOUNDARY_DELIMITER + boundary_ + BOUNDARY_DELIMITER + codec::END_OF_LINE;
+        mime_str += BOUNDARY_DELIMITER + content_type_.boundary() + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
 }
 
@@ -257,7 +299,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
             else
             {
                 // mime part sequence begins
-                if (line == BOUNDARY_DELIMITER + boundary_ && !boundary_.empty())
+                if (line == BOUNDARY_DELIMITER + content_type_.boundary() && !content_type_.boundary().empty())
                 {
                     mime_status_ = mime_parsing_status_t::BEGIN;
                     // begin of another mime part means that the current part (if exists) is ended and parsed; another part is created
@@ -269,7 +311,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
                     parts_.push_back(m);
                 }
                 // mime part sequence ends, so parse the last mime part
-                else if (line == BOUNDARY_DELIMITER + boundary_ + BOUNDARY_DELIMITER && !boundary_.empty())
+                else if (line == BOUNDARY_DELIMITER + content_type_.boundary() + BOUNDARY_DELIMITER && !content_type_.boundary().empty())
                 {
                     mime_status_ = mime_parsing_status_t::END;
                     parts_.back().parse_by_line(codec::END_OF_LINE);
@@ -317,12 +359,6 @@ void mime::content_type(media_type_t media_type, const string& media_subtype, co
 {
     content_type_t c(media_type, media_subtype, attributes, to_lower_copy(charset));
     content_type(c);
-}
-
-
-mime::content_type_t mime::content_type() const
-{
-    return content_type_;
 }
 
 
@@ -377,18 +413,6 @@ void mime::content_disposition(content_disposition_t disposition)
 mime::content_disposition_t mime::content_disposition() const
 {
     return disposition_;
-}
-
-
-void mime::boundary(const string& bound)
-{
-    boundary_ = bound;
-}
-
-
-string mime::boundary() const
-{
-    return boundary_;
 }
 
 
@@ -611,17 +635,16 @@ string mime::format_content_type() const
         line += CONTENT_TYPE_HEADER + HEADER_SEPARATOR_STR + mime_type_as_str(content_type_.media_type()) + CONTENT_SUBTYPE_SEPARATOR +
             content_type_.media_subtype();
         for(const auto& [attr_name, attr_val] : content_type_.attributes()){
-            line += ATTRIBUTES_SEPARATOR_STR + attr_name + NAME_VALUE_SEPARATOR_STR + attr_val.buffer;
+            if (attr_name == content_type_t::ATTR_BOUNDARY)
+                line += ATTRIBUTES_SEPARATOR_STR + attr_name + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + attr_val.buffer + codec::QUOTE_CHAR;
+            else
+                line += ATTRIBUTES_SEPARATOR_STR + attr_name + NAME_VALUE_SEPARATOR_STR + attr_val.buffer;
         }
-        if (!content_type_.charset().empty())
-            line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_CHARSET + NAME_VALUE_SEPARATOR_STR + content_type_.charset();
         if (!name_.buffer.empty())
         {
             string attrs = split_attributes(ATTRIBUTE_NAME, name_);
             line += ATTRIBUTES_SEPARATOR_STR + codec::END_OF_LINE + attrs;
         }
-        if (!boundary_.empty())
-            line += ATTRIBUTES_SEPARATOR_STR + content_type_t::ATTR_BOUNDARY + NAME_VALUE_SEPARATOR_STR + codec::QUOTE_CHAR + boundary_ + codec::QUOTE_CHAR;
         line += codec::END_OF_LINE;
     }
 
@@ -791,7 +814,7 @@ void mime::parse_header_line(const string& header_line)
         content_type_ = content_type_t(media_type, to_lower_copy(media_subtype), attributes);
         attributes_t::iterator bound_it = attributes.find(content_type_t::ATTR_BOUNDARY);
         if (bound_it != attributes.end())
-            boundary_ = bound_it->second.buffer;
+            content_type_.add_attribute(content_type_t::ATTR_BOUNDARY, bound_it->second.buffer);
         attributes_t::iterator charset_it = attributes.find(content_type_t::ATTR_CHARSET);
         if (charset_it != attributes.end())
             content_type_ = content_type_t(media_type, to_lower_copy(media_subtype), attributes, to_lower_copy(charset_it->second.buffer));
@@ -1264,19 +1287,6 @@ string_t mime::decode_value_attribute(const string& attr_value) const
     q_codec qc(static_cast<string::size_type>(line_policy_), static_cast<string::size_type>(line_policy_));
     auto av = qc.check_decode(attr_value);
     return string_t(std::get<0>(av), std::get<1>(av), std::get<2>(av));
-}
-
-
-string mime::make_boundary() const
-{
-    string bound;
-    static string::size_type BOUND_LEN = 10;
-    bound.reserve(BOUND_LEN);
-    std::random_device rng;
-    std::uniform_int_distribution<> index_dist(0, codec::HEX_DIGITS.size() - 1);
-    for (string::size_type i = 0; i < BOUND_LEN; i++)
-        bound += codec::HEX_DIGITS[index_dist(rng)];
-    return BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + BOUNDARY_DELIMITER + bound;
 }
 
 

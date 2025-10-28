@@ -119,7 +119,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             content_part.strict_codec_mode(strict_codec_mode_);
             string cps;
             content_part.format(cps, opts.dot_escape);
-            message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + content_type_.boundary() + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
         // Recursively format mime parts.
@@ -128,9 +128,9 @@ void message::format(string& message_str, const message_format_options_t& opts) 
         {
             string p_str;
             p.format(p_str, opts.dot_escape);
-            message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + content_type_.boundary() + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
-        message_str += BOUNDARY_DELIMITER + boundary_ + BOUNDARY_DELIMITER + codec::END_OF_LINE;
+        message_str += BOUNDARY_DELIMITER + content_type_.boundary() + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
     else
         message_str += format_content(opts.dot_escape);
@@ -432,8 +432,14 @@ void message::date_time(const boost::local_time::local_date_time& mail_dt)
 
 void message::attach(const list<tuple<istream&, string_t, content_type_t>>& attachments)
 {
-    if (boundary_.empty())
-        boundary_ = make_boundary();
+    string bound;
+    if (content_type_.boundary().empty())
+    {
+        bound = content_type_.make_boundary();
+        content_type_.boundary(bound);
+    }
+    else
+        bound = content_type_.boundary();
 
     // the content goes to the first mime part, and then it's deleted
     if (!content_.empty())
@@ -443,7 +449,8 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
 
         mime content_part;
         content_part.content(content_);
-        content_part.content_type(content_type_);
+        auto part_ct = content_type_t(content_type_.media_type(), content_type_.media_subtype(), content_type_.charset());
+        content_part.content_type(part_ct);
         content_part.content_transfer_encoding(encoding_);
         content_part.line_policy(line_policy_);
         content_part.strict_mode(strict_mode_);
@@ -453,6 +460,7 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
     }
 
     content_type_ = content_type_t(media_type_t::MULTIPART, "mixed");
+    content_type_.boundary(bound);
     for (const auto& att : attachments)
     {
         stringstream ss;
@@ -527,7 +535,7 @@ const message::headers_t& message::headers() const
 
 string message::format_header(bool add_bcc_header) const
 {
-    if (!boundary_.empty() && content_type_.media_type() != media_type_t::MULTIPART)
+    if (!content_type_.boundary().empty() && content_type_.media_type() != media_type_t::MULTIPART)
         throw message_error("No boundary for multipart message.", "");
 
     if (from_.addresses.size() == 0)

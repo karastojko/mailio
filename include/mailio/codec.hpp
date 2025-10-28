@@ -491,6 +491,12 @@ struct String
     {
         return buffer;
     }
+
+
+    bool empty() const
+    {
+        return buffer.empty();
+    }
 };
 
 
