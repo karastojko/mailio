@@ -195,9 +195,14 @@ string imap::tag_result_response_t::to_string() const
 
 
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
-    dlg_(make_shared<dialog>(hostname, port, timeout)), tag_(0), optional_part_state_(false), atom_state_(atom_state_t::NONE),
+    dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true), tag_(0), optional_part_state_(false), atom_state_(atom_state_t::NONE),
     parenthesis_list_counter_(0), literal_state_(string_literal_state_t::NONE), literal_bytes_read_(0), eols_no_(2)
 {
+    ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_none
+        };
     dlg_->connect();
 }
 
@@ -216,7 +221,13 @@ imap::~imap()
 
 string imap::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    if (ssl_options_.has_value() && !is_start_tls_)
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+
     string greeting = connect();
+    if (is_start_tls_)
+        switch_tls();
+
     if (method == auth_method_t::LOGIN)
         auth_login(username, password);
     return greeting;
@@ -334,13 +345,6 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 
     reset_response_parser();
     return stat;
-}
-
-
-void imap::fetch(const string& mailbox, unsigned long message_no, message& msg, bool header_only)
-{
-    select(mailbox);
-    fetch(message_no, msg, false, header_only);
 }
 
 
@@ -940,6 +944,20 @@ string imap::connect()
 }
 
 
+void imap::switch_tls()
+{
+    dlg_->send(format("STARTTLS"));
+    string line = dlg_->receive();
+    tag_result_response_t parsed_line = parse_tag_result(line);
+    if (parsed_line.tag == UNTAGGED_RESPONSE)
+        throw imap_error("Bad server response.", "");
+    if (parsed_line.result.value() != tag_result_response_t::OK)
+        throw imap_error("Start TLS refused by server.", "");
+
+    dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+}
+
+
 void imap::auth_login(const string& username, const string& password)
 {
     auto user_esc = to_astring(username);
@@ -1022,6 +1040,18 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
         throw imap_error("Parsing failure.", exc.what());
     }
     reset_response_parser();
+}
+
+
+void imap::start_tls(bool is_tls)
+{
+    is_start_tls_ = is_tls;
+}
+
+
+void imap::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
 }
 
 
@@ -1392,6 +1422,7 @@ imaps::imaps(const string& hostname, unsigned port, milliseconds timeout) : imap
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
         };
+    is_start_tls_ = false;
 }
 
 
@@ -1400,15 +1431,13 @@ string imaps::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
-        greeting = connect();
-        auth_login(username, password);
+        is_start_tls_ = false;
+        greeting = imap::authenticate(username, password, imap::auth_method_t::LOGIN);
     }
     else if (method == auth_method_t::START_TLS)
     {
-        greeting = connect();
-        start_tls();
-        auth_login(username, password);
+        is_start_tls_ = true;
+        greeting = imap::authenticate(username, password, imap::auth_method_t::LOGIN);
     }
     return greeting;
 }
@@ -1416,27 +1445,7 @@ string imaps::authenticate(const string& username, const string& password, auth_
 
 void imaps::ssl_options(const dialog_ssl::ssl_options_t& options)
 {
-    ssl_options_ = options;
-}
-
-
-void imaps::start_tls()
-{
-    dlg_->send(format("STARTTLS"));
-    string line = dlg_->receive();
-    tag_result_response_t parsed_line = parse_tag_result(line);
-    if (parsed_line.tag == UNTAGGED_RESPONSE)
-        throw imap_error("Bad server response.", "");
-    if (parsed_line.result.value() != tag_result_response_t::OK)
-        throw imap_error("Start TLS refused by server.", "");
-
-    switch_to_ssl();
-}
-
-
-void imaps::switch_to_ssl()
-{
-    dlg_ = std::make_shared<dialog_ssl>(*dlg_, ssl_options_);
+    *ssl_options_ = options;
 }
 
 

@@ -24,6 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <utility>
 #include <istream>
 #include <chrono>
+#include <optional>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -178,6 +179,20 @@ public:
     **/
     void remove(unsigned long message_no);
 
+    /**
+    Setting the start TLS option.
+
+    @param is_tls If true, the start TLS option is turned on, otherwise is turned off.
+    **/
+    void start_tls(bool is_tls);
+
+    /**
+    Setting SSL options.
+
+    @param options SSL options to set.
+    **/
+    void ssl_options(const std::optional<dialog_ssl::ssl_options_t> options = std::nullopt);
+
 protected:
 
     /**
@@ -206,6 +221,14 @@ protected:
     void auth_login(const std::string& username, const std::string& password);
 
     /**
+    Switching to TLS layer.
+
+    @throw pop3_error Start TLS failure.
+    @throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`, `dialog::to_ssl()`.
+    **/
+    void switch_tls();
+
+    /**
     Parsing a response line for the status.
 
     @param line       Response line to parse.
@@ -218,13 +241,23 @@ protected:
     Dialog to use for send/receive operations.
     **/
     std::shared_ptr<dialog> dlg_;
+
+    /**
+    SSL options to set.
+    **/
+    std::optional<dialog_ssl::ssl_options_t> ssl_options_;
+
+    /**
+    Flag to switch to the TLS.
+    **/
+    bool is_start_tls_;
 };
 
 
 /**
 Secure version of POP3 client.
 **/
-class MAILIO_EXPORT pop3s : public pop3
+class MAILIO_DEPRECATED pop3s : public pop3
 {
 public:
 
@@ -281,28 +314,6 @@ public:
     @param options SSL options to set.
     **/
     void ssl_options(const dialog_ssl::ssl_options_t& options);
-
-protected:
-
-    /**
-    Switching to TLS layer.
-
-    @throw pop3_error Start TLS failure.
-    @throw *          `parse_status(const string&)`, `dialog::send(const string&)`, `dialog::receive()`, `switch_to_ssl()`.
-    **/
-    void start_tls();
-
-    /**
-    Replacing a TCP socket with an SSL one.
-
-    @throw * `dialog_ssl::dialog_ssl(dialog&, const ssl_options_t&)`.
-    **/
-    void switch_to_ssl();
-
-    /**
-    SSL options to set.
-    **/
-    dialog_ssl::ssl_options_t ssl_options_;
 };
 
 

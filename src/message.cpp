@@ -138,7 +138,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
 
 
 #if defined(__cpp_char8_t)
-void message::format(u8string& message_str, const message_format_options& opts) const
+void message::format(u8string& message_str, const message_format_options_t& opts) const
 {
     string m = reinterpret_cast<const char*>(message_str.c_str());
     format(m, opts);
@@ -393,7 +393,7 @@ void message::subject(const u8string& mail_subject, codec::codec_t sub_codec)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
     subject_.charset = codec::CHARSET_UTF8;
-    subject_.codec = sub_codec;
+    subject_.codec_type = sub_codec;
 }
 
 
@@ -401,7 +401,7 @@ void message::subject_raw(const u8string_t& mail_subject)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
     subject_.charset = mail_subject.charset;
-    subject_.codec = mail_subject.codec;
+    subject_.codec_type = mail_subject.codec_type;
 }
 
 #endif

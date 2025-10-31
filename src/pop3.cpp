@@ -47,8 +47,14 @@ namespace mailio
 {
 
 
-pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) : dlg_(make_shared<dialog>(hostname, port, timeout))
+pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) :
+    dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true)
 {
+    ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_none
+        };
     dlg_->connect();
 }
 
@@ -67,7 +73,13 @@ pop3::~pop3()
 
 string pop3::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    if (ssl_options_.has_value() && !is_start_tls_)
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+
     string greeting = connect();
+    if (is_start_tls_)
+        switch_tls();
+
     if (method == auth_method_t::LOGIN)
     {
         auth_login(username, password);
@@ -294,6 +306,18 @@ void pop3::remove(unsigned long message_no)
 }
 
 
+void pop3::start_tls(bool is_tls)
+{
+    is_start_tls_ = is_tls;
+}
+
+
+void pop3::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
+}
+
+
 string pop3::connect()
 {
     string line = dlg_->receive();
@@ -324,6 +348,21 @@ void pop3::auth_login(const string& username, const string& password)
 }
 
 
+/*
+For details see [rfc 2595/4616].
+*/
+void pop3::switch_tls()
+{
+    dlg_->send("STLS");
+    string response = dlg_->receive();
+    tuple<string, string> stat_msg = parse_status(response);
+    if (iequals(std::get<0>(stat_msg), "-ERR"))
+        throw pop3_error("Start TLS failure.", std::get<1>(stat_msg));
+
+    dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+}
+
+
 tuple<string, string> pop3::parse_status(const string& line)
 {
     string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
@@ -344,6 +383,7 @@ pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
         };
+    is_start_tls_ = false;
 }
 
 
@@ -352,15 +392,13 @@ string pop3s::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
-        greeting = connect();
-        auth_login(username, password);
+        is_start_tls_ = false;
+        greeting = pop3::authenticate(username, password, pop3::auth_method_t::LOGIN);
     }
     if (method == auth_method_t::START_TLS)
     {
-        greeting = connect();
-        start_tls();
-        auth_login(username, password);
+        is_start_tls_ = true;
+        greeting = pop3::authenticate(username, password, pop3::auth_method_t::LOGIN);
     }
     return greeting;
 }
@@ -369,27 +407,6 @@ string pop3s::authenticate(const string& username, const string& password, auth_
 void pop3s::ssl_options(const dialog_ssl::ssl_options_t& options)
 {
     ssl_options_ = options;
-}
-
-
-/*
-For details see [rfc 2595/4616].
-*/
-void pop3s::start_tls()
-{
-    dlg_->send("STLS");
-    string response = dlg_->receive();
-    tuple<string, string> stat_msg = parse_status(response);
-    if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Start TLS failure.", std::get<1>(stat_msg));
-
-    switch_to_ssl();
-}
-
-
-void pop3s::switch_to_ssl()
-{
-    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 

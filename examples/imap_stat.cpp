@@ -3,7 +3,7 @@
 imaps_stat.cpp
 --------------
   
-Connects to IMAP server and gets number of messages in mailbox.
+Connects to an IMAP server over START TLS and gets the number of messages in mailbox.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -18,7 +18,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <mailio/imap.hpp>
 
 
-using mailio::imaps;
+using mailio::imap;
 using mailio::imap_error;
 using mailio::dialog_error;
 using std::cout;
@@ -30,11 +30,11 @@ int main()
     try
     {
         // connect to server
-        imaps conn("imap.zoho.com", 993);
+        imap conn("imap.zoho.com", 143);
         // modify to use an existing zoho account
-        conn.authenticate("mailio@zoho.com", "mailiopass", imaps::auth_method_t::LOGIN);
+        conn.authenticate("mailio@zoho.com", "mailiopass", imap::auth_method_t::LOGIN);
         // query inbox statistics
-        imaps::mailbox_stat_t stat = conn.statistics("inbox");
+        imap::mailbox_stat_t stat = conn.statistics("inbox");
         cout << "Number of messages in mailbox: " << stat.messages_no << endl;
     }
     catch (imap_error& exc)

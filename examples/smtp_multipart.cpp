@@ -3,7 +3,7 @@
 smtps_multipart.cpp
 -------------------
 
-Connects to SMTP server and sends a multipart message.
+Connects to an SMTP server via START_TLS and sends a multipart message.
 
 
 Copyright (C) 2023, Tomislav Karastojkovic (http://www.alepho.com).
@@ -24,7 +24,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 using mailio::message;
 using mailio::mail_address;
 using mailio::mime;
-using mailio::smtps;
+using mailio::smtp;
 using mailio::smtp_error;
 using mailio::dialog_error;
 using std::cout;
@@ -64,10 +64,11 @@ int main()
         msg.add_part(title);
         msg.add_part(img);
 
-        // connect to server
-        smtps conn("smtp.mailserver.com", 587);
+        // connect to server over start tls
+        smtp conn("smtp.mailserver.com", 587);
+        conn.start_tls(true);// no need for this since it is the default setting
         // modify username/password to use real credentials
-        conn.authenticate("mailio@mailserver.com", "mailiopass", smtps::auth_method_t::START_TLS);
+        conn.authenticate("mailio@mailserver.com", "mailiopass", smtp::auth_method_t::LOGIN);
         conn.submit(msg);
     }
     catch (smtp_error& exc)
