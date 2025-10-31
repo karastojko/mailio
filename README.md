@@ -188,6 +188,7 @@ in case I missed someone please let me know.
 * [Matheus Gabriel Werny](mailto:matheusgwdl[at]protonmail.com): CMake fixes and improvements.
 * [stitch3210](https://github.com/stitch3210): Case insensitive headers.
 * [Luigi Masdea](luigimasdea0[at]gmail.com): Typo error.
+* [Charlie Wolf](charlie[at]wolf.is): Additional attributes in the content type.
 
 
 # References #
