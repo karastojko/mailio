@@ -3092,10 +3092,11 @@ BOOST_AUTO_TEST_CASE(format_long_from)
 
 
 /**
-Formatting header attributes.
+Formatting content type attributes.
 
 @pre  None.
 @post None.
+@todo Bug that shows that the content type is not formatted according to the line policy.
 **/
 BOOST_AUTO_TEST_CASE(format_content_type_attributes)
 {
@@ -3107,9 +3108,11 @@ BOOST_AUTO_TEST_CASE(format_content_type_attributes)
     msg.date_time(ldt);
     msg.from(mail_address(string_t("mailio", codec::CHARSET_UTF8, codec::codec_t::UTF8), "adresa@mailio.dev"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-	message::attributes_t attrs;
-	attrs["method"] = "request";
-	msg.content_type(message::media_type_t::TEXT, "calendar", attrs);
+    message::attributes_t attrs;
+    attrs["method"] = "request";
+    attrs["format"] = "flowed";
+    attrs["name"] = "PersoalBoardingCard.pdf";
+    msg.content_type(message::media_type_t::TEXT, "calendar", attrs, "utf-8");
 
     msg.subject("Zdravo,Svete!");
     msg.content("Hello, World!");
@@ -3119,7 +3122,7 @@ BOOST_AUTO_TEST_CASE(format_content_type_attributes)
         "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Content-Type: text/calendar; method=request\r\n"
+        "Content-Type: text/calendar; charset=utf-8; format=flowed; method=request; name=PersoalBoardingCard.pdf\r\n"
         "Subject: Zdravo,Svete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
@@ -3808,6 +3811,39 @@ BOOST_AUTO_TEST_CASE(parse_continued_utf8_filename_pct_man)
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         msg.parse(msg_str);
         BOOST_CHECK(msg.name() == "Томислав Карастојковић" && msg.name().charset == codec::CHARSET_UTF8 && msg.name().codec_type == codec::codec_t::PERCENT);
+    }
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+    }
+}
+
+
+/**
+Parsing content type attributes.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_continued_content_type_attributes)
+{
+    const string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+        "To: mailio <adresa@mailio.dev>\r\n"
+        "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
+        "Content-Type: text/calendar; charset=utf-8; format=flowed; method=request; name=PersoalBoardingCard.pdf\r\n"
+        "Subject: Zdravo,Svete!\r\n"
+        "\r\n"
+        "Hello, World!\r\n";
+    {
+        message msg;
+        msg.strict_mode(false);
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        msg.parse(msg_str);
+        auto attrs = msg.content_type().attributes();
+        BOOST_CHECK(attrs.at("charset") == "utf-8" && attrs.at("format") == "flowed" && attrs.at("method") == "request" &&
+            attrs.at("name") == "PersoalBoardingCard.pdf");
     }
     {
         message msg;
