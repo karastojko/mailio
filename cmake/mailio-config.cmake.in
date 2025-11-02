@@ -1,7 +1,7 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
-find_dependency(Boost COMPONENTS date_time regex system)
+find_dependency(Boost COMPONENTS date_time regex)
 find_dependency(OpenSSL)
 find_dependency(Threads)
 
