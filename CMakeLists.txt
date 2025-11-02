@@ -137,11 +137,11 @@ else(IS_ABSOLUTE "${INCLUDE_INSTALL_DIR}")
   set(includedir "\${prefix}/${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
 endif(IS_ABSOLUTE "${INCLUDE_INSTALL_DIR}")
 
-configure_file(mailio.pc.in ${CMAKE_BINARY_DIR}/mailio.pc IMMEDIATE @ONLY)
-install(FILES ${CMAKE_BINARY_DIR}/mailio.pc DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
+configure_file(mailio.pc.in ${CMAKE_CURRENT_BINARY_DIR}/mailio.pc IMMEDIATE @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mailio.pc DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
 
-configure_file(${PROJECT_SOURCE_DIR}/include/version.hpp.in version.hpp)
-install(FILES ${CMAKE_BINARY_DIR}/version.hpp DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/version.hpp)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.hpp DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME})
 
 # generate the export header for exporting symbols
 # this is needed to generate a shared library.
