@@ -74,8 +74,11 @@ string smtp::authenticate(const string& username, const string& password, auth_m
 
     string greeting = connect();
     ehlo();
-    if (is_start_tls_)
+    if (is_start_tls_) 
+    {
         switch_tls();
+        ehlo();
+    }
 
     if (method == auth_method_t::NONE)
         ;
