@@ -47,8 +47,14 @@ namespace mailio
 {
 
 
-pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) : dlg_(make_shared<dialog>(hostname, port, timeout))
+pop3::pop3(const string& hostname, unsigned port, milliseconds timeout) :
+    dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true)
 {
+    ssl_options_ =
+        {
+            boost::asio::ssl::context::sslv23,
+            boost::asio::ssl::verify_none
+        };
     dlg_->connect();
 }
 
@@ -67,7 +73,13 @@ pop3::~pop3()
 
 string pop3::authenticate(const string& username, const string& password, auth_method_t method)
 {
+    if (ssl_options_.has_value() && !is_start_tls_)
+        dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
+
     string greeting = connect();
+    if (is_start_tls_)
+        switch_tls();
+
     if (method == auth_method_t::LOGIN)
     {
         auth_login(username, password);
@@ -87,12 +99,12 @@ auto pop3::list(unsigned message_no) -> message_list_t
             string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
-                throw pop3_error("Listing message failure.");
+                throw pop3_error("Listing message failure.", std::get<1>(stat_msg));
 
             // parse data
             string::size_type pos = std::get<1>(stat_msg).find(TOKEN_SEPARATOR_CHAR);
             if (pos == string::npos)
-                throw pop3_error("Parser failure.");
+                throw pop3_error("Parser failure.", std::get<1>(stat_msg));
             unsigned msg_id = stoi(std::get<1>(stat_msg).substr(0, pos));
             unsigned long msg_size = stol(std::get<1>(stat_msg).substr(pos + 1));
             results[msg_id] = msg_size;
@@ -103,7 +115,7 @@ auto pop3::list(unsigned message_no) -> message_list_t
             string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
-                throw pop3_error("Listing all messages failure.");
+                throw pop3_error("Listing all messages failure.", std::get<1>(stat_msg));
 
             // parse data
             bool end_of_msg = false;
@@ -116,7 +128,7 @@ auto pop3::list(unsigned message_no) -> message_list_t
                 {
                     string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
                     if (pos == string::npos)
-                        throw pop3_error("Parser failure.");
+                        throw pop3_error("Parser failure.", "Line `" + line + "` at position " + to_string(pos));
                     unsigned msg_id = stoi(line.substr(0, pos));
                     unsigned long msg_size = stol(line.substr(pos + 1));
                     results[msg_id] = msg_size;
@@ -124,13 +136,13 @@ auto pop3::list(unsigned message_no) -> message_list_t
             }
         }
     }
-    catch (out_of_range&)
+    catch (const out_of_range& ex)
     {
-        throw pop3_error("Parser failure.");
+        throw pop3_error("Parser failure.", ex.what());
     }
-    catch (invalid_argument&)
+    catch (const invalid_argument& ex)
     {
-        throw pop3_error("Parser failure.");
+        throw pop3_error("Parser failure.", ex.what());
     }
 
     return results;
@@ -148,12 +160,12 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
             string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
-                throw pop3_error("UIDL command not supported.");
+                throw pop3_error("UIDL command not supported.", std::get<1>(stat_msg));
 
             // parse data
             string::size_type pos = std::get<1>(stat_msg).find(TOKEN_SEPARATOR_CHAR);
             if (pos == string::npos)
-                throw pop3_error("Parser failure: " + std::get<1>(stat_msg));
+                throw pop3_error("No token separator found.", std::get<1>(stat_msg));
             unsigned msg_id = stoi(std::get<1>(stat_msg).substr(0, pos));
             auto msg_uid = std::get<1>(stat_msg).substr(pos + 1);
             results[msg_id] = msg_uid;
@@ -164,7 +176,7 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
             string line = dlg_->receive();
             tuple<string, string> stat_msg = parse_status(line);
             if (iequals(std::get<0>(stat_msg), "-ERR"))
-                throw pop3_error("Listing all messages failure.");
+                throw pop3_error("Listing all messages failure.", std::get<1>(stat_msg));
 
             // parse data
             bool end_of_msg = false;
@@ -177,7 +189,7 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
                 {
                     string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
                     if (pos == string::npos)
-                        throw pop3_error("Parser failure: " + line);
+                        throw pop3_error("No token separator found.", std::get<1>(stat_msg));
                     unsigned msg_id = stoi(line.substr(0, pos));
                     auto msg_uid = line.substr(pos + 1);
                     results[msg_id] = msg_uid;
@@ -185,13 +197,13 @@ auto pop3::uidl(unsigned message_no) -> uidl_list_t
             }
         }
     }
-    catch (out_of_range& ex)
+    catch (const out_of_range& ex)
     {
-        throw pop3_error("Parser failure: " + std::string(ex.what()));
+        throw pop3_error("Parser failure.", ex.what());
     }
-    catch (invalid_argument& ex)
+    catch (const invalid_argument& ex)
     {
-        throw pop3_error("Parser failure: " + std::string(ex.what()));
+        throw pop3_error("Parser failure.", ex.what());
     }
 
     return results;
@@ -204,25 +216,25 @@ auto pop3::statistics() -> mailbox_stat_t
     string line = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Reading statistics failure.");
+        throw pop3_error("Reading statistics failure.", std::get<1>(stat_msg));
 
     // parse data
     string::size_type pos = std::get<1>(stat_msg).find(TOKEN_SEPARATOR_CHAR);
     if (pos == string::npos)
-        throw pop3_error("Parser failure.");
+        throw pop3_error("No token separator found.", std::get<1>(stat_msg));
     mailbox_stat_t mailbox_stat;
     try
     {
         mailbox_stat.messages_no = stoul(std::get<1>(stat_msg).substr(0, pos));
         mailbox_stat.mailbox_size = stoul(std::get<1>(stat_msg).substr(pos + 1));
     }
-    catch (out_of_range&)
+    catch (const out_of_range& ex)
     {
-        throw pop3_error("Parser failure.");
+        throw pop3_error("Parser failure.", ex.what());
     }
-    catch (invalid_argument&)
+    catch (const invalid_argument& ex)
     {
-        throw pop3_error("Parser failure.");
+        throw pop3_error("Parser failure.", ex.what());
     }
 
     return mailbox_stat;
@@ -246,7 +258,7 @@ void pop3::fetch(unsigned long message_no, message& msg, bool header_only)
         line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
-            throw pop3_error("Fetching message failure.");
+            throw pop3_error("Fetching message failure.", std::get<1>(stat_msg));
     }
 
     // end of message is marked with crlf+dot+crlf sequence
@@ -290,7 +302,19 @@ void pop3::remove(unsigned long message_no)
     string line = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Removing message failure.");
+        throw pop3_error("Removing message failure.", std::get<1>(stat_msg));
+}
+
+
+void pop3::start_tls(bool is_tls)
+{
+    is_start_tls_ = is_tls;
+}
+
+
+void pop3::ssl_options(const std::optional<dialog_ssl::ssl_options_t> options)
+{
+    ssl_options_ = options;
 }
 
 
@@ -299,7 +323,7 @@ string pop3::connect()
     string line = dlg_->receive();
     tuple<string, string> stat_msg = parse_status(line);
     if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Connection to server failure.");
+        throw pop3_error("Connection to server failure.", std::get<1>(stat_msg));
     return std::get<1>(stat_msg);
 }
 
@@ -311,7 +335,7 @@ void pop3::auth_login(const string& username, const string& password)
         string line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
-            throw pop3_error("Username rejection.");
+            throw pop3_error("Username rejection.", std::get<1>(stat_msg));
     }
 
     {
@@ -319,8 +343,23 @@ void pop3::auth_login(const string& username, const string& password)
         string line = dlg_->receive();
         tuple<string, string> stat_msg = parse_status(line);
         if (iequals(std::get<0>(stat_msg), "-ERR"))
-            throw pop3_error("Password rejection.");
+            throw pop3_error("Password rejection.", std::get<1>(stat_msg));
     }
+}
+
+
+/*
+For details see [rfc 2595/4616].
+*/
+void pop3::switch_tls()
+{
+    dlg_->send("STLS");
+    string response = dlg_->receive();
+    tuple<string, string> stat_msg = parse_status(response);
+    if (iequals(std::get<0>(stat_msg), "-ERR"))
+        throw pop3_error("Start TLS failure.", std::get<1>(stat_msg));
+
+    dlg_ = dialog_ssl::to_ssl(dlg_, *ssl_options_);
 }
 
 
@@ -329,7 +368,7 @@ tuple<string, string> pop3::parse_status(const string& line)
     string::size_type pos = line.find(TOKEN_SEPARATOR_CHAR);
     string status = line.substr(0, pos);
     if (!iequals(status, "+OK") && !iequals(status, "-ERR"))
-        throw pop3_error("Response status unknown.");
+        throw pop3_error("Response status unknown.", status);
     string message;
     if (pos != string::npos)
         message = line.substr(pos + 1);
@@ -344,6 +383,7 @@ pop3s::pop3s(const string& hostname, unsigned port, milliseconds timeout) : pop3
             boost::asio::ssl::context::sslv23,
             boost::asio::ssl::verify_none
         };
+    is_start_tls_ = false;
 }
 
 
@@ -352,15 +392,13 @@ string pop3s::authenticate(const string& username, const string& password, auth_
     string greeting;
     if (method == auth_method_t::LOGIN)
     {
-        switch_to_ssl();
-        greeting = connect();
-        auth_login(username, password);
+        is_start_tls_ = false;
+        greeting = pop3::authenticate(username, password, pop3::auth_method_t::LOGIN);
     }
     if (method == auth_method_t::START_TLS)
     {
-        greeting = connect();
-        start_tls();
-        auth_login(username, password);
+        is_start_tls_ = true;
+        greeting = pop3::authenticate(username, password, pop3::auth_method_t::LOGIN);
     }
     return greeting;
 }
@@ -372,24 +410,13 @@ void pop3s::ssl_options(const dialog_ssl::ssl_options_t& options)
 }
 
 
-/*
-For details see [rfc 2595/4616].
-*/
-void pop3s::start_tls()
+pop3_error::pop3_error(const string& msg, const string& details) : dialog_error(msg, details)
 {
-    dlg_->send("STLS");
-    string response = dlg_->receive();
-    tuple<string, string> stat_msg = parse_status(response);
-    if (iequals(std::get<0>(stat_msg), "-ERR"))
-        throw pop3_error("Start TLS failure.");
-
-    switch_to_ssl();
 }
 
 
-void pop3s::switch_to_ssl()
+pop3_error::pop3_error(const char* msg, const string& details) : dialog_error(msg, details)
 {
-    dlg_ = make_shared<dialog_ssl>(*dlg_, ssl_options_);
 }
 
 

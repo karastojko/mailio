@@ -57,6 +57,7 @@ using std::tuple;
 using std::size_t;
 using std::get;
 using std::count_if;
+using std::to_string;
 using boost::trim_copy;
 using boost::trim;
 using boost::iequals;
@@ -110,8 +111,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
         {
             mime content_part;
             content_part.content(content_);
-            content_type_t ct(media_type_t::TEXT, "plain");
-            ct.charset = content_type_.charset;
+            content_type_t ct(media_type_t::TEXT, "plain", content_type_.charset());
             content_part.content_type(ct);
             content_part.content_transfer_encoding(encoding_);
             content_part.line_policy(line_policy_);
@@ -119,7 +119,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
             content_part.strict_codec_mode(strict_codec_mode_);
             string cps;
             content_part.format(cps, opts.dot_escape);
-            message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + cps + codec::END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + content_type_.boundary() + codec::END_OF_LINE + cps + codec::END_OF_LINE;
         }
 
         // Recursively format mime parts.
@@ -128,9 +128,9 @@ void message::format(string& message_str, const message_format_options_t& opts) 
         {
             string p_str;
             p.format(p_str, opts.dot_escape);
-            message_str += BOUNDARY_DELIMITER + boundary_ + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
+            message_str += BOUNDARY_DELIMITER + content_type_.boundary() + codec::END_OF_LINE + p_str + codec::END_OF_LINE;
         }
-        message_str += BOUNDARY_DELIMITER + boundary_ + BOUNDARY_DELIMITER + codec::END_OF_LINE;
+        message_str += BOUNDARY_DELIMITER + content_type_.boundary() + BOUNDARY_DELIMITER + codec::END_OF_LINE;
     }
     else
         message_str += format_content(opts.dot_escape);
@@ -138,7 +138,7 @@ void message::format(string& message_str, const message_format_options_t& opts) 
 
 
 #if defined(__cpp_char8_t)
-void message::format(u8string& message_str, const message_format_options& opts) const
+void message::format(u8string& message_str, const message_format_options_t& opts) const
 {
     string m = reinterpret_cast<const char*>(message_str.c_str());
     format(m, opts);
@@ -151,7 +151,7 @@ void message::parse(const string& message_str, bool dot_escape)
     mime::parse(message_str, dot_escape);
 
     if (from_.addresses.size() == 0)
-        throw message_error("No author address.");
+        throw message_error("No author address.", "");
 
     // There is no check if there is a sender in case of multiple authors, not sure if that logic is needed.
 }
@@ -329,7 +329,7 @@ void message::message_id(string id)
     if (regex_match(id, m, r))
         message_id_ = id;
     else
-        throw message_error("Invalid message ID.");
+        throw message_error("Invalid message ID.", "ID is `" + id + "`.");
 }
 
 
@@ -344,7 +344,7 @@ void message::add_in_reply_to(const string& in_reply)
     const regex r(MESSAGE_ID_REGEX);
     smatch m;
     if (!regex_match(in_reply, m, r))
-        throw message_error("Invalid In Reply To ID.");
+        throw message_error("Invalid In Reply To ID.", "In reply to `" + in_reply + "`.");
     in_reply_to_.push_back(in_reply);
 }
 
@@ -360,7 +360,7 @@ void message::add_references(const string& reference_id)
     const regex r(MESSAGE_ID_REGEX);
     smatch m;
     if (!regex_match(reference_id, m, r))
-        throw message_error("Invalid Reference ID.");
+        throw message_error("Invalid Reference ID.", "Reference ID is `" + reference_id + "`.");
     references_.push_back(reference_id);
 }
 
@@ -393,7 +393,7 @@ void message::subject(const u8string& mail_subject, codec::codec_t sub_codec)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.c_str()));
     subject_.charset = codec::CHARSET_UTF8;
-    subject_.codec = sub_codec;
+    subject_.codec_type = sub_codec;
 }
 
 
@@ -401,7 +401,7 @@ void message::subject_raw(const u8string_t& mail_subject)
 {
     subject_.buffer = string(reinterpret_cast<const char*>(mail_subject.buffer.c_str()));
     subject_.charset = mail_subject.charset;
-    subject_.codec = mail_subject.codec;
+    subject_.codec_type = mail_subject.codec_type;
 }
 
 #endif
@@ -430,42 +430,27 @@ void message::date_time(const boost::local_time::local_date_time& mail_dt)
 }
 
 
-void message::attach(const istream& att_strm, const string& att_name, media_type_t type, const string& subtype)
-{
-    if (boundary_.empty())
-        boundary_ = make_boundary();
-    content_type_.type = media_type_t::MULTIPART;
-    content_type_.subtype = "mixed";
-
-    stringstream ss;
-    ss << att_strm.rdbuf();
-    string content = ss.str();
-
-    mime m;
-    m.content_type(content_type_t(type, subtype));
-    // content type charset is not set, so it will be treated as us-ascii
-    m.content_transfer_encoding(content_transfer_encoding_t::BASE_64);
-    m.content_disposition(content_disposition_t::ATTACHMENT);
-    m.name(att_name);
-    m.content(content);
-    parts_.push_back(m);
-}
-
-
 void message::attach(const list<tuple<istream&, string_t, content_type_t>>& attachments)
 {
-    if (boundary_.empty())
-        boundary_ = make_boundary();
+    string bound;
+    if (content_type_.boundary().empty())
+    {
+        bound = content_type_.make_boundary();
+        content_type_.boundary(bound);
+    }
+    else
+        bound = content_type_.boundary();
 
     // the content goes to the first mime part, and then it's deleted
     if (!content_.empty())
     {
-        if (content_type_.type == media_type_t::NONE)
+        if (content_type_.media_type() == media_type_t::NONE)
             content_type_ = content_type_t(media_type_t::TEXT, "plain");
 
         mime content_part;
         content_part.content(content_);
-        content_part.content_type(content_type_);
+        auto part_ct = content_type_t(content_type_.media_type(), content_type_.media_subtype(), content_type_.charset());
+        content_part.content_type(part_ct);
         content_part.content_transfer_encoding(encoding_);
         content_part.line_policy(line_policy_);
         content_part.strict_mode(strict_mode_);
@@ -474,8 +459,8 @@ void message::attach(const list<tuple<istream&, string_t, content_type_t>>& atta
         content_.clear();
     }
 
-    content_type_.type = media_type_t::MULTIPART;
-    content_type_.subtype = "mixed";
+    content_type_ = content_type_t(media_type_t::MULTIPART, "mixed");
+    content_type_.boundary(bound);
     for (const auto& att : attachments)
     {
         stringstream ss;
@@ -505,7 +490,7 @@ size_t message::attachments_size() const
 void message::attachment(size_t index, ostream& att_strm, string_t& att_name) const
 {
     if (index == 0)
-        throw message_error("Bad attachment index.");
+        throw message_error("Bad attachment index.", "");
 
     size_t no = 0;
     for (auto& m : parts_)
@@ -521,7 +506,7 @@ void message::attachment(size_t index, ostream& att_strm, string_t& att_name) co
         }
 
     if (no > parts_.size())
-        throw message_error("Bad attachment index.");
+        throw message_error("Bad attachment index.", "Given index is " + to_string(index) + ", number of parts is " + to_string(parts_.size()));
 }
 
 
@@ -529,9 +514,9 @@ void message::add_header(const string& name, const string& value)
 {
     smatch m;
     if (!regex_match(name, m, mime::HEADER_NAME_REGEX))
-        throw message_error("Format failure of the header name `" + name + "`.");
+        throw message_error("Header name format error.", "Name is `" + name + "`.");
     if (!regex_match(value, m, mime::HEADER_VALUE_REGEX))
-        throw message_error("Format failure of the header value `" + value + "`.");
+        throw message_error("Header value Format error.", "Value is `" + value + "`.");
     headers_.insert(make_pair(name, value));
 }
 
@@ -542,7 +527,7 @@ void message::remove_header(const std::string& name)
 }
 
 
-multimap<string, string> message::headers() const
+const message::headers_t& message::headers() const
 {
     return headers_;
 }
@@ -550,14 +535,14 @@ multimap<string, string> message::headers() const
 
 string message::format_header(bool add_bcc_header) const
 {
-    if (!boundary_.empty() && content_type_.type != media_type_t::MULTIPART)
-        throw message_error("No boundary for multipart message.");
+    if (!content_type_.boundary().empty() && content_type_.media_type() != media_type_t::MULTIPART)
+        throw message_error("No boundary for multipart message.", "");
 
     if (from_.addresses.size() == 0)
-        throw message_error("No author.");
+        throw message_error("No author.", "");
 
     if (from_.addresses.size() > 1 && sender_.empty())
-        throw message_error("No sender for multiple authors.");
+        throw message_error("No sender for multiple authors.", "");
 
     string header;
     for_each(headers_.begin(), headers_.end(),
@@ -594,7 +579,8 @@ string message::format_header(bool add_bcc_header) const
         header += MIME_VERSION_HEADER + HEADER_SEPARATOR_STR + version_ + codec::END_OF_LINE;
     header += mime::format_header();
 
-    header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
+    if (!subject_.buffer.empty())
+        header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
 
     return header;
 }
@@ -628,7 +614,7 @@ void message::parse_header_line(const string& header_line)
     {
         from_ = parse_address_list(header_value);
         if (from_.addresses.empty())
-            throw message_error("Empty author header.");
+            throw message_error("Empty author header.", "");
     }
     else if (iequals(header_name, SENDER_HEADER))
     {
@@ -706,7 +692,7 @@ string message::format_address_list(const mailboxes& mailbox_list, const string&
     for (auto mg = mailbox_list.groups.begin(); mg != mailbox_list.groups.end(); mg++)
     {
         if (!regex_match(mg->name, m, ATEXT_REGEX))
-            throw message_error("Formatting failure of address list, bad group name `" + mg->name + "`.");
+            throw message_error("Address list format error.", "Invalid group name `" + mg->name + "`.");
 
         mailbox_str += mg->name + MAILGROUP_NAME_SEPARATOR + codec::SPACE_CHAR;
         for (auto ma = mg->members.begin(); ma != mg->members.end(); ma++)
@@ -758,7 +744,7 @@ string message::format_address(const string_t& name, const string& address, cons
             name_formatted = b7.encode(codec::QUOTE_CHAR + name.buffer + codec::QUOTE_CHAR);
         }
         else
-            throw message_error("Formatting failure of name `" + name.buffer + "`.");
+            throw message_error("Name format error.", "Invalid name is `" + name.buffer + "`.");
     }
     else if (name.codec_type == codec::codec_t::UTF8)
     {
@@ -772,7 +758,7 @@ string message::format_address(const string_t& name, const string& address, cons
         name_formatted = qc.encode(name.buffer, name.charset, name.codec_type);
     }
     else if (name.codec_type == codec::codec_t::PERCENT)
-        throw message_error("Percent codec not allowed for the mail address.");
+        throw message_error("Percent codec not allowed for the mail address.", "");
 
     // Check address format.
 
@@ -784,7 +770,7 @@ string message::format_address(const string_t& name, const string& address, cons
         else if (regex_match(address, m, DTEXT_REGEX))
             addr = ADDRESS_BEGIN_CHAR + address + ADDRESS_END_CHAR;
         else
-            throw message_error("Formatting failure of address `" + address + "`.");
+            throw message_error("Address format error.", "Invalid address is `" + address + "`.");
     }
 
     string::size_type last_line_len = (name_formatted.empty() ? 0 : name_formatted.back().length());
@@ -834,7 +820,7 @@ string message::format_subject() const
     }
     else if (subject_.codec_type == codec::codec_t::PERCENT)
     {
-        throw message_error("Percent codec not allowed for the subject.");
+        throw message_error("Percent codec not allowed for the subject.", "");
     }
 
     return subject;
@@ -935,7 +921,8 @@ mailboxes message::parse_address_list(const string& address_list)
     // string being parsed so far
     string token;
 
-    for (auto ch = address_list.begin(); ch != address_list.end(); ch++)
+    size_t char_pos = 0;
+    for (auto ch = address_list.begin(); ch != address_list.end(); ch++, char_pos++)
     {
         switch (state)
         {
@@ -953,7 +940,8 @@ mailboxes message::parse_address_list(const string& address_list)
                 else if (*ch == ADDRESS_BEGIN_CHAR)
                     state = state_t::ADDRBRBEG;
                 else
-                    throw message_error("Parsing failure of address or group at `" + string(1, *ch) + "`.");
+                    throw message_error("Address or group parsing error.", "Syntax error at character `" + string(1, *ch) + "`, at position " +
+                        to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                 if (ch == address_list.end() - 1)
                 {
@@ -963,7 +951,8 @@ mailboxes message::parse_address_list(const string& address_list)
                     else if (state == state_t::NAMEADDRGRP)
                     {
                         if (group_found)
-                            throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                            throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "`, at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
                         else
                         {
                             if (!token.empty())
@@ -976,7 +965,8 @@ mailboxes message::parse_address_list(const string& address_list)
                     }
                     // `QNAMEADDRBEG` or `ADDRBRBEG`
                     else
-                        throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                        throw message_error("Name or address parsing error.", "Syntax error at character `" + string(1, *ch) + "`, at position " +
+                            to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
                 }
 
                 break;
@@ -1012,7 +1002,8 @@ mailboxes message::parse_address_list(const string& address_list)
                 else if (*ch == MAILGROUP_NAME_SEPARATOR)
                 {
                     if (group_found)
-                        throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                        throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                            ".\nAddress list is `" + address_list + "`.");
 
                     // if group is reached, store already found addresses in the list
                     mail_list.insert(mail_list.end(), mail_addrs.begin(), mail_addrs.end());
@@ -1031,14 +1022,16 @@ mailboxes message::parse_address_list(const string& address_list)
                     state = state_t::ADDRBRBEG;
                 }
                 else
-                    throw message_error("Parsing failure of address or group at `" + string(1, *ch) + "`.");
+                    throw message_error("Address or group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                        to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                 if (ch == address_list.end() - 1)
                 {
                     if (state == state_t::NAMEADDRGRP)
                     {
                         if (group_found)
-                            throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                            throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                         if (!token.empty())
                         {
@@ -1048,18 +1041,22 @@ mailboxes message::parse_address_list(const string& address_list)
                         }
                     }
                     else if (state == state_t::ADDR)
-                        throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                        throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                        + ".\nAddress list is `" + address_list + "`.");
                     else if (state == state_t::NAME)
-                        throw message_error("Parsing failure of name at `" + string(1, *ch) + "` .");
+                        throw message_error("Name parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                            ".\nAddress list is `" + address_list + "`.");
                     else if (state == state_t::BEGIN)
                     {
                         if (group_found)
-                            throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                            throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                         mail_list.insert(mail_list.end(), mail_addrs.begin(), mail_addrs.end());
                     }
                     else if (state == state_t::GROUPBEG)
-                        throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                        throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                            ".\nAddress list is `" + address_list + "`.");
                 }
 
                 break;
@@ -1080,11 +1077,13 @@ mailboxes message::parse_address_list(const string& address_list)
                     state = state_t::ADDRBRBEG;
                 }
                 else
-                    throw message_error("Parsing failure of name at `" + string(1, *ch) + "`.");
+                    throw message_error("Name parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                        ".\nAddress list is `" + address_list + "`.");
 
                 // not allowed to end address list in this state
                 if (ch == address_list.end() - 1)
-                    throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                    throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                        ".\nAddress list is `" + address_list + "`.");
 
                 break;
             }
@@ -1115,7 +1114,8 @@ mailboxes message::parse_address_list(const string& address_list)
                     mail_addrs.push_back(cur_address);
                     cur_address.clear();
                     if (!monkey_found)
-                        throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                        throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                        + ".\nAddress list is `" + address_list + "`.");
                     monkey_found = false;
                     state = state_t::BEGIN;
                 }
@@ -1135,12 +1135,14 @@ mailboxes message::parse_address_list(const string& address_list)
                         state = state_t::GROUPEND;
                     }
                     else
-                        throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                        throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                        + ".\nAddress list is `" + address_list + "`.");
                 }
                 else if (*ch == codec::LEFT_PARENTHESIS_CHAR)
                 {
                     if (group_found)
-                        throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                        throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                            ".\nAddress list is `" + address_list + "`.");
                     else
                     {
                         cur_address.address = token;
@@ -1148,22 +1150,26 @@ mailboxes message::parse_address_list(const string& address_list)
                         mail_addrs.push_back(cur_address);
                         cur_address.clear();
                         if (!monkey_found)
-                            throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                            throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
                         mail_list.insert(mail_list.end(), mail_addrs.begin(), mail_addrs.end());
                     }
                     state = state_t::COMMBEG;
                 }
                 else
-                    throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                    throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                        ".\nAddress list is `" + address_list + "`.");
 
                 if (ch == address_list.end() - 1)
                 {
                     if (state == state_t::ADDR)
                     {
                         if (group_found)
-                            throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                            throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
                         if (!monkey_found)
-                            throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                            throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                         if (!token.empty())
                         {
@@ -1175,14 +1181,16 @@ mailboxes message::parse_address_list(const string& address_list)
                     else if (state == state_t::BEGIN)
                     {
                         if (group_found)
-                            throw message_error("Parsing failure of address or group at `" + string(1, *ch) + "`.");
+                            throw message_error("Address or group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                         mail_list.insert(mail_list.end(), mail_addrs.begin(), mail_addrs.end());
                     }
                     else if (state == state_t::GROUPEND)
                         ;
                     else if (state == state_t::COMMBEG)
-                        throw message_error("Parsing failure of comment at `" + string(1, *ch) + "`.");
+                        throw message_error("Comment parsing failure.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                            to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
                 }
 
                 break;
@@ -1203,13 +1211,15 @@ mailboxes message::parse_address_list(const string& address_list)
                     state = state_t::QNAMEADDREND;
                 }
                 else
-                    throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                    throw message_error("Name or address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                        to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                 // not allowed to end address list in this state in the strict mode
                 if (ch == address_list.end() - 1)
                 {
                     if (strict_mode_)
-                        throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                        throw message_error("Name or address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                            to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
                     else
                         mail_list.push_back(cur_address);
                 }
@@ -1224,11 +1234,13 @@ mailboxes message::parse_address_list(const string& address_list)
                else if (*ch == ADDRESS_BEGIN_CHAR)
                    state = state_t::ADDRBRBEG;
                else
-                   throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                   throw message_error("Name or address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                       to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                // not allowed to end address list in this state
                if (ch == address_list.end() - 1)
-                   throw message_error("Parsing failure of name or address at `" + string(1, *ch) + "`.");
+                   throw message_error("Name or address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                       to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                break;
             }
@@ -1249,18 +1261,21 @@ mailboxes message::parse_address_list(const string& address_list)
                     mail_addrs.push_back(cur_address);
                     cur_address.clear();
                     if (!monkey_found)
-                        throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                        throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                            + ".\nAddress list is `" + address_list + "`.");
                     monkey_found = false;
                     state = state_t::ADDRBREND;
                 }
                 else
-                    throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                    throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                        + ".\nAddress list is `" + address_list + "`.");
 
                 // not allowed to end address list in this state
                 if (ch == address_list.end() - 1)
                 {
                     if (state == state_t::ADDRBRBEG)
-                        throw message_error("Parsing failure of address at `" + string(1, *ch) + "`.");
+                        throw message_error("Address parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                            + ".\nAddress list is `" + address_list + "`.");
                     else if (state == state_t::ADDRBREND)
                     {
                         if (group_found)
@@ -1296,12 +1311,14 @@ mailboxes message::parse_address_list(const string& address_list)
                         state = state_t::GROUPEND;
                     }
                     else
-                        throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                        throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                            + ".\nAddress list is `" + address_list + "`.");
                 }
                 else if (*ch == codec::LEFT_PARENTHESIS_CHAR)
                 {
                     if (group_found)
-                        throw message_error("Parsing failure of comment at `" + string(1, *ch) + "`.");
+                        throw message_error("Comment parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                            + ".\nAddress list is `" + address_list + "`.");
                     else
                         mail_list.insert(mail_list.end(), mail_addrs.begin(), mail_addrs.end());
                     state = state_t::COMMBEG;
@@ -1312,12 +1329,14 @@ mailboxes message::parse_address_list(const string& address_list)
                     if (state == state_t::ADDRBREND || state == state_t::BEGIN)
                     {
                         if (group_found)
-                            throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                            throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " +
+                                to_string(char_pos) + ".\nAddress list is `" + address_list + "`.");
 
                         mail_list.insert(mail_list.end(), mail_addrs.begin(), mail_addrs.end());
                     }
                     else if (state == state_t::COMMBEG)
-                        throw message_error("Parsing failure of comment at `" + string(1, *ch) + "`.");
+                        throw message_error("Comment parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                            + ".\nAddress list is `" + address_list + "`.");
                 }
 
                 break;
@@ -1349,7 +1368,8 @@ mailboxes message::parse_address_list(const string& address_list)
                 if (ch == address_list.end() - 1)
                 {
                     if (state == state_t::BEGIN || state == state_t::ADDRBRBEG)
-                        throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                        throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                            ".\nAddress list is `" + address_list + "`.");
                 }
 
                 break;
@@ -1374,7 +1394,8 @@ mailboxes message::parse_address_list(const string& address_list)
                 if (ch == address_list.end() - 1)
                 {
                     if (state == state_t::BEGIN || state == state_t::COMMBEG)
-                        throw message_error("Parsing failure of group at `" + string(1, *ch) + "`.");
+                        throw message_error("Group parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos) +
+                            ".\nAddress list is `" + address_list + "`.");
                 }
 
                 break;
@@ -1387,7 +1408,8 @@ mailboxes message::parse_address_list(const string& address_list)
                 else if (*ch == codec::RIGHT_PARENTHESIS_CHAR)
                     state = state_t::COMMEND;
                 else
-                    throw message_error("Parsing failure of comment at `" + string(1, *ch) + "`.");
+                    throw message_error("Comment parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                        + ".\nAddress list is `" + address_list + "`.");
                 break;
             }
 
@@ -1396,7 +1418,8 @@ mailboxes message::parse_address_list(const string& address_list)
                 if (isspace(*ch))
                     ;
                 else
-                    throw message_error("Parsing failure of comment at `" + string(1, *ch) + "`.");
+                    throw message_error("Comment parsing error.", "Syntax error at character `" + string(1, *ch) + "` at position " + to_string(char_pos)
+                        + ".\nAddress list is `" + address_list + "`.");
                 break;
             }
 
@@ -1441,7 +1464,7 @@ local_date_time message::parse_date(const string& date_str) const
     }
     catch (...)
     {
-        throw message_error("Parsing failure of date.");
+        throw message_error("Date parsing error.", "Date is `" + date_str + "`.");
     }
 }
 
@@ -1484,7 +1507,7 @@ string_t message::parse_address_name(const string& address_name)
             if (charset.empty())
                 charset = get<1>(an);
             if (charset != get<1>(an))
-                throw message_error("Inconsistent Q encodings.");
+                throw message_error("Inconsistent Q encodings.", "Charset `" + charset + "` vs charset `" + get<1>(an) + "`.");
             if (!buf_codec)
                 buf_codec = get<2>(an);
         }

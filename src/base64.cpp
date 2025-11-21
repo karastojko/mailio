@@ -31,15 +31,18 @@ const string base64::CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv
 base64::base64(string::size_type line1_policy, string::size_type lines_policy) :
     codec(line1_policy, lines_policy)
 {
+    // Line policies to be divisible by four.
+    line1_policy_ -= line1_policy_ % SEXTETS_NO;
+    lines_policy_ -= lines_policy_ % SEXTETS_NO;
 }
 
 
 vector<string> base64::encode(const string& text) const
 {
     vector<string> enc_text;
-    unsigned char group_8bit[3];
-    unsigned char group_6bit[4];
-    int count_3_chars = 0;
+    unsigned char octets[OCTETS_NO];
+    unsigned char sextets[SEXTETS_NO];
+    int sextets_counter = 0;
     string line;
     string::size_type line_len = 0;
     string::size_type policy = line1_policy_;
@@ -54,50 +57,52 @@ vector<string> base64::encode(const string& text) const
 
     for (string::size_type cur_char = 0; cur_char < text.length(); cur_char++)
     {
-        group_8bit[count_3_chars++] = text[cur_char];
-        if (count_3_chars == 3)
+        octets[sextets_counter++] = text[cur_char];
+        if (sextets_counter == OCTETS_NO)
         {
-            group_6bit[0] = (group_8bit[0] & 0xfc) >> 2;
-            group_6bit[1] = ((group_8bit[0] & 0x03) << 4) + ((group_8bit[1] & 0xf0) >> 4);
-            group_6bit[2] = ((group_8bit[1] & 0x0f) << 2) + ((group_8bit[2] & 0xc0) >> 6);
-            group_6bit[3] = group_8bit[2] & 0x3f;
+            sextets[0] = (octets[0] & 0xfc) >> 2;
+            sextets[1] = ((octets[0] & 0x03) << 4) + ((octets[1] & 0xf0) >> 4);
+            sextets[2] = ((octets[1] & 0x0f) << 2) + ((octets[2] & 0xc0) >> 6);
+            sextets[3] = octets[2] & 0x3f;
 
-            for(int i = 0; i < 4; i++)
-                line += CHARSET[group_6bit[i]];
-            count_3_chars = 0;
-            line_len += 4;
+            for(int i = 0; i < SEXTETS_NO; i++)
+                line += CHARSET[sextets[i]];
+            sextets_counter = 0;
+            line_len += SEXTETS_NO;
         }
 
-        // TODO: Compare against `policy`?
-        if (line_len >= line1_policy_ - 2)
-            add_new_line(line);
-        else if (line_len >= lines_policy_ - 2)
+        if (line_len >= policy)
             add_new_line(line);
     }
 
     // encode remaining characters if any
 
-    if (count_3_chars > 0)
+    if (sextets_counter > 0)
     {
-        for (int i = count_3_chars; i < 3; i++)
-            group_8bit[i] = '\0';
+        // If the remaining three characters match exatcly rest of the line, then move them onto next line. Email clients do not show properly subject when
+        // the next line has the empty content, containing only the encoding stuff.
+        if (line_len >= policy - OCTETS_NO)
+            add_new_line(line);
 
-        group_6bit[0] = (group_8bit[0] & 0xfc) >> 2;
-        group_6bit[1] = ((group_8bit[0] & 0x03) << 4) + ((group_8bit[1] & 0xf0) >> 4);
-        group_6bit[2] = ((group_8bit[1] & 0x0f) << 2) + ((group_8bit[2] & 0xc0) >> 6);
-        group_6bit[3] = group_8bit[2] & 0x3f;
+        for (int i = sextets_counter; i < OCTETS_NO; i++)
+            octets[i] = '\0';
 
-        for (int i = 0; i < count_3_chars + 1; i++)
+        sextets[0] = (octets[0] & 0xfc) >> 2;
+        sextets[1] = ((octets[0] & 0x03) << 4) + ((octets[1] & 0xf0) >> 4);
+        sextets[2] = ((octets[1] & 0x0f) << 2) + ((octets[2] & 0xc0) >> 6);
+        sextets[3] = octets[2] & 0x3f;
+
+        for (int i = 0; i < sextets_counter + 1; i++)
         {
-            if (line_len >= policy - 2)
+            if (line_len >= policy)
                 add_new_line(line);
-            line += CHARSET[group_6bit[i]];
+            line += CHARSET[sextets[i]];
             line_len++;
         }
 
-        while (count_3_chars++ < 3)
+        while (sextets_counter++ < OCTETS_NO)
         {
-            if (line_len >= policy - 2)
+            if (line_len >= policy)
                 add_new_line(line);
             line += EQUAL_CHAR;
             line_len++;
@@ -114,13 +119,13 @@ vector<string> base64::encode(const string& text) const
 string base64::decode(const vector<string>& text) const
 {
     string dec_text;
-    unsigned char group_6bit[4];
-    unsigned char group_8bit[3];
+    unsigned char sextets[SEXTETS_NO];
+    unsigned char octets[OCTETS_NO];
     int count_4_chars = 0;
 
     for (const auto& line : text)
     {
-        if (line.length() > lines_policy_ - 2)
+        if (line.length() > lines_policy_)
             throw codec_error("Bad line policy.");
 
         for (string::size_type ch = 0; ch < line.length() && line[ch] != EQUAL_CHAR; ch++)
@@ -128,18 +133,18 @@ string base64::decode(const vector<string>& text) const
             if (!is_allowed(line[ch]))
                 throw codec_error("Bad character `" + string(1, line[ch]) + "`.");
 
-            group_6bit[count_4_chars++] = line[ch];
-            if (count_4_chars == 4)
+            sextets[count_4_chars++] = line[ch];
+            if (count_4_chars == SEXTETS_NO)
             {
-                for (int i = 0; i < 4; i++)
-                    group_6bit[i] = static_cast<unsigned char>(CHARSET.find(group_6bit[i]));
+                for (int i = 0; i < SEXTETS_NO; i++)
+                    sextets[i] = static_cast<unsigned char>(CHARSET.find(sextets[i]));
 
-                group_8bit[0] = (group_6bit[0] << 2) + ((group_6bit[1] & 0x30) >> 4);
-                group_8bit[1] = ((group_6bit[1] & 0xf) << 4) + ((group_6bit[2] & 0x3c) >> 2);
-                group_8bit[2] = ((group_6bit[2] & 0x3) << 6) + group_6bit[3];
+                octets[0] = (sextets[0] << 2) + ((sextets[1] & 0x30) >> 4);
+                octets[1] = ((sextets[1] & 0xf) << 4) + ((sextets[2] & 0x3c) >> 2);
+                octets[2] = ((sextets[2] & 0x3) << 6) + sextets[3];
 
-                for (int i = 0; i < 3; i++)
-                    dec_text += group_8bit[i];
+                for (int i = 0; i < OCTETS_NO; i++)
+                    dec_text += octets[i];
                 count_4_chars = 0;
             }
         }
@@ -148,18 +153,18 @@ string base64::decode(const vector<string>& text) const
 
         if (count_4_chars > 0)
         {
-            for (int i = count_4_chars; i < 4; i++)
-                group_6bit[i] = '\0';
+            for (int i = count_4_chars; i < SEXTETS_NO; i++)
+                sextets[i] = '\0';
 
-            for (int i = 0; i < 4; i++)
-                group_6bit[i] = static_cast<unsigned char>(CHARSET.find(group_6bit[i]));
+            for (int i = 0; i < SEXTETS_NO; i++)
+                sextets[i] = static_cast<unsigned char>(CHARSET.find(sextets[i]));
 
-            group_8bit[0] = (group_6bit[0] << 2) + ((group_6bit[1] & 0x30) >> 4);
-            group_8bit[1] = ((group_6bit[1] & 0xf) << 4) + ((group_6bit[2] & 0x3c) >> 2);
-            group_8bit[2] = ((group_6bit[2] & 0x3) << 6) + group_6bit[3];
+            octets[0] = (sextets[0] << 2) + ((sextets[1] & 0x30) >> 4);
+            octets[1] = ((sextets[1] & 0xf) << 4) + ((sextets[2] & 0x3c) >> 2);
+            octets[2] = ((sextets[2] & 0x3) << 6) + sextets[3];
 
             for (int i = 0; i < count_4_chars - 1; i++)
-                dec_text += group_8bit[i];
+                dec_text += octets[i];
         }
     }
 

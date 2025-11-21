@@ -3,7 +3,7 @@
 smtps_simple_msg.cpp
 --------------------
 
-Connects to SMTP server via START_TLS and sends a simple message.
+Connects to an SMTP server via START_TLS and sends a simple message.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -21,7 +21,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 using mailio::message;
 using mailio::mail_address;
-using mailio::smtps;
+using mailio::smtp;
 using mailio::smtp_error;
 using mailio::dialog_error;
 using std::cout;
@@ -40,9 +40,9 @@ int main()
         msg.content("Hello, World!");
 
         // connect to server
-        smtps conn("smtp.gmail.com", 587);
+        smtp conn("smtp.gmail.com", 587);
         // modify username/password to use real credentials
-        conn.authenticate("mailio@gmail.com", "mailiopass", smtps::auth_method_t::START_TLS);
+        conn.authenticate("mailio@gmail.com", "mailiopass", smtp::auth_method_t::LOGIN);
         conn.submit(msg);
     }
     catch (smtp_error& exc)

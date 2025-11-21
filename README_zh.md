@@ -170,6 +170,14 @@ vcpkg install mailio
 * [MRsoymilk](mailto:313958485[at]qq.com): 修复了发送附件的bug
 * [Don Yihtseu](https://github.com/tsurumi-yizhou): 提供了中文文档
 * [Orchistro](https://github.com/orchistro): Improving CMake build script.
+* [Leonhard Kipp](mailto:Leonhard.Kipp[at]ppro.com): Proper way to build the shared library. Message formatting options. Optional message subject.
+* [Abril Rincón Blanco](mailto:git[at]rinconblanco.es): Compilation fix for Clang earlier than the version 14.
+* [yjm6560](https://github.com/yjm6560): Various IMAP bugs.
+* [Hannah Sauermann](mailto:hannah.sauermann[at]seclous.com): Fix for the `stringstream` usage in older standard libraries.
+* [Matheus Gabriel Werny](mailto:matheusgwdl[at]protonmail.com): CMake fixes and improvements.
+* [stitch3210](https://github.com/stitch3210): Case insensitive headers.
+* [Luigi Masdea](luigimasdea0[at]gmail.com): Typo error.
+* [Charlie Wolf](charlie[at]wolf.is): Additional attributes in the content type.
 
 
 # 联系方式 #

@@ -70,7 +70,6 @@ vector<string> q_codec::encode(const string& text, const string& charset, codec_
 }
 
 
-// TODO: returning charset info?
 tuple<string, string, codec::codec_t> q_codec::decode(const string& text) const
 {
     string::size_type charset_pos = text.find(QUESTION_MARK_CHAR);

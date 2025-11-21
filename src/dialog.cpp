@@ -10,6 +10,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 */
 
+
 #include <string>
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
@@ -29,9 +30,10 @@ using boost::asio::ip::tcp;
 using boost::asio::buffer;
 using boost::asio::streambuf;
 using boost::asio::io_context;
-using boost::asio::deadline_timer;
+using boost::asio::steady_timer;
 using boost::asio::ssl::context;
 using boost::system::system_error;
+using boost::system::error_code;
 using boost::algorithm::trim_if;
 using boost::algorithm::is_any_of;
 
@@ -44,7 +46,7 @@ boost::asio::io_context dialog::ios_;
 
 
 dialog::dialog(const string& hostname, unsigned port, milliseconds timeout) : std::enable_shared_from_this<dialog>(),
-    hostname_(hostname), port_(port), socket_(make_shared<tcp::socket>(ios_)), timer_(make_shared<deadline_timer>(ios_)),
+    hostname_(hostname), port_(port), socket_(make_shared<tcp::socket>(ios_)), timer_(make_shared<steady_timer>(ios_)),
     timeout_(timeout), timer_expired_(false), strmbuf_(make_shared<streambuf>()), istrm_(make_shared<istream>(strmbuf_.get()))
 {
 }
@@ -69,9 +71,9 @@ void dialog::connect()
         else
             connect_async();
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Server connecting failed.");
+        throw dialog_error("Server connecting failed.", exc.code().message());
     }
 }
 
@@ -103,9 +105,9 @@ void dialog::send_sync(Socket& socket, const string& line)
         string l = line + "\r\n";
         write(socket, buffer(l, l.size()));
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Network sending error.");
+        throw dialog_error("Network sending error.", exc.code().message());
     }
 }
 
@@ -122,9 +124,9 @@ string dialog::receive_sync(Socket& socket, bool raw)
             trim_if(line, is_any_of("\r\n"));
         return line;
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Network receiving error.");
+        throw dialog_error("Network receiving error.", exc.code().message());
     }
 }
 
@@ -132,65 +134,52 @@ string dialog::receive_sync(Socket& socket, bool raw)
 void dialog::connect_async()
 {
     tcp::resolver res(ios_);
-
-    timer_->expires_at(boost::posix_time::pos_infin);
-    timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
-    boost::system::error_code ignored_ec;
     check_timeout();
 
     bool has_connected{false}, connect_error{false};
+    error_code errc;
     async_connect(*socket_, res.resolve(hostname_, to_string(port_)),
-        [&has_connected, &connect_error](const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint&)
+        [&has_connected, &connect_error, &errc](const error_code& error, const boost::asio::ip::tcp::endpoint&)
         {
             if (!error)
                 has_connected = true;
             else
                 connect_error = true;
+            errc = error;
         });
-    do
-    {
-        if (timer_expired_)
-            throw dialog_error("Server connecting timed out.");
-        if (connect_error)
-            throw dialog_error("Server connecting failed.");
-        ios_.run_one();
-    }
-    while (!has_connected);
+    wait_async(has_connected, connect_error, "Network connecting timed out.", "Network connecting failed.", errc);
 }
 
 
 template<typename Socket>
 void dialog::send_async(Socket& socket, string line)
 {
-    timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
+    check_timeout();
     string l = line + "\r\n";
     bool has_written{false}, send_error{false};
-    async_write(socket, buffer(l, l.size()), [&has_written, &send_error](const boost::system::error_code& error, size_t)
+    error_code errc;
+    async_write(socket, buffer(l, l.size()),
+        [&has_written, &send_error, &errc](const error_code& error, size_t)
         {
             if (!error)
                 has_written = true;
             else
                 send_error = true;
+            errc = error;
         });
-    do
-    {
-        if (timer_expired_)
-            throw dialog_error("Network sending timed out.");
-        if (send_error)
-            throw dialog_error("Network sending failed.");
-        ios_.run_one();
-    }
-    while (!has_written);
+    wait_async(has_written, send_error, "Network sending timed out.", "Network sending failed.", errc);
 }
 
 
 template<typename Socket>
 string dialog::receive_async(Socket& socket, bool raw)
 {
-    timer_->expires_from_now(boost::posix_time::milliseconds(timeout_.count()));
+    check_timeout();
     bool has_read{false}, receive_error{false};
     string line;
-    async_read_until(socket, *strmbuf_, "\n", [&has_read, &receive_error, this, &line, raw](const boost::system::error_code& error, size_t)
+    error_code errc;
+    async_read_until(socket, *strmbuf_, "\n",
+        [&has_read, &receive_error, this, &line, &errc, raw](const error_code& error, size_t)
         {
             if (!error)
             {
@@ -201,31 +190,40 @@ string dialog::receive_async(Socket& socket, bool raw)
             }
             else
                 receive_error = true;
+            errc = error;
         });
+    wait_async(has_read, receive_error, "Network receiving timed out.", "Network receiving failed.", errc);
+    return line;
+}
+
+
+void dialog::wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg, const error_code& error)
+{
     do
     {
         if (timer_expired_)
-            throw dialog_error("Network receiving timed out.");
-        if (receive_error)
-            throw dialog_error("Network receiving failed.");
+            throw dialog_error(expired_msg, error.message());
+        if (op_error)
+            throw dialog_error(op_msg, error.message());
         ios_.run_one();
     }
-    while (!has_read);
-
-    return line;
+    while (!has_op);
 }
 
 
 void dialog::check_timeout()
 {
-    if (timer_->expires_at() <= deadline_timer::traits_type::now())
-    {
-        boost::system::error_code ignored_ec;
-        socket_->close(ignored_ec);
-        timer_->expires_at(boost::posix_time::pos_infin);
+    // Expiring automatically cancels the timer, per documentation.
+    timer_->expires_after(timeout_);
+    timer_expired_ = false;
+    timer_->async_wait(bind(&dialog::timeout_handler, shared_from_this(), std::placeholders::_1));
+}
+
+
+void dialog::timeout_handler(const error_code& error)
+{
+    if (!error)
         timer_expired_ = true;
-    }
-    timer_->async_wait(bind(&dialog::check_timeout, shared_from_this()));
 }
 
 
@@ -245,10 +243,10 @@ dialog_ssl::dialog_ssl(const dialog& other, const ssl_options_t& options) : dial
         ssl_socket_->handshake(boost::asio::ssl::stream_base::client);
         ssl_ = true;
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
         // TODO: perhaps the message is confusing
-        throw dialog_error("Switching to SSL failed.");
+        throw dialog_error("Switching to SSL failed.", exc.code().message());
     }
 }
 
@@ -280,11 +278,22 @@ string dialog_ssl::receive(bool raw)
         else
             return receive_async(*ssl_socket_, raw);
     }
-    catch (system_error&)
+    catch (const system_error& exc)
     {
-        throw dialog_error("Network receiving error.");
+        throw dialog_error("Network receiving error.", exc.code().message());
     }
 }
 
+
+shared_ptr<dialog_ssl> dialog_ssl::to_ssl(const shared_ptr<dialog> dlg, const dialog_ssl::ssl_options_t& options)
+{
+    return make_shared<dialog_ssl>(*dlg, options);
+}
+
+
+string dialog_error::details() const
+{
+    return details_;
+}
 
 } // namespace mailio

@@ -3,7 +3,7 @@
 imaps_search.cpp
 ----------------
 
-Connects to IMAP server and searches for messages which satisfy the criteria.
+Connects to an IMAP server over START TLS and searches for the messages which satisfy the criteria.
 
 
 Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
@@ -23,7 +23,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 
 using mailio::message;
 using mailio::codec;
-using mailio::imaps;
+using mailio::imap;
 using mailio::imap_error;
 using mailio::dialog_error;
 using std::cout;
@@ -37,14 +37,15 @@ int main()
 {
     try
     {
-        imaps conn("imap-mail.outlook.com", 993);
+        imap conn("imap-mail.outlook.com", 143);
+        conn.start_tls(true);// // no need for this since it is the default setting
         // modify username/password to use real credentials
-        conn.authenticate("mailio@outlook.com", "mailiopass", imaps::auth_method_t::LOGIN);
+        conn.authenticate("mailio@outlook.com", "mailiopass", imap::auth_method_t::LOGIN);
         conn.select(list<string>({"Inbox"}));
         list<unsigned long> messages;
-        list<imaps::search_condition_t> conds;
-        conds.push_back(imaps::search_condition_t(imaps::search_condition_t::BEFORE_DATE, boost::gregorian::date(2018, 6, 22)));
-        conds.push_back(imaps::search_condition_t(imaps::search_condition_t::SUBJECT, "mailio"));
+        list<imap::search_condition_t> conds;
+        conds.push_back(imap::search_condition_t(imap::search_condition_t::BEFORE_DATE, boost::gregorian::date(2018, 6, 22)));
+        conds.push_back(imap::search_condition_t(imap::search_condition_t::SUBJECT, "mailio"));
         conn.search(conds, messages, true);
         for_each(messages.begin(), messages.end(), [](unsigned int msg_uid){ cout << msg_uid << endl; });
     }

@@ -138,10 +138,30 @@ protected:
     template<typename Socket>
     std::string receive_async(Socket& socket, bool raw);
 
+
+    /**
+    Waiting for an asynchronous, reporting an error when the timer expires.
+
+    @param has_op      Asynchronous operation flag whether it finishes.
+    @param op_error    Flag whether an operation encountered an error.
+    @param expired_msg Message when an operation times out.
+    @param op_msg      Message when a network operation fails.
+    @todo              `op_error` becomes redundant by `error`.
+    **/
+    void wait_async(const bool& has_op, const bool& op_error, const char* expired_msg, const char* op_msg,
+        const boost::system::error_code& error);
+
     /**
     Checking if the timeout is reached.
     **/
     void check_timeout();
+
+    /**
+    Timeout handler which sets the timer flag to expired.
+
+    @param error Result of the asynchronous operation.
+    **/
+    void timeout_handler(const boost::system::error_code& error);
 
     /**
     Server hostname.
@@ -166,7 +186,7 @@ protected:
     /**
     Timer to check the timeout.
     **/
-    std::shared_ptr<boost::asio::deadline_timer> timer_;
+    std::shared_ptr<boost::asio::steady_timer> timer_;
 
     /**
     Timeout on I/O operations in milliseconds.
@@ -175,6 +195,8 @@ protected:
 
     /**
     Flag to show whether the timeout has expired.
+
+    @todo Should be atomic?
     **/
     bool timer_expired_;
 
@@ -265,6 +287,15 @@ public:
     **/
     std::string receive(bool raw = false);
 
+    /**
+    Replacing a TCP socket with an SSL one.
+
+    @param dlg     TCP socket to be replaced.
+    @param options SSL options of the socket.
+    @throw *       `dialog_ssl::dialog_ssl(dialog&, const ssl_options_t&)`.
+    **/
+    static std::shared_ptr<dialog_ssl> to_ssl(const std::shared_ptr<dialog> dlg, const dialog_ssl::ssl_options_t& options);
+
 protected:
 
     /**
@@ -294,20 +325,46 @@ public:
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit dialog_error(const std::string& msg) : std::runtime_error(msg)
+    dialog_error(const std::string& msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
 
     /**
     Calling the parent constructor.
 
-    @param msg Error message.
+    @param msg     Error message.
+    @param details Detailed message.
     **/
-    explicit dialog_error(const char* msg) : std::runtime_error(msg)
+    dialog_error(const char* msg, const std::string& details) : std::runtime_error(msg), details_(details)
     {
     }
+
+    dialog_error(const dialog_error&) = default;
+
+    dialog_error(dialog_error&&) = default;
+
+    ~dialog_error() = default;
+
+    dialog_error& operator=(const dialog_error&) = default;
+
+    dialog_error& operator=(dialog_error&&) = default;
+
+    /**
+    Gets the detailed error message.
+
+    @return Detailed error message.
+    **/
+    std::string details() const;
+
+protected:
+
+    /**
+    Message provided by Asio.
+    **/
+    std::string details_;
 };
 
 
