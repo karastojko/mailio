@@ -59,7 +59,7 @@ Mail message and applied parsing/formatting algorithms.
 class MAILIO_EXPORT message : public mime
 {
 public:
-       
+
     /**
     Character to separate mail addresses in a list.
     **/
@@ -112,6 +112,7 @@ public:
     /**
     IMAP Flags of the message.
 
+    @todo Move to the protected scope.
     **/
     std::vector<std::string> flags;
 
@@ -241,10 +242,10 @@ public:
 
     /**
      Sets or clears a specific flag.
-     
+
      @param flag The flag to set or clear.
      @param value True to set the flag, false to clear it.
-     
+
      @return None
      @throws None
      */
@@ -253,7 +254,7 @@ public:
             flags.emplace_back(flag);
         }
     }
-    
+
     /**
     Adding a recipent name and address.
 

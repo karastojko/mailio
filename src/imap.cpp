@@ -366,105 +366,15 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 }
 
 
-void imap::fetch_flags(unsigned long message_no, std::vector<std::string>& flags, bool is_uids) {
-    std::list<messages_range_t> messages_range;
-    std::map<unsigned long, std::vector<std::string>> found_flags;
-    messages_range.push_back(imap::messages_range_t(message_no, message_no));
-    fetch_flags(messages_range, found_flags, is_uids);
-    if (found_flags.begin() != found_flags.end()) {
-        flags = found_flags.begin()->second;
-    }
-}
-
-
-void imap::fetch_flags(const std::string& mailbox, unsigned long message_no, std::vector<std::string>& flags, bool is_uids) {
-    select(mailbox);
-    fetch_flags(message_no, flags, is_uids);
-}
-
-
-void imap::fetch_flags(const std::list<messages_range_t>& messages_range, std::map<unsigned long, std::vector<std::string>>& found_flags, bool is_uids)
+void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
+     codec::line_len_policy_t line_policy)
 {
-    if (messages_range.empty()) {
-        throw imap_error("Empty messages range.", "");
-    }
-
-    string cmd;
-    if (is_uids) {
-        cmd.append("UID ");
-    }
-
-    cmd.append("FETCH " + messages_range_list_to_string(messages_range) + TOKEN_SEPARATOR_STR + "(FLAGS)");
-    dlg_->send(format(cmd));
-
-    bool has_more = true;
-    try
-    {
-        while (has_more)
-        {
-            reset_response_parser();
-            string line = dlg_->receive();
-            tag_result_response_t parsed_line = parse_tag_result(line);
-
-            if (parsed_line.tag == UNTAGGED_RESPONSE)
-            {
-                parse_response(parsed_line.response);
-
-                if (mandatory_part_.empty() || mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM) {
-                    throw imap_error("Fetching message failure.", "");
-                }
-
-                unsigned long msg_no = stoul(mandatory_part_.front()->atom);
-                mandatory_part_.pop_front();
-
-                if (msg_no == 0) {
-                    throw imap_error("Invalid message number.", "");
-                }
-
-                if (mandatory_part_.empty() || !iequals(mandatory_part_.front()->atom, "FETCH")) {
-                    throw imap_error("Fetching message failure.", "");
-                }
-
-                mandatory_part_.pop_front();
-
-                if (mandatory_part_.empty() || mandatory_part_.front()->token_type != response_token_t::token_type_t::LIST) {
-                    throw imap_error("Expected a list of flags.", "");
-                }
-
-                auto flag_list = mandatory_part_.front()->parenthesized_list;
-
-                for (auto it = flag_list.begin(); it != flag_list.end(); ++it) {
-                    if ((*it)->token_type == response_token_t::token_type_t::ATOM && iequals((*it)->atom, "FLAGS")) {
-                        ++it; // Move to the actual list of flags
-                        if (it != flag_list.end() && (*it)->token_type == response_token_t::token_type_t::LIST) {
-                            for (const auto& flag_token : (*it)->parenthesized_list) {
-                                if (flag_token->token_type == response_token_t::token_type_t::ATOM) {
-                                    found_flags[msg_no].emplace_back(flag_token->atom);
-                                }
-                            }
-                        }
-                        break; // Once FLAGS are found and processed, we break out of the loop
-                    }
-                }
-            }
-            else if (parsed_line.tag == to_string(tag_))
-            {
-                if (parsed_line.result.value() != tag_result_response_t::OK) {
-                    throw imap_error("Fetching flags failed.", "");
-                }
-                has_more = false;
-            }
-            else
-            {
-                throw imap_error("Unexpected response during flags fetch.", "");
-            }
-        }
-    }
-    catch (const std::exception& e)
-    {
-        throw imap_error("Parsing failure: ", e.what());
-    }
-    reset_response_parser();
+    fetch_options_t options = fetch_options_t::DEFAULT;
+    if (is_uids)
+        options = (options | fetch_options_t::UID);
+    if (header_only)
+        options = (options | fetch_options_t::HEADER_ONLY);
+    fetch(messages_range, found_messages, options, line_policy);
 }
 
 
@@ -478,20 +388,27 @@ no message is found.
 The fetch untagged responses provide messages. In the last tagged response the status is obtained. Then, string literals can be parsed to validate the MIME
 format.
 */
-void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
+void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, fetch_options_t options,
     codec::line_len_policy_t line_policy)
 {
     if (messages_range.empty())
         throw imap_error("Empty messages range.", "");
 
-    const string RFC822_TOKEN = string("RFC822") + (header_only ? ".HEADER" : "");
     const string message_ids = messages_range_list_to_string(messages_range);
+    const bool is_header_only = ((options & fetch_options_t::HEADER_ONLY) == fetch_options_t::HEADER_ONLY);
+    const bool is_uid = ((options & fetch_options_t::UID) == fetch_options_t::UID);
+    const bool is_flags = ((options & fetch_options_t::FLAGS) == fetch_options_t::FLAGS);
 
     string cmd;
-    if (is_uids)
+    if (is_uid)
         cmd.append("UID ");
-    cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + "(" + RFC822_TOKEN + TOKEN_SEPARATOR_STR + "FLAGS)");
-    dlg_->send(format(cmd));
+    const string RFC822_TOKEN = string("RFC822") + (is_header_only ? ".HEADER" : "");
+    cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + "(" + RFC822_TOKEN);
+    if (is_flags)
+        cmd.append(TOKEN_SEPARATOR_STR + "FLAGS");
+    cmd.append(")");
+    auto cmdf = format(cmd);
+    dlg_->send(cmdf);
 
     // Stores messages as strings indexed by the messages number.
     map<unsigned long, string> msg_str;
@@ -572,10 +489,10 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         // There could be a parenthesized list after the string literal. Read it and do nothing.
                         parse_response(line);
                     }
-                    msg_str.emplace(is_uids ? uid_no : sequence_no, move(literal_token->literal));
+                    msg_str.emplace(is_uid ? uid_no : sequence_no, move(literal_token->literal));
 
                     // If no UID was found, but we asked for them, it's an error.
-                    if (is_uids && uid_no == 0)
+                    if (is_uid && uid_no == 0)
                     {
                         throw imap_error("No UID when fetching a message.", "");
                     }
