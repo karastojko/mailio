@@ -5293,7 +5293,7 @@ BOOST_AUTO_TEST_CASE(parse_long_addresses)
     string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>, Tomislav Karastojkovic <adresa@mailio.dev>, Tomislav Karastojkovic <qwerty@gmail.com>, "
-        "Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
+        "  Tomislav Karastojkovic <asdfg@zoho.com>\r\n"
         "Cc: mail.io <adresa@mailio.dev>, Tomislav Karastojkovic <zxcvb@yahoo.com>\r\n"
         "Date: Wed, 23 Aug 2017 22:16:45 +0000\r\n"
         "Subject: Hello, World!\r\n"
