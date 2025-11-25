@@ -51,7 +51,6 @@ using boost::smatch;
 using boost::match_flag_type;
 using boost::match_results;
 using boost::to_lower_copy;
-using boost::trim_copy;
 using boost::trim;
 using boost::trim_right;
 using boost::iequals;
@@ -715,13 +714,17 @@ string mime::fold_header_line(const vector<string>& headers) const
 }
 
 
+/*
+According to the RFC5322 section 2.2.3, unfolding removes any CRLF and the initial WSP character.
+*/
 void mime::parse_header()
 {
     string line;
     for (const auto& hdr : parsed_headers_)
     {
         if (isspace(hdr[0]))
-            line += trim_copy(hdr);
+            // Folding header line.
+            line += hdr.substr(1);
         else
         {
             if (!line.empty())
