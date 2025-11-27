@@ -43,6 +43,14 @@ namespace mailio
 
 /**
 IMAP client implementation.
+
+The order of connection is prioritized as: start tls, ssl, plain tcp. By default, IMAP tries to connect over start tls. If the start tls is switched off, then it
+connects over ssl. If the ssl is switched off, then it connects over plain tcp.
+
+The start tls needs ssl options to be set so they could be used once the connection is switched from tcp to tls. For that reason, the ssl options are
+internally set to default values, but they can be modified over `ssl_options()`. If a user does not want the start tls, it can turn it off over
+`start_tls(false)`. Turning off the start tls switches IMAP to the ssl connection. In order to switch off ssl completely, it has to be done explicitly by setting
+`ssl_options(std::nullopt)`. With both start tls and ssl switched off, the IMAP connection is plain tcp.
 **/
 class MAILIO_EXPORT imap
 {

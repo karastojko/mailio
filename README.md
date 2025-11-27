@@ -154,8 +154,8 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * Editing parts of a message.
 * IMAP flags.
 * Asynchronous I/O.
-* More descriptive error messages.
 * External initialization of the SSL context.
+* IMAP copy command.
 
 
 # Contributors #
