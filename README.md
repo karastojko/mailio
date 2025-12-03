@@ -189,6 +189,7 @@ in case I missed someone please let me know.
 * [stitch3210](https://github.com/stitch3210): Case insensitive headers.
 * [Luigi Masdea](luigimasdea0[at]gmail.com): Typo error.
 * [Charlie Wolf](charlie[at]wolf.is): Additional attributes in the content type.
+* [Mateusz Golebiewski](https://github.com/ubinoob1): Fix for EHLO not being sent after STARTTLS.
 
 
 # References #
