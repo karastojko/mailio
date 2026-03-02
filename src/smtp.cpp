@@ -221,7 +221,7 @@ void smtp::auth_login(const string& username, const string& password)
         throw smtp_error("Authentication rejection.", std::get<2>(tokens));
 
     // TODO: Use static encode from the Base64 codec.
-    base64 b64(static_cast<string::size_type>(codec::line_len_policy_t::RECOMMENDED), static_cast<string::size_type>(codec::line_len_policy_t::RECOMMENDED));
+    base64 b64(static_cast<string::size_type>(codec::line_len_policy_t::MANDATORY), static_cast<string::size_type>(codec::line_len_policy_t::MANDATORY));
     auto user_v = b64.encode(username);
     string cmd = user_v.empty() ? "" : user_v[0];
     dlg_->send(cmd);
