@@ -11,6 +11,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 */
 
 
+#include <cctype>
 #include <string>
 #include <sstream>
 #include <iomanip>
