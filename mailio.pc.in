@@ -1,13 +1,12 @@
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-sharedlibdir=@libdir@
-includedir=@includedir@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_LIBDIR@
+sharedlibdir=@CMAKE_INSTALL_LIBDIR@
+includedir=@CMAKE_INSTALL_INCLUDEDIR@
 
-Name: mailio
-Description: Cross-platform MIME library for SMTP, POP3, and IMAP protocols
+Name: @PROJECT_NAME@
+Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
 Requires:
-Libs: -L${libdir} -L${sharedlibdir} -lmailio
+Libs: -L${libdir} -L${sharedlibdir} -l@PROJECT_NAME@
 Cflags: -I${includedir}
- 

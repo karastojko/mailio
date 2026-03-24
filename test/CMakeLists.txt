@@ -1,20 +1,29 @@
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+# Dependencies
+find_package("Boost" REQUIRED COMPONENTS "unit_test_framework")
 
-function(add_mailio_tests SOURCE_FILE)
-    get_filename_component(file_name ${SOURCE_FILE} NAME_WE)
-    add_executable(${file_name} ${SOURCE_FILE})
-    add_test(NAME ${file_name} COMMAND ${file_name})
+# Makes a new target for each test file.
+function(make_test test_file)
+    # Target
+    enable_testing()
     include("CTest")
-    set_tests_properties(${file_name} PROPERTIES WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/test")
-    if(${MAILIO_DYN_LINK_TESTS})
-        add_definitions(-DBOOST_TEST_DYN_LINK)
-    endif()
-    target_link_directories(${file_name} PUBLIC ${Boost_LIBRARY_DIRS})
-    target_link_libraries(${file_name} PUBLIC ${Boost_LIBRARIES} mailio ${CMAKE_THREAD_LIBS_INIT})
-    install(TARGETS ${file_name} DESTINATION "${SHARE_INSTALL_DIR}/${PROJECT_NAME}/test")
-endfunction(add_mailio_tests)
+    get_filename_component(TEST_TARGET "${test_file}" NAME_WE)
+    add_executable("${TEST_TARGET}" ${test_file})
+    add_test(
+        NAME "${TEST_TARGET}"
+        COMMAND "${TEST_TARGET}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/")
 
-file(GLOB test_files ${CMAKE_CURRENT_SOURCE_DIR}/test*.cpp)
-foreach(file_name ${test_files})
-    add_mailio_tests(${file_name})
-endforeach(file_name ${test_files})
+    if(${MAILIO_DYN_LINK_TESTS})
+        target_compile_definitions("${TEST_TARGET}" PRIVATE "BOOST_TEST_DYN_LINK")
+    endif()
+
+    # Link libraries
+    target_link_libraries("${TEST_TARGET}" PRIVATE "${PROJECT_NAME}")
+    target_link_libraries("${TEST_TARGET}" PRIVATE "Boost::unit_test_framework")
+endfunction()
+
+file(GLOB TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
+foreach(file ${TEST_FILES})
+    make_test("${file}")
+endforeach()
