@@ -22,11 +22,10 @@ include("GenerateExportHeader")
 include("GNUInstallDirs")
 
 # Options
-option(BUILD_SHARED_LIBS "Turn on to build mailio as a shared library. When off mailio is build as a static library."
-       ON)
-option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." ON)
+option(BUILD_SHARED_LIBS "Turn on to build mailio as a shared library. When off mailio is build as a static library." ON)
+option(MAILIO_BUILD_DOCUMENTATION "Turn on to build doxygen based documentation." OFF)
 option(MAILIO_BUILD_EXAMPLES "Turn on to build examples." ON)
-option(MAILIO_BUILD_LATEX_DOCUMENTATION "Turn on to build latex documentation." ON)
+option(MAILIO_BUILD_LATEX_DOCUMENTATION "Turn on to build latex documentation." OFF)
 option(MAILIO_BUILD_TESTS "Turn on to build the tests." ON)
 option(MAILIO_DYN_LINK_TESTS "Turn on to dynamically link the tests.")
 
