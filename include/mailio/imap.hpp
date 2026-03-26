@@ -18,6 +18,7 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #pragma warning(disable:4251)
 #endif
 
+#include <atomic>
 #include <chrono>
 #include <list>
 #include <map>
@@ -127,6 +128,44 @@ public:
     - LOGIN: The username and password are sent in plain format.
     **/
     enum class auth_method_t {LOGIN};
+
+    /**
+    IDLE notification types per RFC 2177.
+
+    The following notification types are defined:
+    - EXISTS: New message arrived in the mailbox.
+    - EXPUNGE: Message was deleted from the mailbox.
+    - FETCH: Message flags were changed.
+    **/
+    enum class idle_notification_type_t {EXISTS, EXPUNGE, FETCH};
+
+    /**
+    Single IDLE notification from server.
+    **/
+    struct idle_response_t
+    {
+        /**
+        Type of the notification.
+        **/
+        idle_notification_type_t type;
+
+        /**
+        Message sequence number associated with the notification.
+        **/
+        unsigned long message_no;
+
+        /**
+        Original server response line for debugging purposes.
+        **/
+        std::string raw_response;
+
+        /**
+        Setting default values.
+        **/
+        idle_response_t() : type(idle_notification_type_t::EXISTS), message_no(0)
+        {
+        }
+    };
 
     /**
     Single message ID or range of message IDs to be searched for.
@@ -534,6 +573,57 @@ public:
     **/
     std::string folder_delimiter();
 
+    /**
+    Querying server capabilities.
+
+    Sends the CAPABILITY command to the server and returns the list of supported capabilities.
+    The result is cached for subsequent calls.
+
+    @return           List of capability strings advertised by the server.
+    @throw imap_error Capability query failure.
+    @throw imap_error Parsing failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    std::list<std::string> capability();
+
+    /**
+    Checking if server supports a specific capability.
+
+    Queries capabilities if not already cached, then checks for the specified capability (case-insensitive).
+
+    @param cap        Capability name to check for (e.g., "IDLE", "UIDPLUS").
+    @return           True if the server advertises the capability, false otherwise.
+    @throw *          `capability()`.
+    **/
+    bool has_capability(const std::string& cap);
+
+    /**
+    Enter IDLE mode and wait for mailbox notifications.
+
+    A mailbox must be selected before calling this method. The method blocks until either a notification is received,
+    the timeout expires, or idle_done() is called from another thread.
+
+    Note: idle_done() requests termination of IDLE mode. The actual interruption depends on the underlying dialog I/O
+    (e.g. a pending receive operation may need to complete or timeout before the request is observed).
+
+    Note: Per RFC 2177, IDLE should be re-issued every 29 minutes. Some servers (e.g., Gmail) may timeout earlier (~10 minutes).
+
+    @param timeout Maximum time to wait in IDLE mode. If zero, uses default of 29 minutes.
+    @return        List of notifications received during IDLE.
+    @throw imap_error IDLE not supported by server.
+    @throw imap_error No mailbox selected.
+    @throw imap_error IDLE command failure.
+    @throw *          `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    **/
+    std::list<idle_response_t> idle(std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
+
+    /**
+    Request IDLE mode termination.
+
+    Can be called from another thread to request that idle() terminates. If not currently in IDLE mode, this method has no effect.
+    **/
+    void idle_done();
+
 protected:
 
     /**
@@ -691,6 +781,11 @@ protected:
     std::string folder_delimiter_;
 
     /**
+    Cached list of server capabilities.
+    **/
+    std::list<std::string> capabilities_;
+
+    /**
     Parsed elements of IMAP response line.
     **/
     struct tag_result_response_t
@@ -821,6 +916,16 @@ protected:
     Tag used to identify requests and responses.
     **/
     unsigned tag_;
+
+    /**
+    Flag indicating if IDLE mode is currently active.
+    **/
+    std::atomic_bool idle_active_;
+
+    /**
+    Tag used for the current IDLE command to match the terminating response.
+    **/
+    unsigned idle_tag_;
 
     /**
     Token of the response defined by the grammar.

@@ -195,7 +195,8 @@ string imap::tag_result_response_t::to_string() const
 
 
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
-    dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true), tag_(0), optional_part_state_(false), atom_state_(atom_state_t::NONE),
+    dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true), tag_(0), idle_active_(false), idle_tag_(0),
+    optional_part_state_(false), atom_state_(atom_state_t::NONE),
     parenthesis_list_counter_(0), literal_state_(string_literal_state_t::NONE), literal_bytes_read_(0), eols_no_(2)
 {
     ssl_options_ =
@@ -1101,6 +1102,271 @@ string imap::folder_delimiter()
     {
         throw imap_error("Parsing failure.", exc.what());
     }
+}
+
+
+list<string> imap::capability()
+{
+    try
+    {
+        if (capabilities_.empty())
+        {
+            dlg_->send(format("CAPABILITY"));
+            bool has_more = true;
+            while (has_more)
+            {
+                reset_response_parser();
+                string line = dlg_->receive();
+                tag_result_response_t parsed_line = parse_tag_result(line);
+
+                if (parsed_line.tag == UNTAGGED_RESPONSE)
+                {
+                    parse_response(parsed_line.response);
+
+                    if (mandatory_part_.empty())
+                        continue;
+
+                    auto token = mandatory_part_.front();
+                    if (token->token_type != response_token_t::token_type_t::ATOM || !iequals(token->atom, "CAPABILITY"))
+                        continue;
+                    mandatory_part_.pop_front();
+
+                    // Extract all capability names from the response
+                    for (auto it = mandatory_part_.begin(); it != mandatory_part_.end(); it++)
+                        if ((*it)->token_type == response_token_t::token_type_t::ATOM)
+                            capabilities_.push_back((*it)->atom);
+                }
+                else if (parsed_line.tag == to_string(tag_))
+                {
+                    if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
+                        throw imap_error("Capability query failure.", "Line=`" + line + "`.");
+
+                    has_more = false;
+                }
+                else
+                    throw imap_error("Parsing failure.", "Tag=`" + parsed_line.tag + "`.");
+            }
+        }
+
+        reset_response_parser();
+        return capabilities_;
+    }
+    catch (const invalid_argument& exc)
+    {
+        throw imap_error("Parsing failure.", exc.what());
+    }
+    catch (const out_of_range& exc)
+    {
+        throw imap_error("Parsing failure.", exc.what());
+    }
+}
+
+
+bool imap::has_capability(const string& cap)
+{
+    if (capabilities_.empty())
+        capability();
+
+    for (const auto& c : capabilities_)
+        if (iequals(c, cap))
+            return true;
+
+    return false;
+}
+
+
+list<imap::idle_response_t> imap::idle(milliseconds timeout)
+{
+    // Check if IDLE is supported
+    if (!has_capability("IDLE"))
+        throw imap_error("IDLE not supported by server.", "");
+
+    // Default timeout is 29 minutes per RFC 2177 recommendation
+    const milliseconds DEFAULT_IDLE_TIMEOUT = milliseconds(29 * 60 * 1000);
+    if (timeout == milliseconds(0))
+        timeout = DEFAULT_IDLE_TIMEOUT;
+
+    list<idle_response_t> responses;
+
+    // Track start time for timeout handling
+    auto idle_start_time = std::chrono::steady_clock::now();
+
+    // Send IDLE command with tag
+    string cmd = format("IDLE");
+    idle_tag_ = tag_;
+    dlg_->send(cmd);
+    idle_active_.store(true);
+
+    bool has_more = true;
+    bool idle_started = false;
+    bool idle_terminated = false;
+    bool done_sent = false;
+
+    auto try_parse_idle_notification = [&](const string& raw_line) -> std::optional<idle_response_t>
+        {
+            if (mandatory_part_.size() < 2)
+                return std::nullopt;
+            auto it = mandatory_part_.begin();
+            auto value_token = *it;
+            ++it;
+            auto type_token = *it;
+
+            if (value_token->token_type != response_token_t::token_type_t::ATOM || type_token->token_type != response_token_t::token_type_t::ATOM)
+                return std::nullopt;
+
+            idle_response_t notification;
+            notification.raw_response = raw_line;
+
+            if (iequals(type_token->atom, "EXISTS"))
+                notification.type = idle_notification_type_t::EXISTS;
+            else if (iequals(type_token->atom, "EXPUNGE"))
+                notification.type = idle_notification_type_t::EXPUNGE;
+            else if (iequals(type_token->atom, "FETCH"))
+                notification.type = idle_notification_type_t::FETCH;
+            else
+                return std::nullopt;
+
+            notification.message_no = stoul(value_token->atom);
+            return notification;
+        };
+
+    try
+    {
+        while (has_more && idle_active_.load())
+        {
+            // Check if IDLE timeout has been reached
+            auto elapsed = std::chrono::duration_cast<milliseconds>(
+                std::chrono::steady_clock::now() - idle_start_time);
+            if (elapsed >= timeout)
+            {
+                // Timeout reached, exit IDLE mode cleanly
+                idle_active_.store(false);
+                break;
+            }
+
+            reset_response_parser();
+            string line = dlg_->receive();
+            tag_result_response_t parsed_line = parse_tag_result(line);
+
+            if (parsed_line.tag == CONTINUE_RESPONSE)
+            {
+                // Server acknowledged IDLE mode, we're now idling
+                idle_started = true;
+                continue;
+            }
+            else if (parsed_line.tag == UNTAGGED_RESPONSE)
+            {
+                // Parse notification responses during IDLE
+                parse_response(parsed_line.response);
+
+                auto notification = try_parse_idle_notification(line);
+                if (notification.has_value())
+                {
+                    responses.push_back(notification.value());
+                    // Exit IDLE mode after receiving the first notification.
+                    idle_active_.store(false);
+                }
+            }
+            else if (parsed_line.tag == to_string(idle_tag_))
+            {
+                // Tagged response ends IDLE mode
+                if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
+                    throw imap_error("IDLE command failure.", "Response=`" + parsed_line.response + "`.");
+
+                has_more = false;
+                idle_terminated = true;
+            }
+            else
+                throw imap_error("Parsing failure.", "Line=`" + line + "`.");
+        }
+
+        // If loop exited due to timeout/notification/idle_done(), and we haven't got the terminating tagged response yet,
+        // send DONE and wait for the tagged OK response.
+        if (has_more && idle_started && !idle_terminated && !done_sent)
+        {
+            dlg_->send("DONE");
+            done_sent = true;
+
+            // Wait for the tagged OK response
+            while (has_more)
+            {
+                reset_response_parser();
+                string line = dlg_->receive();
+                tag_result_response_t parsed_line = parse_tag_result(line);
+
+                if (parsed_line.tag == UNTAGGED_RESPONSE)
+                {
+                    // Collect any remaining notifications
+                    parse_response(parsed_line.response);
+                    auto notification = try_parse_idle_notification(line);
+                    if (notification.has_value())
+                        responses.push_back(notification.value());
+                }
+                else if (parsed_line.tag == to_string(idle_tag_))
+                {
+                    if (!parsed_line.result.has_value() || parsed_line.result.value() != tag_result_response_t::OK)
+                        throw imap_error("IDLE command failure.", "Response=`" + parsed_line.response + "`.");
+
+                    has_more = false;
+                    idle_terminated = true;
+                }
+                else
+                    throw imap_error("Parsing failure.", "Line=`" + line + "`.");
+            }
+        }
+    }
+    catch (const dialog_error& exc)
+    {
+        // Network timeout during IDLE - exit cleanly if IDLE was started
+        if (idle_started && idle_active_.load())
+        {
+            idle_active_.store(false);
+            try
+            {
+                if (!done_sent && !idle_terminated)
+                {
+                    dlg_->send("DONE");
+                    done_sent = true;
+                }
+                // Try to read the tagged response
+                bool waiting_for_tag = true;
+                while (waiting_for_tag)
+                {
+                    reset_response_parser();
+                    string line = dlg_->receive();
+                    tag_result_response_t parsed_line = parse_tag_result(line);
+                    if (parsed_line.tag == to_string(idle_tag_))
+                        waiting_for_tag = false;
+                }
+            }
+            catch (...)
+            {
+                // Connection might be dead, just clean up
+            }
+        }
+        idle_active_.store(false);
+        throw;
+    }
+    catch (const invalid_argument& exc)
+    {
+        idle_active_.store(false);
+        throw imap_error("Parsing failure.", exc.what());
+    }
+    catch (const out_of_range& exc)
+    {
+        idle_active_.store(false);
+        throw imap_error("Parsing failure.", exc.what());
+    }
+
+    idle_active_.store(false);
+    reset_response_parser();
+    return responses;
+}
+
+
+void imap::idle_done()
+{
+    idle_active_.store(false);
 }
 
 
