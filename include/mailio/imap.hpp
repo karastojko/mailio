@@ -314,7 +314,7 @@ public:
     @param line_policy    Decoder line policy to use while parsing each message.
     @throw imap_error     Fetching message failure.
     @throw imap_error     Parsing failure.
-    @throw *              `parse_tag_result(const string&)`, `parse_response(const string&)`,
+    @throw *              `parse_tag_result(const string&)`, `parse_grammar(const string&)`,
                           `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo                 Add server error messages to exceptions.
     **/
@@ -350,7 +350,7 @@ public:
     @return           Mailbox statistics.
     @throw imap_error Parsing failure.
     @throw imap_error Getting statistics failure.
-    @throw *          `parse_tag_result(const string&)`, `parse_response(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
+    @throw *          `parse_tag_result(const string&)`, `parse_grammar(const string&)`, `dialog::send(const string&)`, `dialog::receive()`.
     @todo             Add server error messages to exceptions.
     @todo             Exceptions by `stoul()` should be rethrown as parsing failure.
     **/
@@ -757,17 +757,17 @@ protected:
 
     This is the main function that deals with the IMAP grammar.
 
-    @param response   Response to parse without tag and result.
-    @throw imap_error Parser failure.
-    @throw *          `std::stoul`.
-    @todo             Perhaps the error should point to a part of the string where the parsing fails.
+    @param imap_string IMAP tokens to be parsed as specified by the RFC.
+    @throw imap_error  Parser failure.
+    @throw *           `std::stoul`.
+    @todo              Perhaps the error should point to a part of the string where the parsing fails.
     **/
-    void parse_response(const std::string& response);
+    void parse_grammar(const std::string& imap_string);
 
     /**
     Resetting the parser state to the initial one.
     **/
-    void reset_response_parser();
+    void reset_grammar_parser();
 
     /**
     Formatting a tagged command.
@@ -792,6 +792,18 @@ protected:
     @return            Formatted string.
     **/
     std::string folder_tree_to_string(const std::list<std::string>& folder_tree, std::string delimiter) const;
+
+    /**
+    Parsing the string literal as defined by IMAP.
+
+    The method is unfortunately tied to the states controlled by `parse_grammar()` and the main loop iterator. It keeps the static variable to count string
+    characters read so far.
+
+    @param imap_string_end Past the end iterator of the IMAP response.
+    @param cur_char        Current char while the IMAP grammar is being parsed.
+    @throw imap_error      Parsing failure.
+    **/
+    void parse_string_literal(std::string::const_iterator imap_string_end, std::string::const_iterator& cur_char);
 
     /**
     Converting gregorian date to string required by IMAP searching condition.
@@ -893,12 +905,7 @@ protected:
     /**
     Parser state if a string literal is reached.
     **/
-    enum class string_literal_state_t {NONE, SIZE, WAITING, READING, DONE} literal_state_;
-
-    /**
-    Keeping the number of bytes read so far while parsing a string literal.
-    **/
-    std::string::size_type literal_bytes_read_;
+    enum class string_literal_state_t {NONE, READING, DONE} literal_state_;
 
     /**
     Finding last token of the list at the given depth in terms of parenthesis count.

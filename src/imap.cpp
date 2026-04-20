@@ -196,7 +196,7 @@ string imap::tag_result_response_t::to_string() const
 
 imap::imap(const string& hostname, unsigned port, milliseconds timeout) :
     dlg_(make_shared<dialog>(hostname, port, timeout)), is_start_tls_(true), tag_(0), optional_part_state_(false), atom_state_(atom_state_t::NONE),
-    parenthesis_list_counter_(0), literal_state_(string_literal_state_t::NONE), literal_bytes_read_(0), eols_no_(2)
+    parenthesis_list_counter_(0), literal_state_(string_literal_state_t::NONE), eols_no_(2)
 {
     ssl_options_ =
         {
@@ -260,10 +260,10 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
     {
         while (has_more)
         {
-            reset_response_parser();
+            reset_grammar_parser();
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
-            parse_response(parsed_line.response);
+            parse_grammar(parsed_line.response);
 
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
@@ -343,7 +343,7 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
     if (!exists_found || !recent_found)
         throw imap_error("No number of existing or recent messages.", "");
 
-    reset_response_parser();
+    reset_grammar_parser();
     return stat;
 }
 
@@ -399,14 +399,14 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
     {
         while (has_more)
         {
-            reset_response_parser();
+            reset_grammar_parser();
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
 
             // The untagged response collects all messages.
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
-                parse_response(parsed_line.response);
+                parse_grammar(parsed_line.response);
 
                 if (mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM)
                     throw imap_error("Number expected when fetching a message.", "Response=`" + parsed_line.response + ".`");
@@ -451,7 +451,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         string line = dlg_->receive(true);
                         if (!line.empty())
                             trim_eol(line);
-                        parse_response(line);
+                        parse_grammar(line);
                     }
                     // Closing parenthesis not yet read.
                     if (literal_state_ == string_literal_state_t::DONE && parenthesis_list_counter_ > 0)
@@ -460,7 +460,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                         if (!line.empty())
                             trim_eol(line);
                         // There could be a parenthesized list after the string literal. Read it and do nothing.
-                        parse_response(line);
+                        parse_grammar(line);
                     }
                     msg_str.emplace(is_uids ? uid_no : sequence_no, move(literal_token->literal));
 
@@ -501,7 +501,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
         throw imap_error("Parsing failure.", exc.what());
     }
 
-    reset_response_parser();
+    reset_grammar_parser();
 }
 
 
@@ -566,13 +566,13 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
     {
         while (has_more)
         {
-            reset_response_parser();
+            reset_grammar_parser();
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
 
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
-                parse_response(parsed_line.response);
+                parse_grammar(parsed_line.response);
                 if (!iequals(mandatory_part_.front()->atom, "STATUS"))
                     throw imap_error("Expecting the status atom.", "Line=`" + line + "`.");
                 mandatory_part_.pop_front();
@@ -644,7 +644,7 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
         throw imap_error("Parsing failure.", exc.what());
     }
 
-    reset_response_parser();
+    reset_grammar_parser();
     return stat;
 }
 
@@ -685,13 +685,13 @@ void imap::remove(unsigned long message_no, bool is_uid)
     {
         while (has_more)
         {
-            reset_response_parser();
+            reset_grammar_parser();
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
 
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
-                parse_response(parsed_line.response);
+                parse_grammar(parsed_line.response);
 
                 if (mandatory_part_.empty())
                     throw imap_error("No mandatory part.", "Response=`" + parsed_line.response + "`.");
@@ -746,7 +746,7 @@ void imap::remove(unsigned long message_no, bool is_uid)
                     throw imap_error("Deleting message failure.", "");
                 else
                 {
-                    reset_response_parser();
+                    reset_grammar_parser();
                     dlg_->send(format("CLOSE"));
                     string line = dlg_->receive();
                     tag_result_response_t parsed_line = parse_tag_result(line);
@@ -824,7 +824,7 @@ auto imap::list_folders(const string& folder_name) -> mailbox_folder_t
         {
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
-            parse_response(parsed_line.response);
+            parse_grammar(parsed_line.response);
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
                 auto token = mandatory_part_.front();
@@ -857,7 +857,7 @@ auto imap::list_folders(const string& folder_name) -> mailbox_folder_t
             {
                 has_more = false;
             }
-            reset_response_parser();
+            reset_grammar_parser();
         }
     }
     catch (const invalid_argument& exc)
@@ -996,12 +996,12 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
     {
         while (has_more)
         {
-            reset_response_parser();
+            reset_grammar_parser();
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
-                parse_response(parsed_line.response);
+                parse_grammar(parsed_line.response);
 
                 auto search_token = mandatory_part_.front();
                 // ignore other responses, although not sure whether this is by the rfc or not
@@ -1039,7 +1039,7 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
     {
         throw imap_error("Parsing failure.", exc.what());
     }
-    reset_response_parser();
+    reset_grammar_parser();
 }
 
 
@@ -1069,7 +1069,7 @@ string imap::folder_delimiter()
                 tag_result_response_t parsed_line = parse_tag_result(line);
                 if (parsed_line.tag == UNTAGGED_RESPONSE && folder_delimiter_.empty())
                 {
-                    parse_response(parsed_line.response);
+                    parse_grammar(parsed_line.response);
                     if (!iequals(mandatory_part_.front()->atom, "LIST"))
                         throw imap_error("Incorrect atom parsed.", "Line=`" + line + "`.");
                     mandatory_part_.pop_front();
@@ -1080,7 +1080,7 @@ string imap::folder_delimiter()
                     if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
                         throw imap_error("Incorrect atom parsed.", "");
                     folder_delimiter_ = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
-                    reset_response_parser();
+                    reset_grammar_parser();
                 }
                 else if (parsed_line.tag == to_string(tag_))
                 {
@@ -1145,44 +1145,28 @@ Token of the grammar is defined by `response_token_t` and stores one of the thre
 sequence of tokens. When a character is read, it belongs to the last token of the sequence of tokens at the given parenthesis depth. The last token
 of the response expression is found by getting the last token of the token sequence at the given depth (in terms of parenthesis count).
 */
-void imap::parse_response(const string& response)
+void imap::parse_grammar(const string& imap_string)
 {
     list<shared_ptr<imap::response_token_t>>* token_list;
-
-    if (literal_state_ == string_literal_state_t::READING)
-    {
-        token_list = optional_part_state_ ? find_last_token_list(optional_part_) : find_last_token_list(mandatory_part_);
-        if (token_list->back()->token_type == response_token_t::token_type_t::LITERAL && literal_bytes_read_ > token_list->back()->literal.size())
-            throw imap_error("Parser failure.", "");
-        unsigned long literal_size = stoul(token_list->back()->literal_size);
-        if (literal_bytes_read_ + response.size() < literal_size)
-        {
-            token_list->back()->literal += response + codec::END_OF_LINE;
-            literal_bytes_read_ += response.size() + eols_no_;
-            if (literal_bytes_read_ == literal_size)
-                literal_state_ = string_literal_state_t::DONE;
-            return;
-        }
-        else
-        {
-            string::size_type resp_len = response.size();
-            token_list->back()->literal += response.substr(0, literal_size - literal_bytes_read_);
-            literal_bytes_read_ += literal_size - literal_bytes_read_;
-            literal_state_ = string_literal_state_t::DONE;
-            parse_response(response.substr(resp_len - (literal_size - literal_bytes_read_) - 1));
-            return;
-        }
-    }
-
     shared_ptr<response_token_t> cur_token;
-    for (auto ch : response)
+    auto cur_char = imap_string.cbegin();
+    do
     {
-        switch (ch)
+        if (literal_state_ == string_literal_state_t::READING)
+        {
+            parse_string_literal(imap_string.cend(), cur_char);
+            // `cur_char` is incremented in `parse_string_literal()`, so no need to do it here.
+            continue;
+        }
+
+        // Parse optional part, atoms, lists.
+
+        switch (*cur_char)
         {
             case OPTIONAL_BEGIN:
             {
                 if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
+                    cur_token->atom += *cur_char;
                 else
                 {
                     if (optional_part_state_)
@@ -1196,7 +1180,7 @@ void imap::parse_response(const string& response)
             case OPTIONAL_END:
             {
                 if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
+                    cur_token->atom += *cur_char;
                 else
                 {
                     if (!optional_part_state_)
@@ -1211,7 +1195,7 @@ void imap::parse_response(const string& response)
             case LIST_BEGIN:
             {
                 if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
+                    cur_token->atom += *cur_char;
                 else
                 {
                     cur_token = make_shared<response_token_t>();
@@ -1227,7 +1211,7 @@ void imap::parse_response(const string& response)
             case LIST_END:
             {
                 if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
+                    cur_token->atom += *cur_char;
                 else
                 {
                     if (parenthesis_list_counter_ == 0)
@@ -1242,47 +1226,20 @@ void imap::parse_response(const string& response)
             case STRING_LITERAL_BEGIN:
             {
                 if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
+                    cur_token->atom += *cur_char;
                 else
-                {
-                    if (literal_state_ == string_literal_state_t::SIZE)
-                        throw imap_error("Parser failure.", "");
-
-                    cur_token = make_shared<response_token_t>();
-                    cur_token->token_type = response_token_t::token_type_t::LITERAL;
-                    token_list = optional_part_state_ ? find_last_token_list(optional_part_) : find_last_token_list(mandatory_part_);
-                    token_list->push_back(cur_token);
-                    literal_state_ = string_literal_state_t::SIZE;
-                    atom_state_ = atom_state_t::NONE;
-                }
-            }
-            break;
-
-            case STRING_LITERAL_END:
-            {
-                if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
-                else
-                {
-                    if (literal_state_ == string_literal_state_t::NONE)
-                        throw imap_error("Parser failure.", "");
-
-                    literal_state_ = string_literal_state_t::WAITING;
-                }
+                    parse_string_literal(imap_string.cend(), cur_char);
             }
             break;
 
             case TOKEN_SEPARATOR_CHAR:
             {
                 if (atom_state_ == atom_state_t::QUOTED)
-                    cur_token->atom +=ch;
-                else
+                    cur_token->atom += *cur_char;
+                else if (cur_token != nullptr)
                 {
-                    if (cur_token != nullptr)
-                    {
-                        trim(cur_token->atom);
-                        atom_state_ = atom_state_t::NONE;
-                    }
+                    trim(cur_token->atom);
+                    atom_state_ = atom_state_t::NONE;
                 }
             }
             break;
@@ -1303,7 +1260,7 @@ void imap::parse_response(const string& response)
                     if (token_list->back()->atom.back() != codec::BACKSLASH_CHAR)
                         atom_state_ = atom_state_t::NONE;
                     else
-                        token_list->back()->atom.back() = ch;
+                        token_list->back()->atom.back() = *cur_char;
                 }
             }
             break;
@@ -1311,21 +1268,11 @@ void imap::parse_response(const string& response)
             default:
             {
                 // Double backslash in an atom is translated to the single backslash.
-                if (ch == codec::BACKSLASH_CHAR && atom_state_ == atom_state_t::QUOTED && token_list->back()->atom.back() == codec::BACKSLASH_CHAR)
+                if (*cur_char == codec::BACKSLASH_CHAR && atom_state_ == atom_state_t::QUOTED && token_list->back()->atom.back() == codec::BACKSLASH_CHAR)
                     break;
 
-                if (literal_state_ == string_literal_state_t::SIZE)
-                {
-                    if (!isdigit(ch))
-                        throw imap_error("Parser failure.", "");
-
-                    cur_token->literal_size += ch;
-                }
-                else if (literal_state_ == string_literal_state_t::WAITING)
-                {
-                    // no characters allowed after the right brace, crlf is required
-                    throw imap_error("Parser failure.", "");
-                }
+                if (literal_state_ != string_literal_state_t::NONE)
+                    parse_string_literal(imap_string.cend(), cur_char);
                 else
                 {
                     if (atom_state_ == atom_state_t::NONE)
@@ -1336,17 +1283,16 @@ void imap::parse_response(const string& response)
                         token_list->push_back(cur_token);
                         atom_state_ = atom_state_t::PLAIN;
                     }
-                    cur_token->atom += ch;
+                    cur_token->atom += *cur_char;
                 }
             }
         }
+        cur_char++;
     }
-
-    if (literal_state_ == string_literal_state_t::WAITING)
-        literal_state_ = string_literal_state_t::READING;
+    while (cur_char != imap_string.cend());
 }
 
-void imap::reset_response_parser()
+void imap::reset_grammar_parser()
 {
     optional_part_.clear();
     mandatory_part_.clear();
@@ -1354,7 +1300,6 @@ void imap::reset_response_parser()
     atom_state_ = atom_state_t::NONE;
     parenthesis_list_counter_ = 0;
     literal_state_ = string_literal_state_t::NONE;
-    literal_bytes_read_ = 0;
     eols_no_ = 2;
 }
 
@@ -1387,6 +1332,62 @@ string imap::folder_tree_to_string(const list<string>& folder_tree, string delim
         else
             folders += f;
     return folders;
+}
+
+
+void imap::parse_string_literal(string::const_iterator imap_string_end, string::const_iterator& cur_char)
+{
+    // Number of bytes read so far while parsing a string literal.
+    static string::size_type literal_bytes_read = 0;
+    auto token_list = optional_part_state_ ? find_last_token_list(optional_part_) : find_last_token_list(mandatory_part_);
+
+    // The string is about to start, parse its length.
+    if (literal_state_ == string_literal_state_t::NONE && *cur_char == STRING_LITERAL_BEGIN)
+    {
+        cur_char++;
+        auto cur_token = make_shared<response_token_t>();
+        cur_token->token_type = response_token_t::token_type_t::LITERAL;
+        token_list->push_back(cur_token);
+        atom_state_ = atom_state_t::NONE;
+        literal_state_ = string_literal_state_t::READING;
+
+        // Parse the literal size.
+        while (cur_char != imap_string_end && *cur_char != STRING_LITERAL_END)
+        {
+            if (!isdigit(*cur_char))
+                throw imap_error("Parser failure.", "Non-digit character in the string literal size.");
+            else
+                cur_token->literal_size += *cur_char;
+            cur_char++;
+        }
+    }
+    // The literal is being read, it can be spread over multiple lines.
+    else if (literal_state_ == string_literal_state_t::READING)
+    {
+        auto cur_token = token_list->back();
+        unsigned long literal_size = stoul(cur_token->literal_size);
+
+        // Read a line but not exceeding the given string size.
+        while (cur_char != imap_string_end && literal_bytes_read < literal_size)
+        {
+            cur_token->literal += *cur_char;
+            literal_bytes_read++;
+            cur_char++;
+        }
+
+        // Store the string line. If there are more characters after the string literal, they are left for parsing in the `parse_grammar()`.
+        if (literal_bytes_read < literal_size)
+        {
+            cur_token->literal += codec::END_OF_LINE;
+            literal_bytes_read += eols_no_;
+        }
+
+        if (literal_bytes_read >= literal_size)
+        {
+            literal_state_ = string_literal_state_t::DONE;
+            literal_bytes_read = 0;
+        }
+    }
 }
 
 
