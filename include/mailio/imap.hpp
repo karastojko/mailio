@@ -840,7 +840,7 @@ protected:
     Its type is determined by the content, and can be either atom, string literal or parenthesized list. Thus, it can be considered as union of
     those three types.
     **/
-    struct response_token_t
+    struct grammar_token_t
     {
         /**
         Token type which can be empty in the case that is not determined yet, atom, string literal or parenthesized list.
@@ -867,12 +867,12 @@ protected:
 
         It can store either of the three types, so the definition is recursive.
         **/
-        std::list<std::shared_ptr<response_token_t>> parenthesized_list;
+        std::list<std::shared_ptr<grammar_token_t>> parenthesized_list;
 
         /**
         Default constructor.
         **/
-        response_token_t() : token_type(token_type_t::EMPTY)
+        grammar_token_t() : token_type(token_type_t::EMPTY)
         {
         }
     };
@@ -880,12 +880,12 @@ protected:
     /**
     Optional part of the response, determined by the square brackets.
     **/
-    std::list<std::shared_ptr<response_token_t>> optional_part_;
+    std::list<std::shared_ptr<grammar_token_t>> optional_part_;
 
     /**
     Mandatory part of the response, which is any text outside of the square brackets.
     **/
-    std::list<std::shared_ptr<response_token_t>> mandatory_part_;
+    std::list<std::shared_ptr<grammar_token_t>> mandatory_part_;
 
     /**
     Parser state if an optional part is reached.
@@ -915,7 +915,7 @@ protected:
     @param token_list Token sequence to traverse.
     @return           Last token of the given sequence at the current depth of parenthesis count.
     **/
-    std::list<std::shared_ptr<response_token_t>>* find_last_token_list(std::list<std::shared_ptr<response_token_t>>& token_list);
+    std::list<std::shared_ptr<grammar_token_t>>* find_last_token_list(std::list<std::shared_ptr<grammar_token_t>>& token_list);
 
     /**
     Keeping the number of end-of-line characters to be counted as additionals to a formatted line.

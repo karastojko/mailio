@@ -275,24 +275,24 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
 
                     auto key = optional_part_.front();
                     optional_part_.pop_front();
-                    if (key->token_type == response_token_t::token_type_t::ATOM)
+                    if (key->token_type == grammar_token_t::token_type_t::ATOM)
                     {
                         auto value = optional_part_.front();
                         if (iequals(key->atom, "UNSEEN"))
                         {
-                            if (value->token_type != response_token_t::token_type_t::ATOM)
+                            if (value->token_type != grammar_token_t::token_type_t::ATOM)
                                 throw imap_error("Number expected for unseen.", "Line=`" + line + "`.");
                             stat.messages_first_unseen = stoul(value->atom);
                         }
                         else if (iequals(key->atom, "UIDNEXT"))
                         {
-                            if (value->token_type != response_token_t::token_type_t::ATOM)
+                            if (value->token_type != grammar_token_t::token_type_t::ATOM)
                                 throw imap_error("Number expected for uidnext.", "Line=`" + line + "`.");
                             stat.uid_next = stoul(value->atom);
                         }
                         else if (iequals(key->atom, "UIDVALIDITY"))
                         {
-                            if (value->token_type != response_token_t::token_type_t::ATOM)
+                            if (value->token_type != grammar_token_t::token_type_t::ATOM)
                                 throw imap_error("Number expected for uidvalidity.", "Line=`" + line + "`.");
                             stat.uid_validity = stoul(value->atom);
                         }
@@ -300,7 +300,7 @@ auto imap::select(const string& mailbox, bool read_only) -> mailbox_stat_t
                 }
                 else
                 {
-                    if (mandatory_part_.size() == 2 && mandatory_part_.front()->token_type == response_token_t::token_type_t::ATOM)
+                    if (mandatory_part_.size() == 2 && mandatory_part_.front()->token_type == grammar_token_t::token_type_t::ATOM)
                     {
                         auto value = mandatory_part_.front();
                         mandatory_part_.pop_front();
@@ -427,7 +427,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
 
         // Extract the sequence number.
 
-        if (mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM)
+        if (mandatory_part_.front()->token_type != grammar_token_t::token_type_t::ATOM)
             throw imap_error("Number expected when fetching a message.", "");
 
         unsigned long sequence_no = stoul(mandatory_part_.front()->atom);
@@ -444,12 +444,12 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
         // Extract the fetch data which must come in a parenthesized list.
 
         auto data_list = mandatory_part_.front();
-        if (data_list->token_type != response_token_t::token_type_t::LIST)
+        if (data_list->token_type != grammar_token_t::token_type_t::LIST)
             throw imap_error("No data provided within the fetch response.", "");
 
         unsigned long uid_no = 0;
         for (auto token = data_list->parenthesized_list.begin(); token != data_list->parenthesized_list.end(); token++)
-            if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+            if ((*token)->token_type == grammar_token_t::token_type_t::ATOM)
             {
                 if (iequals((*token)->atom, "UID"))
                 {
@@ -461,7 +461,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                 else if (iequals((*token)->atom, RFC822_TOKEN))
                 {
                     token++;
-                    if ((*token)->token_type != response_token_t::token_type_t::LITERAL)
+                    if ((*token)->token_type != grammar_token_t::token_type_t::LITERAL)
                         throw imap_error("No literal when fetching a message.", "");
                     msg_str.emplace(is_uids ? uid_no : sequence_no, move((*token)->literal));
                 }
@@ -564,7 +564,7 @@ auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_
 
                 bool mess_found = false, recent_found = false;
                 for (auto it = mandatory_part_.begin(); it != mandatory_part_.end(); it++)
-                    if ((*it)->token_type == response_token_t::token_type_t::LIST && (*it)->parenthesized_list.size() >= 2)
+                    if ((*it)->token_type == grammar_token_t::token_type_t::LIST && (*it)->parenthesized_list.size() >= 2)
                     {
                         bool key_found = false;
                         string key;
@@ -695,10 +695,10 @@ void imap::remove(unsigned long message_no, bool is_uid)
                 if (mandatory_part_.empty())
                     throw imap_error("No mandatory part.", "Response=`" + parsed_line.response + "`.");
                 auto flags_token_list = mandatory_part_.front();
-                if (flags_token_list->token_type != response_token_t::token_type_t::LIST)
+                if (flags_token_list->token_type != grammar_token_t::token_type_t::LIST)
                     throw imap_error("Expecting the list.", "Line=`" + line + "`.");
 
-                std::shared_ptr<response_token_t> uid_token = nullptr;
+                std::shared_ptr<grammar_token_t> uid_token = nullptr;
                 auto uid_token_it = flags_token_list->parenthesized_list.begin();
                 do
                     if (iequals((*uid_token_it)->atom, "UID"))
@@ -720,7 +720,7 @@ void imap::remove(unsigned long message_no, bool is_uid)
                     msg_no_token = uid_token;
                 }
 
-                if (msg_no_token->token_type != response_token_t::token_type_t::ATOM || stoul(msg_no_token->atom) != message_no)
+                if (msg_no_token->token_type != grammar_token_t::token_type_t::ATOM || stoul(msg_no_token->atom) != message_no)
                     throw imap_error("Deleting message failure.", "");
 
                 continue;
@@ -821,7 +821,7 @@ auto imap::list_folders(const string& folder_name) -> mailbox_folder_t
                     throw imap_error("Listing folders failure.", "");
                 auto found_folder = mandatory_part_.begin();
                 found_folder++; found_folder++;
-                if (found_folder != mandatory_part_.end() && (*found_folder)->token_type == response_token_t::token_type_t::ATOM)
+                if (found_folder != mandatory_part_.end() && (*found_folder)->token_type == grammar_token_t::token_type_t::ATOM)
                 {
                     vector<string> folders_hierarchy;
                     // TODO: May `delim` contain more than one character?
@@ -990,12 +990,12 @@ void imap::search(const string& conditions, list<unsigned long>& results, bool w
 
                 auto search_token = mandatory_part_.front();
                 // ignore other responses, although not sure whether this is by the rfc or not
-                if (search_token->token_type == response_token_t::token_type_t::ATOM && !iequals(search_token->atom, "SEARCH"))
+                if (search_token->token_type == grammar_token_t::token_type_t::ATOM && !iequals(search_token->atom, "SEARCH"))
                     continue;
                 mandatory_part_.pop_front();
 
                 for (auto it = mandatory_part_.begin(); it != mandatory_part_.end(); it++)
-                    if ((*it)->token_type == response_token_t::token_type_t::ATOM)
+                    if ((*it)->token_type == grammar_token_t::token_type_t::ATOM)
                     {
                         const unsigned long idx = stoul((*it)->atom);
                         if (idx == 0)
@@ -1062,7 +1062,7 @@ string imap::folder_delimiter()
                     if (mandatory_part_.size() < 3)
                         throw imap_error("Determining folder delimiter failure.", "");
                     auto it = mandatory_part_.begin();
-                    if ((*(++it))->token_type != response_token_t::token_type_t::ATOM)
+                    if ((*(++it))->token_type != grammar_token_t::token_type_t::ATOM)
                         throw imap_error("Incorrect atom parsed.", "");
                     folder_delimiter_ = trim_copy_if((*it)->atom, [](char c ){ return c == QUOTED_STRING_SEPARATOR_CHAR; });
                     reset_grammar_parser();
@@ -1126,14 +1126,14 @@ parenthesized list:
 3. if a parenthesis is found, then a list is being read, so increase the parenthesis counter and proceed
 4. for a regular char check the state and determine if an atom or string size/literal is read
 
-Token of the grammar is defined by `response_token_t` and stores one of the three types. Since parenthesized list is recursively defined, it keeps
+Token of the grammar is defined by `grammar_token_t` and stores one of the three types. Since parenthesized list is recursively defined, it keeps
 sequence of tokens. When a character is read, it belongs to the last token of the sequence of tokens at the given parenthesis depth. The last token
 of the response expression is found by getting the last token of the token sequence at the given depth (in terms of parenthesis count).
 */
 void imap::parse_grammar(const string& imap_string)
 {
-    list<shared_ptr<imap::response_token_t>>* token_list;
-    shared_ptr<response_token_t> cur_token;
+    list<shared_ptr<imap::grammar_token_t>>* token_list;
+    shared_ptr<grammar_token_t> cur_token;
     auto cur_char = imap_string.cbegin();
     do
     {
@@ -1183,8 +1183,8 @@ void imap::parse_grammar(const string& imap_string)
                     cur_token->atom += *cur_char;
                 else
                 {
-                    cur_token = make_shared<response_token_t>();
-                    cur_token->token_type = response_token_t::token_type_t::LIST;
+                    cur_token = make_shared<grammar_token_t>();
+                    cur_token->token_type = grammar_token_t::token_type_t::LIST;
                     token_list = optional_part_state_ ? find_last_token_list(optional_part_) : find_last_token_list(mandatory_part_);
                     token_list->push_back(cur_token);
                     parenthesis_list_counter_++;
@@ -1233,8 +1233,8 @@ void imap::parse_grammar(const string& imap_string)
             {
                 if (atom_state_ == atom_state_t::NONE)
                 {
-                    cur_token = make_shared<response_token_t>();
-                    cur_token->token_type = response_token_t::token_type_t::ATOM;
+                    cur_token = make_shared<grammar_token_t>();
+                    cur_token->token_type = grammar_token_t::token_type_t::ATOM;
                     token_list = optional_part_state_ ? find_last_token_list(optional_part_) : find_last_token_list(mandatory_part_);
                     token_list->push_back(cur_token);
                     atom_state_ = atom_state_t::QUOTED;
@@ -1262,8 +1262,8 @@ void imap::parse_grammar(const string& imap_string)
                 {
                     if (atom_state_ == atom_state_t::NONE)
                     {
-                        cur_token = make_shared<response_token_t>();
-                        cur_token->token_type = response_token_t::token_type_t::ATOM;
+                        cur_token = make_shared<grammar_token_t>();
+                        cur_token->token_type = grammar_token_t::token_type_t::ATOM;
                         token_list = optional_part_state_ ? find_last_token_list(optional_part_) : find_last_token_list(mandatory_part_);
                         token_list->push_back(cur_token);
                         atom_state_ = atom_state_t::PLAIN;
@@ -1330,8 +1330,8 @@ void imap::parse_string_literal(string::const_iterator imap_string_end, string::
     if (literal_state_ == string_literal_state_t::NONE && *cur_char == STRING_LITERAL_BEGIN)
     {
         cur_char++;
-        auto cur_token = make_shared<response_token_t>();
-        cur_token->token_type = response_token_t::token_type_t::LITERAL;
+        auto cur_token = make_shared<grammar_token_t>();
+        cur_token->token_type = grammar_token_t::token_type_t::LITERAL;
         token_list->push_back(cur_token);
         atom_state_ = atom_state_t::NONE;
         literal_state_ = string_literal_state_t::READING;
@@ -1388,11 +1388,11 @@ string imap::imap_date_to_string(const boost::gregorian::date& gregorian_date)
 
 
 
-list<shared_ptr<imap::response_token_t>>* imap::find_last_token_list(list<shared_ptr<response_token_t>>& token_list)
+list<shared_ptr<imap::grammar_token_t>>* imap::find_last_token_list(list<shared_ptr<grammar_token_t>>& token_list)
 {
-    list<shared_ptr<response_token_t>>* list_ptr = &token_list;
+    list<shared_ptr<grammar_token_t>>* list_ptr = &token_list;
     unsigned int depth = 1;
-    while (!list_ptr->empty() && list_ptr->back()->token_type == response_token_t::token_type_t::LIST && depth <= parenthesis_list_counter_)
+    while (!list_ptr->empty() && list_ptr->back()->token_type == grammar_token_t::token_type_t::LIST && depth <= parenthesis_list_counter_)
     {
         list_ptr = &(list_ptr->back()->parenthesized_list);
         depth++;
