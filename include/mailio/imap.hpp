@@ -725,15 +725,15 @@ protected:
         {
         }
 
-        tag_result_response_t(const tag_result_response_t&) = delete;
+        tag_result_response_t(const tag_result_response_t&) = default;
 
-        tag_result_response_t(tag_result_response_t&&) = delete;
+        tag_result_response_t(tag_result_response_t&&) = default;
 
         ~tag_result_response_t() = default;
 
-        tag_result_response_t& operator=(const tag_result_response_t&) = delete;
+        tag_result_response_t& operator=(const tag_result_response_t&) = default;
 
-        tag_result_response_t& operator=(tag_result_response_t&&) = delete;
+        tag_result_response_t& operator=(tag_result_response_t&&) = default;
 
         /**
         Formatting the response line to a user friendly format.

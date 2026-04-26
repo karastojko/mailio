@@ -397,99 +397,84 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
     bool has_more = true;
     try
     {
+        // Parse IMAP response into tokens defined by the grammar.
+
         while (has_more)
         {
             reset_grammar_parser();
             string line = dlg_->receive();
             tag_result_response_t parsed_line = parse_tag_result(line);
 
-            // The untagged response collects all messages.
             if (parsed_line.tag == UNTAGGED_RESPONSE)
             {
-                parse_grammar(parsed_line.response);
-
-                if (mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM)
-                    throw imap_error("Number expected when fetching a message.", "Response=`" + parsed_line.response + ".`");
-
-                unsigned long sequence_no = stoul(mandatory_part_.front()->atom);
-                mandatory_part_.pop_front();
-                if (sequence_no == 0)
-                    throw imap_error("Zero sequence number when fetching a message.", "");
-
-                if (!iequals(mandatory_part_.front()->atom, "FETCH"))
-                    throw imap_error("Expecting the fetch atom.", "Response=`" + parsed_line.response + ".`");
-
-                unsigned long uid_no = 0;
-                shared_ptr<response_token_t> literal_token = nullptr;
-                for (auto part : mandatory_part_)
-                    if (part->token_type == response_token_t::token_type_t::LIST)
-                        for (auto token = part->parenthesized_list.begin(); token != part->parenthesized_list.end(); token++)
-                            if ((*token)->token_type == response_token_t::token_type_t::ATOM)
-                            {
-                                if (iequals((*token)->atom, "UID"))
-                                {
-                                    token++;
-                                    if (token == part->parenthesized_list.end())
-                                        throw imap_error("No uid number when fetching a message.", "");
-                                    uid_no = stoul((*token)->atom);
-                                }
-                                else if (iequals((*token)->atom, RFC822_TOKEN))
-                                {
-                                    token++;
-                                    if (token == part->parenthesized_list.end() || (*token)->token_type != response_token_t::token_type_t::LITERAL)
-                                        throw imap_error("No literal when fetching a message.", "");
-                                    literal_token = *token;
-                                    break;
-                                }
-                            }
-
-                if (literal_token != nullptr)
+                line = parsed_line.response;
+                do
                 {
-                    // Loop to read string literal.
-                    while (literal_state_ == string_literal_state_t::READING)
-                    {
-                        string line = dlg_->receive(true);
-                        if (!line.empty())
-                            trim_eol(line);
-                        parse_grammar(line);
-                    }
-                    // Closing parenthesis not yet read.
-                    if (literal_state_ == string_literal_state_t::DONE && parenthesis_list_counter_ > 0)
-                    {
-                        string line = dlg_->receive(true);
-                        if (!line.empty())
-                            trim_eol(line);
-                        // There could be a parenthesized list after the string literal. Read it and do nothing.
-                        parse_grammar(line);
-                    }
-                    msg_str.emplace(is_uids ? uid_no : sequence_no, move(literal_token->literal));
-
-                    // If no UID was found, but we asked for them, it's an error.
-                    if (is_uids && uid_no == 0)
-                    {
-                        throw imap_error("No UID when fetching a message.", "");
-                    }
+                    parse_grammar(line);
+                    line = dlg_->receive();
                 }
+                while (atom_state_ != atom_state_t::NONE || parenthesis_list_counter_ > 0 || literal_state_ != string_literal_state_t::DONE);
             }
-            // The tagged response determines status and parses provided messages in `msg_str`.
-            else if (parsed_line.tag == to_string(tag_))
+
+            parsed_line = parse_tag_result(line);
+            if (parsed_line.tag == to_string(tag_))
             {
-                if (parsed_line.result.value() == tag_result_response_t::OK)
-                {
-                    has_more = false;
-                    for (const auto& ms : msg_str)
-                    {
-                        message msg;
-                        msg.line_policy(line_policy);
-                        msg.parse(ms.second);
-                        found_messages.emplace(ms.first, move(msg));
-                    }
-                }
-                else
-                    throw imap_error("Fetching message failure.", "Response=`" + parsed_line.response + "`.");
+                if (parsed_line.result.value() != tag_result_response_t::OK)
+                    throw imap_error("Fetching message failure.", "");
+                has_more = false;
             }
-            else
-                throw imap_error("Invalid tag when fetching a message.", "Parsed tag=`" + parsed_line.tag + "`.");
+        }
+
+        // Extract the sequence number.
+
+        if (mandatory_part_.front()->token_type != response_token_t::token_type_t::ATOM)
+            throw imap_error("Number expected when fetching a message.", "");
+
+        unsigned long sequence_no = stoul(mandatory_part_.front()->atom);
+        if (sequence_no == 0)
+            throw imap_error("Zero sequence number when fetching a message.", "");
+        mandatory_part_.pop_front();
+
+        // Verify it's indeed the fetch response.
+
+        if (!iequals(mandatory_part_.front()->atom, "FETCH"))
+            throw imap_error("Expecting the fetch atom.", "");
+        mandatory_part_.pop_front();
+
+        // Extract the fetch data which must come in a parenthesized list.
+
+        auto data_list = mandatory_part_.front();
+        if (data_list->token_type != response_token_t::token_type_t::LIST)
+            throw imap_error("No data provided within the fetch response.", "");
+
+        unsigned long uid_no = 0;
+        for (auto token = data_list->parenthesized_list.begin(); token != data_list->parenthesized_list.end(); token++)
+            if ((*token)->token_type == response_token_t::token_type_t::ATOM)
+            {
+                if (iequals((*token)->atom, "UID"))
+                {
+                    token++;
+                    if (token == data_list->parenthesized_list.end())
+                        throw imap_error("No uid number when fetching a message.", "");
+                    uid_no = stoul((*token)->atom);
+                }
+                else if (iequals((*token)->atom, RFC822_TOKEN))
+                {
+                    token++;
+                    if ((*token)->token_type != response_token_t::token_type_t::LITERAL)
+                        throw imap_error("No literal when fetching a message.", "");
+                    msg_str.emplace(is_uids ? uid_no : sequence_no, move((*token)->literal));
+                }
+            }
+
+        // Extract string messages into the structure.
+
+        for (const auto& ms : msg_str)
+        {
+            message msg;
+            msg.line_policy(line_policy);
+            msg.parse(ms.second);
+            found_messages.emplace(ms.first, move(msg));
         }
     }
     catch (const invalid_argument& exc)
