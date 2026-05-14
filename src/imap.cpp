@@ -423,6 +423,10 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
         }
     }
 
+    // Some servers return OK when no message is found. No further logic is required.
+    if (mandatory_part_.size() == 0)
+        return;
+
     // Extract the sequence number.
 
     if (mandatory_part_.front()->token_type != grammar_token_t::token_type_t::ATOM)
