@@ -411,7 +411,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                 parse_grammar(line);
                 line = dlg_->receive();
             }
-            while (atom_state_ != atom_state_t::NONE || parenthesis_list_counter_ > 0 || literal_state_ != string_literal_state_t::DONE);
+            while (atom_state_ != atom_state_t::NONE || parenthesis_list_counter_ > 0 || literal_state_ != string_literal_state_t::NONE);
         }
 
         parsed_line = parse_tag_result(line);
@@ -1365,7 +1365,7 @@ void imap::parse_string_literal(string::const_iterator imap_string_end, string::
 
         if (literal_bytes_read >= literal_size)
         {
-            literal_state_ = string_literal_state_t::DONE;
+            literal_state_ = string_literal_state_t::NONE;
             literal_bytes_read = 0;
         }
     }

@@ -905,7 +905,7 @@ protected:
     /**
     Parser state if a string literal is reached.
     **/
-    enum class string_literal_state_t {NONE, READING, DONE} literal_state_;
+    enum class string_literal_state_t {NONE, READING} literal_state_;
 
     /**
     Finding last token of the list at the given depth in terms of parenthesis count.
