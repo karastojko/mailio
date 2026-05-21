@@ -136,18 +136,23 @@ void dialog::connect_async()
     tcp::resolver res(ios_);
     check_timeout();
 
-    bool has_connected{false}, connect_error{false};
-    error_code errc;
+    struct SharedState
+    {
+        bool has_connected{false};
+        bool connect_error{false};
+        error_code errc;
+    };
+    auto state = std::make_shared<SharedState>();
     async_connect(*socket_, res.resolve(hostname_, to_string(port_)),
-        [&has_connected, &connect_error, &errc](const error_code& error, const boost::asio::ip::tcp::endpoint&)
+        [state](const error_code& error, const boost::asio::ip::tcp::endpoint&)
         {
             if (!error)
-                has_connected = true;
+                state->has_connected = true;
             else
-                connect_error = true;
-            errc = error;
+                state->connect_error = true;
+            state->errc = error;
         });
-    wait_async(has_connected, connect_error, "Network connecting timed out.", "Network connecting failed.", errc);
+    wait_async(state->has_connected, state->connect_error, "Network connecting timed out.", "Network connecting failed.", state->errc);
 }
 
 
@@ -156,18 +161,23 @@ void dialog::send_async(Socket& socket, string line)
 {
     check_timeout();
     string l = line + "\r\n";
-    bool has_written{false}, send_error{false};
-    error_code errc;
+    struct SharedState
+    {
+        bool has_written{false};
+        bool send_error{false};
+        error_code errc;
+    };
+    auto state = std::make_shared<SharedState>();
     async_write(socket, buffer(l, l.size()),
-        [&has_written, &send_error, &errc](const error_code& error, size_t)
+        [state](const error_code& error, size_t)
         {
             if (!error)
-                has_written = true;
+                state->has_written = true;
             else
-                send_error = true;
-            errc = error;
+                state->send_error = true;
+            state->errc = error;
         });
-    wait_async(has_written, send_error, "Network sending timed out.", "Network sending failed.", errc);
+    wait_async(state->has_written, state->send_error, "Network sending timed out.", "Network sending failed.", state->errc);
 }
 
 
@@ -175,25 +185,30 @@ template<typename Socket>
 string dialog::receive_async(Socket& socket, bool raw)
 {
     check_timeout();
-    bool has_read{false}, receive_error{false};
-    string line;
-    error_code errc;
+    struct SharedState
+    {
+        bool has_read{false};
+        bool receive_error{false};
+        string line;
+        error_code errc;
+    };
+    auto state = std::make_shared<SharedState>();
     async_read_until(socket, *strmbuf_, "\n",
-        [&has_read, &receive_error, this, &line, &errc, raw](const error_code& error, size_t)
+        [state, this, raw](const error_code& error, size_t)
         {
             if (!error)
             {
-                getline(*istrm_, line, '\n');
+                getline(*istrm_, state->line, '\n');
                 if (!raw)
-                    trim_if(line, is_any_of("\r\n"));
-                has_read = true;
+                    trim_if(state->line, is_any_of("\r\n"));
+                state->has_read = true;
             }
             else
-                receive_error = true;
-            errc = error;
+                state->receive_error = true;
+            state->errc = error;
         });
-    wait_async(has_read, receive_error, "Network receiving timed out.", "Network receiving failed.", errc);
-    return line;
+    wait_async(state->has_read, state->receive_error, "Network receiving timed out.", "Network receiving failed.", state->errc);
+    return state->line;
 }
 
 
@@ -202,10 +217,28 @@ void dialog::wait_async(const bool& has_op, const bool& op_error, const char* ex
     do
     {
         if (timer_expired_)
+        {
+            // Drain any pending handlers before throwing, to avoid stale
+            // handlers firing later with dangling references on the shared
+            // socket when a dialog copy is made.
+            boost::system::error_code ec;
+            socket_->cancel(ec);
+            timer_->cancel();
+            while (ios_.poll_one())
+                ;
             throw dialog_error(expired_msg, error.message());
+        }
         if (op_error)
+        {
+            boost::system::error_code ec;
+            socket_->cancel(ec);
+            timer_->cancel();
+            while (ios_.poll_one())
+                ;
             throw dialog_error(op_msg, error.message());
-        ios_.run_one();
+        }
+        if (!ios_.run_one())
+            ios_.restart();
     }
     while (!has_op);
 }
