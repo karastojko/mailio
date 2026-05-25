@@ -1,6 +1,5 @@
 # Dependencies
 find_package("Boost" REQUIRED COMPONENTS "unit_test_framework")
-find_package("Boost" COMPONENTS "system")
 find_package("Threads" REQUIRED)
 
 # Makes a new target for each test file.
@@ -30,5 +29,4 @@ foreach(file ${TEST_FILES})
     make_test("${file}")
 endforeach()
 
-target_link_libraries("test_dialog_stale_handler" PRIVATE "Boost::system")
 target_link_libraries("test_dialog_stale_handler" PRIVATE "Threads::Threads")

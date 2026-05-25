@@ -2,7 +2,7 @@
 test_dialog_stale_handler.cpp
 -----------------------------
 
-Copyright (C) 2016, Tomislav Karastojkovic (http://www.alepho.com).
+Copyright (C) 2026, Tomislav Karastojkovic (http://www.alepho.com).
 
 Distributed under the FreeBSD license, see the accompanying file LICENSE or
 copy at http://www.freebsd.org/copyright/freebsd-license.html.
@@ -12,12 +12,17 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #define BOOST_TEST_MODULE dialog_test
 
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_suite.hpp>
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/system/error_code.hpp>
 #include <mailio/dialog.hpp>
 
-#include <chrono>
-#include <iostream>
+#include <cstddef>
 #include <memory>
+#include <string>
 #include <thread>
 
 
@@ -31,7 +36,7 @@ using namespace std::chrono_literals;
 class TestServer
 {
 public:
-    TestServer(unsigned short port)
+    explicit TestServer(unsigned short port)
         : work_(io_.get_executor()), acceptor_(io_, tcp::endpoint(tcp::v4(), port))
     {
     }
@@ -42,7 +47,9 @@ public:
             auto socket = std::make_shared<tcp::socket>(io_);
             acceptor_.async_accept(*socket, [this, socket](boost::system::error_code ec) {
                 if (!ec)
+                {
                     socket_ = socket;
+                }
             });
             io_.run();
         });
@@ -54,8 +61,10 @@ public:
             auto timer = std::make_shared<boost::asio::steady_timer>(io_, delay);
             timer->async_wait([this, timer, msg](boost::system::error_code ec) {
                 if (!ec && socket_ && socket_->is_open())
+                {
                     boost::asio::async_write(*socket_, boost::asio::buffer(msg),
-                        [](boost::system::error_code, size_t) {});
+                        [](boost::system::error_code, std::size_t) {});
+                }
             });
         });
     }
@@ -64,10 +73,14 @@ public:
     {
         boost::system::error_code ec;
         if (socket_ && socket_->is_open())
-            socket_->close(ec);
+        {
+            static_cast<void>(socket_->close(ec));
+        }
         io_.stop();
         if (thread_.joinable())
+        {
             thread_.join();
+        }
     }
 
 private:
