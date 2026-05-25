@@ -14,12 +14,12 @@ copy at http://www.freebsd.org/copyright/freebsd-license.html.
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/test/tools/old/interface.hpp>
-#include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
-#include <boost/system/error_code.hpp>
+#include <boost/system/detail/error_code.hpp>
 #include <mailio/dialog.hpp>
 
+#include <chrono>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -45,7 +45,7 @@ public:
     {
         thread_ = std::thread([this] {
             auto socket = std::make_shared<tcp::socket>(io_);
-            acceptor_.async_accept(*socket, [this, socket](boost::system::error_code ec) {
+            acceptor_.async_accept(*socket, [this, socket](const boost::system::error_code ec) {
                 if (!ec)
                 {
                     socket_ = socket;
@@ -59,7 +59,7 @@ public:
     {
         boost::asio::post(io_, [this, delay, msg] {
             auto timer = std::make_shared<boost::asio::steady_timer>(io_, delay);
-            timer->async_wait([this, timer, msg](boost::system::error_code ec) {
+            timer->async_wait([this, timer, msg](const boost::system::error_code ec) {
                 if (!ec && socket_ && socket_->is_open())
                 {
                     boost::asio::async_write(*socket_, boost::asio::buffer(msg),
@@ -71,10 +71,11 @@ public:
 
     void stop()
     {
-        boost::system::error_code ec;
         if (socket_ && socket_->is_open())
         {
-            static_cast<void>(socket_->close(ec));
+            boost::system::error_code ec;
+            socket_->close(ec);
+            BOOST_CHECK(!ec.failed());
         }
         io_.stop();
         if (thread_.joinable())
