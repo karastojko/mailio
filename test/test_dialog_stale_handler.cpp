@@ -74,8 +74,7 @@ public:
         if (socket_ && socket_->is_open())
         {
             boost::system::error_code ec;
-            socket_->close(ec);
-            BOOST_CHECK(!ec.failed());
+            BOOST_CHECK(!socket_->close(ec));
         }
         io_.stop();
         if (thread_.joinable())

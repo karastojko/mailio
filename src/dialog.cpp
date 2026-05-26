@@ -222,7 +222,7 @@ void dialog::wait_async(const bool& has_op, const bool& op_error, const char* ex
             // handlers firing later with dangling references on the shared
             // socket when a dialog copy is made.
             boost::system::error_code ec;
-            socket_->cancel(ec);
+            std::ignore = socket_->cancel(ec);
             timer_->cancel();
             while (ios_.poll_one())
                 ;
@@ -231,7 +231,7 @@ void dialog::wait_async(const bool& has_op, const bool& op_error, const char* ex
         if (op_error)
         {
             boost::system::error_code ec;
-            socket_->cancel(ec);
+            std::ignore = socket_->cancel(ec);
             timer_->cancel();
             while (ios_.poll_one())
                 ;
