@@ -502,6 +502,27 @@ public:
     **/
     const headers_t& headers() const;
 
+    /**
+    Getting a list of message flags.
+
+    @return  Vector of flags as strings.
+    **/
+    const std::vector<std::string>& flags() const;
+
+    /**
+    Setting a list of message flags.
+
+    @param flag_list  Flags to set.
+    **/
+    void flags(const std::vector<std::string>& flag_list);
+
+    /**
+    Adding a single flag.
+
+    @param flag  Flag to add.
+    **/
+    void add_flag(const std::string& flag);
+
 protected:
 
     /**
@@ -763,6 +784,11 @@ protected:
     Other headers not included into the known ones.
     **/
     headers_t headers_;
+
+    /**
+    Message flags obtained over the IMAP.
+    **/
+    std::vector<std::string> flags_;
 };
 
 [[deprecated]]

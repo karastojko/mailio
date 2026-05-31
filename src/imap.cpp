@@ -366,6 +366,18 @@ void imap::fetch(unsigned long message_no, message& msg, bool is_uid, bool heade
 }
 
 
+void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
+    codec::line_len_policy_t line_policy)
+{
+    uint8_t fetch_opt = static_cast<uint8_t>(fetch_options_t::DEFAULT);
+    if (is_uids)
+        fetch_opt |= static_cast<uint8_t>(fetch_options_t::IS_UID);
+    if (header_only)
+        fetch_opt |= static_cast<uint8_t>(fetch_options_t::HEADER_ONLY);
+    found_messages = fetch(messages_range, static_cast<fetch_options_t>(fetch_opt), line_policy);
+}
+
+
 /*
 Although the RFC mandates MIME messages to have lines ending with CRLF, some email clients put LF only. For that reason, the method `dialog::receive(true)`
 is being used for fetching a literal. That way, the EOL counting is properly performed. This is probably the case for the strict mode policy.
@@ -376,9 +388,14 @@ no message is found.
 The fetch untagged responses provide messages. In the last tagged response the status is obtained. Then, string literals can be parsed to validate the MIME
 format.
 */
-void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long, message>& found_messages, bool is_uids, bool header_only,
-    codec::line_len_policy_t line_policy)
+map<unsigned long, message>
+imap::fetch(const list<messages_range_t>& messages_range, fetch_options_t options, codec::line_len_policy_t line_policy)
 {
+    bool header_only = (static_cast<uint8_t>(options) & static_cast<uint8_t>(fetch_options_t::HEADER_ONLY));
+    bool is_uid = (static_cast<uint8_t>(options) & static_cast<uint8_t>(fetch_options_t::IS_UID));
+    bool is_flags = (static_cast<uint8_t>(options) & static_cast<uint8_t>(fetch_options_t::FLAGS));
+    map<unsigned long, message> found_messages;
+
     if (messages_range.empty())
         throw imap_error("Empty messages range.", "");
 
@@ -386,13 +403,17 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
     const string message_ids = messages_range_list_to_string(messages_range);
 
     string cmd;
-    if (is_uids)
+    if (is_uid)
         cmd.append("UID ");
-    cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
+    // TODO: Else branch also to put the RFC822 within parenthesis?
+    if (is_flags)
+        cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + "(FLAGS " +  RFC822_TOKEN + ")");
+    else
+        cmd.append("FETCH " + message_ids + TOKEN_SEPARATOR_STR + RFC822_TOKEN);
     dlg_->send(format(cmd));
 
     // Store messages as strings indexed by the messages number.
-    map<unsigned long, string> msg_str;
+    map<unsigned long, tuple<string, vector<string>>> msg_str;
 
     // Parse IMAP response into tokens defined by the grammar.
 
@@ -420,7 +441,7 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
 
     // Some servers return OK when no message is found. No further logic is required.
     if (mandatory_part_.size() == 0)
-        return;
+        return found_messages;
 
     unsigned long uid_no = 0;
     for (auto mand_part = mandatory_part_.begin(); mand_part != mandatory_part_.end(); mand_part++)
@@ -434,7 +455,6 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
         if ((*mand_part)->token_type == grammar_token_t::token_type_t::LIST)
         {
             auto data_list = (*mand_part);
-
             for (auto token = data_list->parenthesized_list.begin(); token != data_list->parenthesized_list.end(); token++)
             {
                 if ((*token)->token_type == grammar_token_t::token_type_t::ATOM)
@@ -453,12 +473,19 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
                             throw imap_error("Parsing failure.", exc.what());
                         }
                     }
+                    else if (iequals((*token)->atom, "FLAGS"))
+                    {
+                        token++;
+                        if ((*token)->token_type == grammar_token_t::token_type_t::LIST)
+                            for (auto fetch_list = (*token)->parenthesized_list.begin(); fetch_list != (*token)->parenthesized_list.end(); fetch_list++)
+                                std::get<1>(msg_str[is_uid ? uid_no : sequence_no]).push_back((*fetch_list)->atom);
+                    }
                     else if (iequals((*token)->atom, RFC822_TOKEN))
                     {
                         token++;
                         if ((*token)->token_type != grammar_token_t::token_type_t::LITERAL)
                             throw imap_error("No literal when fetching a message.", "");
-                        msg_str.emplace(is_uids ? uid_no : sequence_no, move((*token)->literal));
+                        std::get<0>(msg_str[is_uid ? uid_no : sequence_no]) = move((*token)->literal);
                     }
                 }
             }
@@ -471,11 +498,13 @@ void imap::fetch(const list<messages_range_t>& messages_range, map<unsigned long
     {
         message msg;
         msg.line_policy(line_policy);
-        msg.parse(ms.second);
+        msg.parse(std::get<0>(ms.second));
+        msg.flags(std::get<1>(ms.second));
         found_messages.emplace(ms.first, move(msg));
     }
 
     reset_grammar_parser();
+    return found_messages;
 }
 
 

@@ -533,6 +533,23 @@ const message::headers_t& message::headers() const
 }
 
 
+const vector<string>& message::flags() const
+{
+    return flags_;
+}
+
+
+void message::flags(const std::vector<std::string>& flag_list)
+{
+    flags_ = flag_list;
+}
+
+void message::add_flag(const string& flag)
+{
+    flags_.push_back(flag);
+}
+
+
 string message::format_header(bool add_bcc_header) const
 {
     if (!content_type_.boundary().empty() && content_type_.media_type() != media_type_t::MULTIPART)

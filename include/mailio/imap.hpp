@@ -66,15 +66,18 @@ public:
         **/
         enum stat_info_t {DEFAULT = 0, UNSEEN = 1, UID_NEXT = 2, UID_VALIDITY = 4};
 
+
         /**
         Number of messages in the mailbox.
         **/
         unsigned long messages_no;
 
+
         /**
         Number of recent messages in the mailbox.
         **/
         unsigned long messages_recent;
+
 
         /**
         The non-zero number of unseen messages in the mailbox.
@@ -83,12 +86,14 @@ public:
         **/
         unsigned long messages_unseen;
 
+
         /**
         The non-zero message sequence number of the first unseen message in the mailbox.
 
         Zero indicates the server did not report this and no assumptions can be made about the first unseen message.
         **/
         unsigned long messages_first_unseen;
+
 
         /**
         The non-zero next unique identifier value of the mailbox.
@@ -97,12 +102,14 @@ public:
         **/
         unsigned long uid_next;
 
+
         /**
         The non-zero unique identifier validity value of the mailbox.
 
         Zero indicates the server did not report this and does not support UIDs.
         **/
         unsigned long uid_validity;
+
 
         /**
         Setting the number of messages to zero.
@@ -112,6 +119,7 @@ public:
         }
     };
 
+
     /**
     Mailbox folder tree.
     **/
@@ -119,6 +127,7 @@ public:
     {
         std::map<std::string, mailbox_folder_t> folders;
     };
+
 
     /**
     Available authentication methods.
@@ -128,10 +137,12 @@ public:
     **/
     enum class auth_method_t {LOGIN};
 
+
     /**
     Single message ID or range of message IDs to be searched for.
     **/
     typedef std::pair<unsigned long, std::optional<unsigned long>> messages_range_t;
+
 
     /**
     Condition used by IMAP searching.
@@ -166,6 +177,7 @@ public:
         **/
         enum key_type {ALL, SID_LIST, UID_LIST, SUBJECT, BODY, FROM, TO, BEFORE_DATE, ON_DATE, SINCE_DATE, NEW, RECENT, SEEN, UNSEEN} key;
 
+
         /**
         Condition value type to be used as message search criteria.
 
@@ -180,15 +192,18 @@ public:
         >
         value_type;
 
+
         /**
         Condition value itself.
         **/
         value_type value;
 
+
         /**
         String used to send over IMAP.
         **/
         std::string imap_string;
+
 
         /**
         Creating the IMAP string of the given condition.
@@ -199,6 +214,17 @@ public:
         **/
         search_condition_t(key_type condition_key, value_type condition_value = value_type());
     };
+
+
+    /**
+    Options available when fetching a message.
+
+    - HEADER_ONLY: get only the message header.
+    - IS_UID: consider unique message id instead of sequence id.
+    - FLAGS: ask message flags from server.
+    **/
+    enum class fetch_options_t : uint8_t { DEFAULT = 0, HEADER_ONLY = 1, IS_UID = 2, FLAGS = 4 };
+
 
     /**
     Creating a connection to a server.
@@ -263,6 +289,7 @@ public:
     **/
     mailbox_stat_t select(const std::string& mailbox, bool read_only = false);
 
+
     /**
     Fetching a message from the mailbox.
 
@@ -281,6 +308,7 @@ public:
     **/
     void fetch(const std::string& mailbox, unsigned long message_no, bool is_uid, message& msg, bool header_only = false);
 
+
     /**
     Fetching a message from an already selected mailbox.
 
@@ -298,6 +326,7 @@ public:
     **/
     void fetch(unsigned long message_no, message& msg, bool is_uid = false, bool header_only = false);
 
+
     /**
     Fetching messages from an already selected mailbox.
 
@@ -312,14 +341,38 @@ public:
     @param is_uids        Using message UID numbers instead of a message sequence numbers.
     @param header_only    Flag if only the message headers should be fetched.
     @param line_policy    Decoder line policy to use while parsing each message.
+    @throw *              `fetch(const std::list<messages_range_t>&, fetch_options_t, codec::line_len_policy_t)`.
+    **/
+    void fetch(const std::list<messages_range_t>& messages_range, std::map<unsigned long, message>& found_messages, bool is_uids = false,
+        bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
+
+
+    /**
+    Fetching messages from an already selected mailbox.
+
+    A mailbox must already be selected before calling this method.
+
+    Some servers report success if a message with the given number does not exist, so the method returns with the empty map. Other considers
+    fetching non-existing message to be an error, and an exception is thrown.
+
+    @param messages_range Range of message SIDs or UIDs to fetch.
+    @param options        Selected options when fetching a message.
+    @param line_policy    Decoder line policy to use while parsing each message.
+    @return               Map of messages to store the results, indexed by message number or uid.
+    @throw imap_error     Empty messages range.
     @throw imap_error     Fetching message failure.
+    @throw imap_error     Expecting the fetch atom.
+    @throw imap_error     No uid number when fetching a message.
     @throw imap_error     Parsing failure.
+    @throw imap_error     No literal when fetching a message.
     @throw *              `parse_tag_result(const string&)`, `parse_grammar(const string&)`,
                           `dialog::send(const string&)`, `dialog::receive()`, `message::parse(const string&, bool)`.
     @todo                 Add server error messages to exceptions.
     **/
-    void fetch(const std::list<messages_range_t>& messages_range, std::map<unsigned long, message>& found_messages, bool is_uids = false,
-        bool header_only = false, codec::line_len_policy_t line_policy = codec::line_len_policy_t::RECOMMENDED);
+    std::map<unsigned long, message>
+    fetch(const std::list<messages_range_t>& messages_range, fetch_options_t options, codec::line_len_policy_t line_policy =
+        codec::line_len_policy_t::RECOMMENDED);
+
 
     /**
     Appending a message to the given folder.
