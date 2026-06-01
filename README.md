@@ -139,8 +139,8 @@ Tests are not available as an option in this case. Use the CMake way to build th
 * MIME message has configurable line length policy and strict mode for parsing.
 * SMTP implementation with message sending. Both plain and SSL (including START TLS) versions are available.
 * POP3 implementation with message receiving and removal, getting mailbox statistics. Both plain and SSL (including START TLS) versions are available.
-* IMAP implementation with message receiving, removal and search, getting mailbox statistics, managing folders. Both plain and SSL (including START TLS)
-  versions are available.
+* IMAP implementation with message receiving, removal and search, mailbox statistics, folders management and message flags. Both plain and SSL (including
+  START TLS) versions are available.
 
 
 # Issues and improvements #
@@ -152,7 +152,6 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * IMAP supports only ASCII folder names.
 * IMAP lacks the idle support.
 * Editing parts of a message.
-* IMAP flags.
 * Asynchronous I/O.
 * External initialization of the SSL context.
 * IMAP copy command.
