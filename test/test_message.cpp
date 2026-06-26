@@ -5097,6 +5097,37 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
 
 
 /**
+Parsing incorrect multipart message where the inner part closes its boundary without opening it.
+
+@pre  None.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(parse_bad_inner_multipart)
+{
+    message msg;
+    msg.line_policy(codec::line_len_policy_t::MANDATORY);
+    string msg_str =
+        "From: mailio <adresa@mailio.dev>\r\n"
+        "To: <adresa@mailio.dev>\r\n"
+        "Subject: Crash - end boundary before start boundary in sub-part\r\n"
+        "Date: Wed, 11 Jun 2025 10:00:00 +0000\r\n"
+        "Message-ID: crash-endbnd@mailio.dev\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: multipart/mixed;\r\n"
+        "  boundary=\"----=_OuterBoundary\"\r\n"
+        "\r\n"
+        "------=_OuterBoundary\r\n"
+        "Content-Type: multipart/alternative;\r\n"
+        "  boundary=\"----=_InnerBoundary\"\r\n"
+        "\r\n"
+        "------=_InnerBoundary--\r\n"
+        "\r\n"
+        "------=_OuterBoundary--\r\n";
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
+}
+
+
+/**
 Parsing attachments of a message.
 
 The message is formatted by the library itself.

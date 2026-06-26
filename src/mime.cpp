@@ -276,7 +276,7 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
     if (line.length() > string::size_type(line_policy_))
         throw mime_error("Line policy overflow in a header.", "Line is `" + line + "`.");
 
-    // mark end of header and parse it
+    // Mark the end of the header and parse it.
     if (parsing_header_ && line.empty())
     {
         parsing_header_ = false;
@@ -288,20 +288,20 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
             parsed_headers_.push_back(line);
         else
         {
-            // end of message reached, decode the body
+            // End of message reached, decode the body.
             if (line == codec::END_OF_LINE)
             {
                 parse_content();
                 mime_status_ = mime_parsing_status_t::END;
             }
-            // parsing the body
+            // Parse the body.
             else
             {
-                // mime part sequence begins
+                // Mime part sequence begins.
                 if (line == BOUNDARY_DELIMITER + content_type_.boundary() && !content_type_.boundary().empty())
                 {
                     mime_status_ = mime_parsing_status_t::BEGIN;
-                    // begin of another mime part means that the current part (if exists) is ended and parsed; another part is created
+                    // Begin of another mime part means that the current part (if exists) is ended and parsed. Another part is created.
                     if (!parts_.empty())
                         parts_.back().parse_by_line(codec::END_OF_LINE);
                     mime m;
@@ -309,19 +309,22 @@ mime& mime::parse_by_line(const string& line, bool dot_escape)
                     m.strict_codec_mode(strict_codec_mode_);
                     parts_.push_back(m);
                 }
-                // mime part sequence ends, so parse the last mime part
+                // Mime part sequence ends, so parse the last mime part.
                 else if (line == BOUNDARY_DELIMITER + content_type_.boundary() + BOUNDARY_DELIMITER && !content_type_.boundary().empty())
                 {
                     mime_status_ = mime_parsing_status_t::END;
+                    // A mime part must exist before the closing boundary.
+                    if (parts_.empty())
+                        throw mime_error("Incorrect mime part.", "");
                     parts_.back().parse_by_line(codec::END_OF_LINE);
                 }
-                // mime content being parsed
+                // Mime content being parsed.
                 else
                 {
-                    // parser entered mime body
+                    // Parser enters the mime body.
                     if (mime_status_ == mime_parsing_status_t::BEGIN)
                         parts_.back().parse_by_line(line, dot_escape);
-                    // put the line into `parsed_body_` until the whole body is read for parsing
+                    // Put the line into `parsed_body_` until the whole body is read for parsing.
                     else
                     {
                         if (dot_escape && line[0] == codec::DOT_CHAR)
