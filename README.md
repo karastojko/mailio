@@ -127,6 +127,36 @@ vcpkg install mailio
 Tests are not available as an option in this case. Use the CMake way to build them.
 
 
+## Conan ##
+
+Ensure that Conan and CMake are installed, clone the repository:
+```
+git clone https://github.com/karastojko/mailio.git
+```
+Create the recipe file [conanfile.txt](https://conan.io/center/recipes/mailio) within the mailio directory:
+```
+cd mailio
+touch conanfile.txt
+```
+Edit the recipe to contain something like:
+```
+[requires]
+mailio/0.25.3
+[generators]
+CMakeDeps
+CMakeToolchain
+[layout]
+cmake_layout
+```
+Then build the library:
+```
+conan install .
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+cd build
+make
+```
+
+
 # Features #
 
 * Recursive formatter and parser of the MIME message.
