@@ -103,7 +103,7 @@ message::message() : mime(), date_time_(second_clock::universal_time(), time_zon
 
 void message::format(string& message_str, const message_format_options_t& opts) const
 {
-    message_str += format_header(opts.add_bcc_header);
+    message_str += format_header(opts.add_bcc_header) /*+ codec::END_OF_LINE*/;
 
     if (!parts_.empty())
     {
@@ -597,7 +597,8 @@ string message::format_header(bool add_bcc_header) const
     header += mime::format_header();
 
     if (!subject_.buffer.empty())
-        header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject() + codec::END_OF_LINE;
+        header += SUBJECT_HEADER + HEADER_SEPARATOR_STR + format_subject();
+    header += codec::END_OF_LINE;
 
     return header;
 }

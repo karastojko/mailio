@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(format_no_subject)
     BOOST_CHECK_NO_THROW(msg.format(msg_str));
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
-        "Date: Tue, 20 May 2025 21:28:17 +0200\r\n");
+        "Date: Tue, 20 May 2025 21:28:17 +0200\r\n\r\n");
 }
 
 
@@ -1703,6 +1703,32 @@ BOOST_AUTO_TEST_CASE(format_attachment)
         mime::content_disposition_t::ATTACHMENT);
     BOOST_CHECK(msg.parts().at(1).content_type().media_type() == mime::media_type_t::IMAGE && msg.parts().at(1).content_type().media_subtype() == "png" &&
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(1).content_disposition() ==
+        mime::content_disposition_t::ATTACHMENT);
+}
+
+
+/**
+An attachment without the message subject.
+
+@pre  Files `cv.txt` in the current directory.
+@post None.
+**/
+BOOST_AUTO_TEST_CASE(format_no_subject_with_attachment)
+{
+    message msg;
+    msg.from(mail_address("mailio", "adresa@mailio.dev"));
+    msg.reply_address(mail_address("Tomislav Karastojkovic", "adresa@mailio.dev"));
+    msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
+    ifstream ifs1("cv.txt");
+    message::content_type_t ct1{message::media_type_t::APPLICATION, "txt"};
+    auto tp1 = make_tuple(std::ref(ifs1), "TomislavKarastojkovic_CV.txt", ct1);
+    list<tuple<std::istream&, string_t, message::content_type_t>> atts;
+    atts.push_back(tp1);
+    msg.attach(atts);
+
+    BOOST_CHECK(msg.content_type().media_type() == mime::media_type_t::MULTIPART && msg.content_type().media_subtype() == "mixed" && msg.attachments_size() == 1);
+    BOOST_CHECK(msg.parts().at(0).content_type().media_type() == mime::media_type_t::APPLICATION && msg.parts().at(0).content_type().media_subtype() == "txt" &&
+        msg.parts().at(0).content_transfer_encoding() == mime::content_transfer_encoding_t::BASE_64 && msg.parts().at(0).content_disposition() ==
         mime::content_disposition_t::ATTACHMENT);
 }
 

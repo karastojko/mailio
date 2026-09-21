@@ -10,7 +10,7 @@ project(
     DESCRIPTION "Cross-platform MIME library for SMTP, POP3, and IMAP protocols."
     HOMEPAGE_URL "https://github.com/karastojko/mailio"
     LANGUAGES "CXX"
-    VERSION "0.26.0")
+    VERSION "0.26.1")
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
