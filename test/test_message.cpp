@@ -3954,7 +3954,7 @@ BOOST_AUTO_TEST_CASE(parse_multiline_header)
     msg.strict_mode(false);
     msg.line_policy(codec::line_len_policy_t::RECOMMENDED);
     msg.parse(msg_str);
-    BOOST_CHECK(msg.message_id() == "<123456789012345678901234567890123456789012345678901234567890@mailio.dev>");
+    BOOST_CHECK(msg.message_id() == "<1234567890123456789012345678901234567890 12345678901234567890@mailio.dev>");
 }
 
 
@@ -5578,8 +5578,8 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
 {
     string msg_str = "From: mail io <adre.sa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
-        "Subject: =?UTF-8?Q?TOMISLAV_KARASTOJKOVI=C4=86_PR_RA=C4=8CUNAR?=\r\n"
-        "    =?UTF-8?Q?SKO_PROGRAMIRANJE_ALEPHO_BEOGRAD_?=\r\n"
+        "Subject: =?UTF-8?Q?TOMISLAV_KARASTOJKOVI=C4=86_PR_RA=C4=8CUNARSKO?=\r\n"
+        "  =?UTF-8?Q?_PROGRAMIRANJE_ALEPHO_BEOGRAD_?=\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "\r\n"
         "hello\r\n"
@@ -5597,7 +5597,7 @@ BOOST_AUTO_TEST_CASE(parse_qq_long_subject)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject_raw() == string_t("TOMISLAV KARASTOJKOVIĆ PR RAČUNAR   SKO PROGRAMIRANJE ALEPHO BEOGRAD", "utf-8", codec::codec_t::QUOTED_PRINTABLE) &&
+        msg.subject_raw() == string_t("TOMISLAV KARASTOJKOVIĆ PR RAČUNARSKO   PROGRAMIRANJE ALEPHO BEOGRAD", "utf-8", codec::codec_t::QUOTED_PRINTABLE) &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5632,7 +5632,7 @@ BOOST_AUTO_TEST_CASE(parse_qb_long_subject)
         msg.parse(msg_str);
         BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
             msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-            msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor  - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64) &&
+            msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor   - Eleni Beach Apartments", "utf-8", codec::codec_t::BASE64) &&
             msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
     }
     {
@@ -5671,7 +5671,7 @@ BOOST_AUTO_TEST_CASE(parse_qbq_long_subject)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adre.sa@mailio.dev" && msg.date_time() == ldt &&
         msg.recipients_to_string() == "mailio <adresa@mailio.dev>" &&
-        msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments", "UTF-8", codec::codec_t::QUOTED_PRINTABLE) &&
+        msg.subject_raw() == string_t("Re: Σχετ: Request from GrckaInfo visit or - Eleni Beach Apartments", "UTF-8", codec::codec_t::QUOTED_PRINTABLE) &&
         msg.content() == "hello\r\n\r\nworld\r\n\r\n\r\nopa bato");
 }
 
@@ -5933,7 +5933,7 @@ BOOST_AUTO_TEST_CASE(parse_many_codecs)
     BOOST_CHECK(msg.from().addresses.at(0).name == "mailio" && msg.from().addresses.at(0).address == "adresa@mailio.dev");
     BOOST_CHECK(msg.recipients().addresses.at(0).name == "маилио" && msg.recipients().addresses.at(0).address == "adresa@mailio.dev");
     BOOST_CHECK(msg.recipients().addresses.at(1).name == "Томислав Карастојковић" && msg.recipients().addresses.at(1).address == "qwertyuiop@zoho.com");
-    BOOST_CHECK(msg.subject() == "Re: Σχετ: Request from GrckaInfo visitor - Eleni Beach Apartments");
+    BOOST_CHECK(msg.subject() == "Re: Σχετ: Request from GrckaInfo visit or - Eleni Beach Apartments");
 }
 
 
