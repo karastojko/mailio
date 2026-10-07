@@ -696,7 +696,7 @@ string message::format_address_list(const mailboxes& mailbox_list, const string&
     for (auto ma = mailbox_list.addresses.begin(); ma != mailbox_list.addresses.end(); ma++)
     {
         if (mailbox_list.addresses.size() > 1 && ma != mailbox_list.addresses.begin())
-            mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address, header_name);
+            mailbox_str += codec::SPACE_STR + format_address(ma->name, ma->address, header_name);
         else
             mailbox_str += format_address(ma->name, ma->address, header_name);
 
@@ -705,7 +705,7 @@ string message::format_address_list(const mailboxes& mailbox_list, const string&
     }
 
     if (!mailbox_list.groups.empty() && !mailbox_list.addresses.empty())
-        mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE + NEW_LINE_INDENT;
+        mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE + codec::SPACE_STR;
 
     for (auto mg = mailbox_list.groups.begin(); mg != mailbox_list.groups.end(); mg++)
     {
@@ -716,14 +716,14 @@ string message::format_address_list(const mailboxes& mailbox_list, const string&
         for (auto ma = mg->members.begin(); ma != mg->members.end(); ma++)
         {
             if (mg->members.size() > 1 && ma != mg->members.begin())
-                mailbox_str += NEW_LINE_INDENT + format_address(ma->name, ma->address, header_name);
+                mailbox_str += codec::SPACE_STR + format_address(ma->name, ma->address, header_name);
             else
                 mailbox_str += format_address(ma->name, ma->address, header_name);
 
             if (ma != mg->members.end() - 1)
                 mailbox_str += ADDRESS_SEPARATOR + codec::END_OF_LINE;
         }
-        mailbox_str += mg != mailbox_list.groups.end() - 1 ? string(1, MAILGROUP_SEPARATOR) + codec::END_OF_LINE + NEW_LINE_INDENT : string(1, MAILGROUP_SEPARATOR);
+        mailbox_str += mg != mailbox_list.groups.end() - 1 ? string(1, MAILGROUP_SEPARATOR) + codec::END_OF_LINE + codec::SPACE_STR : string(1, MAILGROUP_SEPARATOR);
     }
 
     return mailbox_str;
@@ -794,7 +794,7 @@ string message::format_address(const string_t& name, const string& address, cons
     string::size_type last_line_len = (name_formatted.empty() ? 0 : name_formatted.back().length());
     string name_addr;
     for (auto sit = name_formatted.begin(); sit != name_formatted.end(); sit++)
-        name_addr += (sit == name_formatted.begin() ? "" : codec::SPACE_STR + codec::SPACE_STR) +
+        name_addr += (sit == name_formatted.begin() ? "" : codec::SPACE_STR) +
             *sit + (sit == name_formatted.end() - 1 ? "" : codec::END_OF_LINE);
 
     if (!addr.empty())
@@ -802,7 +802,7 @@ string message::format_address(const string_t& name, const string& address, cons
         if (last_line_len + addr.length() < line_policy)
             name_addr += (name_formatted.empty() ? "" : codec::SPACE_STR) + addr;
         else
-            name_addr += codec::END_OF_LINE + codec::SPACE_STR + codec::SPACE_STR + addr;
+            name_addr += codec::END_OF_LINE + codec::SPACE_STR + addr;
     }
 
     return name_addr;

@@ -181,7 +181,6 @@ const string mime::CONTENT_TRANSFER_ENCODING_BINARY{"Binary"};
 const string mime::CONTENT_DISPOSITION_HEADER{"Content-Disposition"};
 const string mime::CONTENT_DISPOSITION_ATTACHMENT{"attachment"};
 const string mime::CONTENT_DISPOSITION_INLINE{"inline"};
-const string mime::NEW_LINE_INDENT{"  "};
 const string mime::HEADER_SEPARATOR_STR{": "};
 const string mime::NAME_VALUE_SEPARATOR_STR{"="};
 const string mime::ATTRIBUTES_SEPARATOR_STR{"; "};
@@ -713,7 +712,7 @@ string mime::fold_header_line(const vector<string>& headers) const
     string hdr_str;
     if (headers.size() > 1)
         for (auto h = headers.begin() + 1; h != headers.end(); h++)
-            hdr_str += codec::SPACE_STR + codec::SPACE_STR + *h + codec::END_OF_LINE;
+            hdr_str += codec::SPACE_STR + *h + codec::END_OF_LINE;
     return hdr_str;
 }
 
@@ -1188,7 +1187,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     // Only one part means there is no continuation.
     if (attr_parts.size() == 1)
     {
-        string attr_str = NEW_LINE_INDENT + attr_name;
+        string attr_str = codec::SPACE_STR + attr_name;
         if (attr_value.codec_type == codec::codec_t::PERCENT)
             attr_str += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(0);
         else
@@ -1204,7 +1203,7 @@ string mime::split_attributes(const string& attr_name, const string_t& attr_valu
     string attrs;
     for (part_no = 0; part_no < total_parts; part_no++)
     {
-        attrs += NEW_LINE_INDENT + attr_name + ATTRIBUTE_CONTINUATION_INDICATOR + to_string(part_no);
+        attrs += codec::SPACE_STR + attr_name + ATTRIBUTE_CONTINUATION_INDICATOR + to_string(part_no);
         if (attr_value.codec_type == codec::codec_t::PERCENT)
             attrs += ATTRIBUTE_CONTINUATION_INDICATOR + codec::EQUAL_CHAR + attr_parts.at(part_no);
         else

@@ -37,28 +37,9 @@ vector<string> bit7::encode(const string& text) const
     vector<string> enc_text;
     string line;
     string::size_type line_len = 0;
-    const string DELIMITERS = " ,;";
+    const string WORD_DELIMITERS = " \t";
     string::size_type delim_pos = 0;
     string::size_type policy = line1_policy_;
-    const bool is_folding = (line1_policy_ != lines_policy_);
-
-    auto add_new_line = [&enc_text, &line_len, &delim_pos, &policy, this](bool is_folding, string& line)
-    {
-        if (is_folding && delim_pos > 0)
-        {
-            enc_text.push_back(line.substr(0, delim_pos));
-            line = line.substr(delim_pos);
-            line_len -= delim_pos;
-            delim_pos = 0;
-        }
-        else
-        {
-            enc_text.push_back(line);
-            line.clear();
-            line_len = 0;
-        }
-        policy = lines_policy_;
-    };
 
     for (auto ch = text.begin(); ch != text.end(); ch++)
     {
@@ -67,25 +48,46 @@ vector<string> bit7::encode(const string& text) const
             line += *ch;
             line_len++;
 
-            if (DELIMITERS.find(*ch) != string::npos)
+            if (WORD_DELIMITERS.find(*ch) != string::npos)
                 delim_pos = line_len;
         }
         else if (*ch == '\r' && (ch + 1) != text.end() && *(ch + 1) == '\n')
         {
-            add_new_line(is_folding, line);
-            // Skip both crlf characters.
             ch++;
+            enc_text.push_back(line);
+            line.clear();
+            line_len = 0;
+            delim_pos = 0;
         }
         else
             throw codec_error("Bad character `" + string(1, *ch) + "`.");
 
-        if (line_len == policy)
-            add_new_line(is_folding, line);
+        if (line_len > policy)
+        {
+            if (delim_pos > 0)
+            {
+                enc_text.push_back(line.substr(0, delim_pos));
+                line = line.substr(delim_pos);
+                line_len -= delim_pos;
+                delim_pos = 0;
+            }
+            else
+            // TODO: Throw the exception?
+            {
+                // Characters to truncate in the first line or in the others.
+                const string::size_type truncate_chars = (policy == line1_policy_ ? 1 : 2);
+                enc_text.push_back(line.substr(0, line_len - truncate_chars));
+                string last_chars = line.substr(line_len - truncate_chars);
+                line_len = truncate_chars;
+                line = last_chars;
+            }
+
+            policy = lines_policy_;
+        }
     }
+
     if (!line.empty())
         enc_text.push_back(line);
-    while (!enc_text.empty() && enc_text.back().empty())
-        enc_text.pop_back();
 
     return enc_text;
 }

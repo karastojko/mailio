@@ -90,19 +90,19 @@ BOOST_AUTO_TEST_CASE(format_addresses)
     BOOST_CHECK(msg.from_to_string() == "mailio <adresa@mailio.dev>");
     BOOST_CHECK(msg.reply_address_to_string() == "Tomislav Karastojkovic <kontakt@mailio.dev>");
     BOOST_CHECK(msg.recipients_to_string() == "kontakt <kontakt@mailio.dev>,\r\n"
-        "  mailio <adresa@mailio.dev>,\r\n"
-        "  all: Tomislav <qwertyuiop@hotmail.com>;");
+        " mailio <adresa@mailio.dev>,\r\n"
+        " all: Tomislav <qwertyuiop@hotmail.com>;");
     BOOST_CHECK(msg.cc_recipients_to_string() == "Tomislav Karastojkovic <kontakt@mailio.dev>,\r\n"
-        "  \"Tomislav @ Karastojkovic\" <qwertyuiop@gmail.com>,\r\n"
-        "  mailio <adresa@mailio.dev>,\r\n"
-        "  mailio: <karas@mailio.dev>,\r\n"
-        "  Tomislav Karastojkovic <kontakt@mailio.dev>;\r\n"
-        "  all: <qwertyuiop@hotmail.com>,\r\n"
-        "  Tomislav <qwertyuiop@gmail.com>,\r\n"
-        "  \"Tomislav @ Karastojkovic\" <qwertyuiop@zoho.com>;");
+        " \"Tomislav @ Karastojkovic\" <qwertyuiop@gmail.com>,\r\n"
+        " mailio <adresa@mailio.dev>,\r\n"
+        " mailio: <karas@mailio.dev>,\r\n"
+        " Tomislav Karastojkovic <kontakt@mailio.dev>;\r\n"
+        " all: <qwertyuiop@hotmail.com>,\r\n"
+        " Tomislav <qwertyuiop@gmail.com>,\r\n"
+        " \"Tomislav @ Karastojkovic\" <qwertyuiop@zoho.com>;");
     BOOST_CHECK(msg.bcc_recipients_to_string() == "Tomislav Karastojkovic <kontakt@mailio.dev>,\r\n"
-        "  \"Tomislav @ Karastojkovic\" <qwertyuiop@gmail.com>,\r\n"
-        "  mailio <adresa@mailio.dev>");
+        " \"Tomislav @ Karastojkovic\" <qwertyuiop@gmail.com>,\r\n"
+        " mailio <adresa@mailio.dev>");
     BOOST_CHECK(msg.date_time() == ldt);
     BOOST_CHECK(msg.content_type().media_type() == mime::media_type_t::NONE && msg.content_type().media_subtype().empty() && msg.content_type().charset().empty());
     BOOST_CHECK(msg.content_transfer_encoding() == mime::content_transfer_encoding_t::NONE);
@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_no_escape)
         "\r\n"
         "yaba.daba.doo.\r\n"
         "\r\n"
-        "..\r\n");
+        "..\r\n\r\n");
 }
 
 
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE(format_dotted_escape)
         "\r\n"
         "yaba.daba.doo.\r\n"
         "\r\n"
-        "...\r\n");
+        "...\r\n\r\n");
 }
 
 /**
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(format_exports_bcc_headers_when_add_bcc_headers_is_set)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Bcc: \"bcc_addr_1\" <bcc_addr_1@mailio.dev>,\r\n"
-        "  \"bcc_addr_2\" <bcc_addr_2@mailio.dev>\r\n"
+        " \"bcc_addr_2\" <bcc_addr_2@mailio.dev>\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
         "Subject: BCC addresses are formatted\r\n\r\n");
 }
@@ -386,17 +386,17 @@ BOOST_AUTO_TEST_CASE(format_long_text_default_default)
     msg.date_time(ldt);
     msg.subject("format long text default default");
     msg.content("Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. Nije jasno kako ce se tekst prelomiti\r\n"
-        "pa se nadam da cce to ovaj test pokazati.\r\n"
+        " pa se nadam da cce to ovaj test pokazati.\r\n"
         "\r\n"
-        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na \r\n"
         "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, jer libmailio nije zamishljen da se\r\n"
         "bavi formatiranjem teksta.\r\n"
         "\r\n\r\n"
         "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karaktera odn. ccirilice\r\n"
-        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
+        " i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je nebitno da li je enkoding\r\n"
         "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. Ovaj test bi trebalo da\r\n"
         "pokazze ima li bagova u logici formatiranja,\r\n"
-        " a isto to treba proveriti sa parsiranjem.\r\n"
+        " a isto to treba proveriti sa parsiranjem. \r\n"
         "\r\n\r\n\r\n\r\n"
         "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
 
@@ -408,24 +408,25 @@ BOOST_AUTO_TEST_CASE(format_long_text_default_default)
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
         "Subject: format long text default default\r\n"
         "\r\n"
-        "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. N\r\n"
-        "ije jasno kako ce se tekst prelomiti\r\n"
-        "pa se nadam da cce to ovaj test pokazati.\r\n\r\n"
-        "Treba videti kako poznati mejl klijenti lome tekst, pa na\r\n"
-        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, je\r\n"
-        "r libmailio nije zamishljen da se\r\n"
+        "Ovo je jako dugachka poruka koja ima i praznih linija i predugachkih linija. \r\n"
+        "Nije jasno kako ce se tekst prelomiti\r\n"
+        " pa se nadam da cce to ovaj test pokazati.\r\n"
+        "\r\n"
+        "Treba videti kako poznati mejl klijenti lome tekst, pa na \r\n"
+        "osnovu toga doraditi formatiranje sadrzzaja mejla. A mozzda i nema potrebe, \r\n"
+        "jer libmailio nije zamishljen da se\r\n"
         "bavi formatiranjem teksta.\r\n"
         "\r\n\r\n"
-        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 karakte\r\n"
-        "ra odn. ccirilice\r\n"
-        "i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da je\r\n"
-        " nebitno da li je enkoding\r\n"
-        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. O\r\n"
-        "vaj test bi trebalo da\r\n"
+        "U svakom sluchaju, posle provere latinice treba uraditi i proveru utf8 \r\n"
+        "karaktera odn. ccirilice\r\n"
+        " i videti kako se prelama tekst kada su karakteri vishebajtni. Trebalo bi da \r\n"
+        "je nebitno da li je enkoding\r\n"
+        "base64 ili quoted printable, jer se ascii karakteri prelamaju u nove linije. \r\n"
+        "Ovaj test bi trebalo da\r\n"
         "pokazze ima li bagova u logici formatiranja,\r\n"
-        " a isto to treba proveriti sa parsiranjem.\r\n"
+        " a isto to treba proveriti sa parsiranjem. \r\n"
         "\r\n\r\n\r\n\r\n"
-        "Ovde je i provera za niz praznih linija.\r\n");
+        "Ovde je i provera za niz praznih linija.\r\n\r\n\r\n");
 }
 
 
@@ -1158,9 +1159,9 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
             "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
             "To: mailio <adresa@mailio.dev>,\r\n"
-            "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
-            "  Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
-            "  Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
+            " Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
+            " Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
+            " Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
             "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
             "MIME-Version: 1.0\r\n"
             "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
@@ -1234,9 +1235,9 @@ BOOST_AUTO_TEST_CASE(format_dotted_multipart)
             "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
             "To: mailio <adresa@mailio.dev>,\r\n"
-            "  Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
-            "  Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
-            "  Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
+            " Tomislav Karastojkovic <qwerty@gmail.com>,\r\n"
+            " Tomislav Karastojkovic <asdfgh@zoho.com>,\r\n"
+            " Tomislav Karastojkovic <zxcvbn@hotmail.com>\r\n"
             "Date: Tue, 15 Mar 2016 13:13:32 +0000\r\n"
             "MIME-Version: 1.0\r\n"
             "Content-Type: multipart/related; boundary=\"my_bound\"\r\n"
@@ -1412,8 +1413,8 @@ BOOST_AUTO_TEST_CASE(format_long_multipart)
         "Content-Type: text/html; charset=us-ascii\r\n"
         "Content-Transfer-Encoding: 7bit\r\n"
         "\r\n"
-        "<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa Bato\r\n"
-        "!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>\r\n"
+        "<html><head></head><body><h1>Hello, World!</h1><p>Zdravo Svete!</p><p>Opa \r\n"
+        "Bato!</p><p>Shta ima?</p><p>Yaba Daba Doo!</p></body></html>\r\n"
         "\r\n"
         "--my_bound\r\n"
         "Content-Type: text/plain; charset=us-ascii\r\n"
@@ -1773,10 +1774,10 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_b64)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
+        " name=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
+        " filename=\"=?UTF-8?B?VG9taXNsYXZLYXJhc3RvamtvdmnEh19DVi50eHQ=?=\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -1824,10 +1825,10 @@ BOOST_AUTO_TEST_CASE(format_utf8_attachment_qp)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
+        " name=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
+        " filename=\"=?UTF-8?Q?TomislavKarastojkovi=C4=87_CV.txt?=\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -1958,10 +1959,10 @@ BOOST_AUTO_TEST_CASE(format_msg_att)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        " name=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        " filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2018,10 +2019,10 @@ BOOST_AUTO_TEST_CASE(format_html_att)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        " name=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
+        " filename=\"TomislavKarastojkovic_CV.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2121,18 +2122,19 @@ BOOST_AUTO_TEST_CASE(format_qb_sender)
 
     string msg_str;
     msg.format(msg_str);
-    BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+INCx0LjQsdC70LjQvtGC0LXQutCwINC30LAg0YDQsNC0?=\r\n"
-        "  =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQv9C7?=\r\n"
-        "  =?UTF-8?B?0YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
-        "  <the_library@mailio.dev>\r\n"
+    BOOST_CHECK(msg_str ==
+        "From: =?UTF-8?B?0LzQsNC40LvQuNC+INCx0LjQsdC70LjQvtGC0LXQutCwINC30LAg0YDQsNC0?=\r\n"
+        " =?UTF-8?B?INGB0LAg0LzQtdGY0LvQvtCy0LjQvNCwINGDINGY0LXQt9C40LrRgyDRhiDQv9C7?=\r\n"
+        " =?UTF-8?B?0YPRgSDQv9C70YPRgQ==?= <adresa@mailio.dev>,\r\n"
+        " =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        " <the_library@mailio.dev>\r\n"
         "Sender: mailio <adresa@mailio.dev>\r\n"
         "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
-        "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
-        "  2023 <adresa@mailio.dev>,\r\n"
-        "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
-        "  <asdfg@zoho.com>\r\n"
+        " verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
+        " 2023 <adresa@mailio.dev>,\r\n"
+        " =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
+        " =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        " <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?ASCII?B?Zm9ybWF0IHEgYmFzZTY0IHNlbmRlcg==?=\r\n"
         "\r\n"
@@ -2166,18 +2168,18 @@ BOOST_AUTO_TEST_CASE(format_qq_sender)
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE_=D0=B1=D0=B8=D0=B1?=\r\n"
-        "  =?UTF-8?Q?=D0=BB=D0=B8=D0=BE=D1=82=D0=B5=D0=BA=D0=B0_=D0=B7=D0=B0_=D1=80?=\r\n"
-        "  =?UTF-8?Q?=D0=B0=D0=B4_=D1=81=D0=B0_=D0=BC=D0=B5=D1=98=D0=BB=D0=BE=D0=B2?=\r\n"
-        "  =?UTF-8?Q?=D0=B8=D0=BC=D0=B0_=D1=83_=D1=98=D0=B5=D0=B7=D0=B8=D0=BA=D1=83_?=\r\n"
-        "  =?UTF-8?Q?=D1=86_=D0=BF=D0=BB=D1=83=D1=81_=D0=BF=D0=BB=D1=83=D1=81?=\r\n"
-        "  <adresa@mailio.dev>\r\n"
+        " =?UTF-8?Q?=D0=BB=D0=B8=D0=BE=D1=82=D0=B5=D0=BA=D0=B0_=D0=B7=D0=B0_=D1=80?=\r\n"
+        " =?UTF-8?Q?=D0=B0=D0=B4_=D1=81=D0=B0_=D0=BC=D0=B5=D1=98=D0=BB=D0=BE=D0=B2?=\r\n"
+        " =?UTF-8?Q?=D0=B8=D0=BC=D0=B0_=D1=83_=D1=98=D0=B5=D0=B7=D0=B8=D0=BA=D1=83_?=\r\n"
+        " =?UTF-8?Q?=D1=86_=D0=BF=D0=BB=D1=83=D1=81_=D0=BF=D0=BB=D1=83=D1=81?=\r\n"
+        " <adresa@mailio.dev>\r\n"
         "To: mailio biblioteka za rad sa mejlovima u programskom jeziku c plus plus \r\n"
-        "  verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
-        "  2023 <adresa@mailio.dev>,\r\n"
-        "  =?UTF-8?Q?Tomislav_Karastojkovi=C4=87?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0?=\r\n"
-        "  =?UTF-8?Q?=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8?=\r\n"
-        "  =?UTF-8?Q?=D1=9B?= <asdfg@zoho.com>\r\n"
+        " verzija 2017 ali kompatibilna i sa c plus plus 2020 a valjda i sa verzijom \r\n"
+        " 2023 <adresa@mailio.dev>,\r\n"
+        " =?UTF-8?Q?Tomislav_Karastojkovi=C4=87?= <qwerty@gmail.com>,\r\n"
+        " =?UTF-8?Q?=D0=A2=D0=BE=D0=BC=D0=B8=D1=81=D0=BB=D0=B0=D0=B2_=D0=9A=D0?=\r\n"
+        " =?UTF-8?Q?=B0=D1=80=D0=B0=D1=81=D1=82=D0=BE=D1=98=D0=BA=D0=BE=D0=B2=D0=B8?=\r\n"
+        " =?UTF-8?Q?=D1=9B?= <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?ASCII?Q?format_q_quoted_printable_sender?=\r\n"
         "\r\n"
@@ -2210,7 +2212,7 @@ BOOST_AUTO_TEST_CASE(format_qb_long_subject)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
-        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        " =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2241,7 +2243,7 @@ BOOST_AUTO_TEST_CASE(format_qq_long_subject)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?UTF-8?Q?Re:_=CE=A3=CF=87=CE=B5=CF=84:_Request_from_GrckaInfo_vi?=\r\n"
-        "  =?UTF-8?Q?sitor_-_Eleni_Beach_Apartments?=\r\n"
+        " =?UTF-8?Q?sitor_-_Eleni_Beach_Apartments?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2309,7 +2311,7 @@ BOOST_AUTO_TEST_CASE(format_qq_subject_emoji)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?UTF-8?Q?=F0=9F=8E=81=C5=BDivi_godinu_dana_na_ra=C4=8Dun_Super_K?=\r\n"
-        "  =?UTF-8?Q?artice?=\r\n"
+        " =?UTF-8?Q?artice?=\r\n"
         "\r\n"
         "test\r\n");
 }
@@ -2352,18 +2354,18 @@ BOOST_AUTO_TEST_CASE(format_continued_ascii_attachment_bit7)
         "MIME-Version: 1.0\r\n"
         "Content-Type: multipart/mixed; boundary=\"mybnd\"\r\n"
         "Subject: format continued filename format continued filename format continued \r\n"
-        "  filename format continued filename\r\n"
+        " filename format continued filename\r\n"
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: application/txt; \r\n"
-        "  name*0=\"C:\\Program \"; \r\n"
-        "  name*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicResume\"; \r\n"
-        "  name*2=\"CurriculumVitae.txt\"\r\n"
+        " name*0=\"C:\\Program \"; \r\n"
+        " name*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicResum\"; \r\n"
+        " name*2=\"eCurriculumVitae.txt\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0=\"C:\\Program \"; \r\n"
-        "  filename*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicRe\"; \r\n"
-        "  filename*2=\"sumeCurriculumVitae.txt\"\r\n"
+        " filename*0=\"C:\\Program \"; \r\n"
+        " filename*1=\"Files\\AlephoLtd\\Email\\Libraries\\mailio\\TomislavKarastojkovicR\"; \r\n"
+        " filename*2=\"esumeCurriculumVitae.txt\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2411,12 +2413,12 @@ BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_b64)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2X0th?=\"; \r\n"
-        "  name*1=\"=?UTF-8?B?cmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
+        " name*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2X0th?=\"; \r\n"
+        " name*1=\"=?UTF-8?B?cmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2?=\"; \r\n"
-        "  filename*1=\"=?UTF-8?B?X0thcmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
+        " filename*0=\"=?UTF-8?B?VmVvbWFfRHVnYcSNa29fSW1lX0ZhamxhX1RvbWlzbGF2?=\"; \r\n"
+        " filename*1=\"=?UTF-8?B?X0thcmFzdG9qa292acSHX0NWLnR4dA==?=\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2462,12 +2464,12 @@ BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_qp)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karastojk?=\"; \r\n"
-        "  name*1=\"=?UTF-8?Q?ovi=C4=87_CV.txt?=\"\r\n"
+        " name*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karastojk?=\"; \r\n"
+        " name*1=\"=?UTF-8?Q?ovi=C4=87_CV.txt?=\"\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karas?=\"; \r\n"
-        "  filename*1=\"=?UTF-8?Q?tojkovi=C4=87_CV.txt?=\"\r\n"
+        " filename*0=\"=?UTF-8?Q?Veoma_Duga=C4=8Dko_Ime_Fajla_Tomislav_Karas?=\"; \r\n"
+        " filename*1=\"=?UTF-8?Q?tojkovi=C4=87_CV.txt?=\"\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2513,12 +2515,12 @@ BOOST_AUTO_TEST_CASE(format_continued_utf8_attachment_pct)
         "\r\n"
         "--mybnd\r\n"
         "Content-Type: text/plain; \r\n"
-        "  name*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojko; \r\n"
-        "  name*1*=vi%C4%87%5FCV%2Etxt\r\n"
+        " name*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarastojko; \r\n"
+        " name*1*=vi%C4%87%5FCV%2Etxt\r\n"
         "Content-Transfer-Encoding: Base64\r\n"
         "Content-Disposition: attachment; \r\n"
-        "  filename*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarast; \r\n"
-        "  filename*1*=ojkovi%C4%87%5FCV%2Etxt\r\n"
+        " filename*0*=UTF-8''Veoma%5FDuga%C4%8Dko%5FIme%5FFajla%5FTomislav%5FKarast; \r\n"
+        " filename*1*=ojkovi%C4%87%5FCV%2Etxt\r\n"
         "\r\n"
         "VG9taXNsYXYgS2FyYXN0b2prb3ZpxIcgQ1YK\r\n"
         "\r\n"
@@ -2608,7 +2610,7 @@ BOOST_AUTO_TEST_CASE(format_qb_utf8_subject_raw)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
-        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        " =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2638,11 +2640,11 @@ BOOST_AUTO_TEST_CASE(format_many_codecs)
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: =?UTF-8?Q?=D0=BC=D0=B0=D0=B8=D0=BB=D0=B8=D0=BE?= <adresa@mailio.dev>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
-        "  <qwerty@gmail.com>\r\n"
+        " =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        " <qwerty@gmail.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?UTF-8?B?UmU6IM6jz4fOtc+EOiBSZXF1ZXN0IGZyb20gR3Jja2FJbmZvIHZpc2l0?=\r\n"
-        "  =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
+        " =?UTF-8?B?b3IgLSBFbGVuaSBCZWFjaCBBcGFydG1lbnRz?=\r\n"
         "\r\n"
         "Hello, Sithonia!\r\n");
 }
@@ -2712,10 +2714,10 @@ BOOST_AUTO_TEST_CASE(format_long_message_id)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Message-ID: <12345678901234567890123456789012345678901234567890123456789012345\r\n"
-        "  67890123456789012345678901234567890@mailio.dev>\r\n"
+        " 67890123456789012345678901234567890@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Content-ID: <98765432198765432198765432198765432198765432198765432198765432198\r\n"
-        "  7654321987654321@mailio.dev>\r\n"
+        " 7654321987654321@mailio.dev>\r\n"
         "Subject: =?ASCII?Q?format_long_message_id?=\r\n"
         "\r\n"
         "Zdravo, Svete!\r\n");
@@ -2894,9 +2896,9 @@ BOOST_AUTO_TEST_CASE(format_in_reply_to_folding)
     BOOST_CHECK(msg_str == "From: mailio <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "In-Reply-To: <1@mailio.dev> <22@mailio.dev> <333@mailio.dev> \r\n"
-        "  <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> \r\n"
-        "  <66666666666666666666666666666666666666666666666666666666666666666666666666666\r\n"
-        "  666666666666666666666666666666@mailio.dev>\r\n"
+        " <44444444444444444444444444@mailio.dev> <5555555555555555@mailio.dev> \r\n"
+        " <6666666666666666666666666666666666666666666666666666666666666666666666666666\r\n"
+        " 6666666666666666666666666666666@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?ASCII?Q?format_in_reply_to_folding?=\r\n"
         "\r\n"
@@ -2930,9 +2932,9 @@ BOOST_AUTO_TEST_CASE(format_recommended_recipient)
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: =?UTF-8?B?0LzQsNC40LvQuNC+?= <adresa@mailio.dev>\r\n"
         "To: mailio <adresa@mailio.dev>,\r\n"
-        "  =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
-        "  =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
-        "  <asdfg@zoho.com>\r\n"
+        " =?UTF-8?B?VG9taXNsYXYgS2FyYXN0b2prb3ZpxIc=?= <qwerty@gmail.com>,\r\n"
+        " =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiDQmtCw0YDQsNGB0YLQvtGY0LrQvtCy0LjRmw==?=\r\n"
+        " <asdfg@zoho.com>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: =?ASCII?B?Zm9ybWF0IHJlY29tbWVuZGVkIHJlY2lwaWVudA==?=\r\n"
         "\r\n"
@@ -2956,18 +2958,18 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
     msg.date_time(ldt);
     msg.from(mail_address(string_t("Tomislav Karastojković", codec::CHARSET_UTF8, codec::codec_t::UTF8), "qwerty@hotmail.com"));
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
-    msg.subject("Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!"
-        "Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!");
+    msg.subject("Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete!"
+        " Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete!");
     msg.content("Hello, World!");
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "From: Tomislav Karastojković <qwerty@hotmail.com>\r\n"
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
-        "Subject: Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,Svete!Zdravo,\r\n"
-        "  Svete!Zdravo,Svete!Zdravo,Svete!\r\n"
+        "Subject: Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
+        " Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
+        " Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
+        " Zdravo,Svete! Zdravo,Svete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 
@@ -2978,7 +2980,7 @@ BOOST_AUTO_TEST_CASE(format_long_subject)
         "To: mailio <adresa@mailio.dev>\r\n"
         "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
         "Subject: ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSvete!ZdravoSve\r\n"
-        "  te!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
+        " te!Zdravo Svete!ZdravoSvete!ZdravoSvete!\r\n"
         "\r\n"
         "Hello, World!\r\n");
 }
@@ -3010,13 +3012,13 @@ BOOST_AUTO_TEST_CASE(format_long_header)
     string msg_str;
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "Proba: 12345678901234567890 \r\n"
-        "  1234567890123456789012345678901234567890123456789012345678901234567890 \r\n"
-        "  12345678901234567890@mailio.dev\r\n"
+        " 1234567890123456789012345678901234567890123456789012345678901234567890 \r\n"
+        " 12345678901234567890@mailio.dev\r\n"
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>,\r\n"
-        "  mailio <adresa@mailio.dev>,\r\n"
-        "  all: Tomislav <qwerty@hotmail.com>;\r\n"
+        " mailio <adresa@mailio.dev>,\r\n"
+        " all: Tomislav <qwerty@hotmail.com>;\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
         "Subject: Hello, World!\r\n"
         "\r\n"
@@ -3027,12 +3029,12 @@ BOOST_AUTO_TEST_CASE(format_long_header)
     msg_str.clear();
     msg.format(msg_str);
     BOOST_CHECK(msg_str == "Proba: 12345678901234567890123456789012345678901234567890123456789012345678901\r\n"
-        "  2345678901234567890 12345678901234567890@mailio.dev\r\n"
+        " 2345678901234567890 12345678901234567890@mailio.dev\r\n"
         "From: mailio <adresa@mailio.dev>\r\n"
         "Reply-To: Tomislav Karastojkovic <kontakt@mailio.dev>\r\n"
         "To: contact <kontakt@mailio.dev>,\r\n"
-        "  mailio <adresa@mailio.dev>,\r\n"
-        "  all: Tomislav <qwerty@hotmail.com>;\r\n"
+        " mailio <adresa@mailio.dev>,\r\n"
+        " all: Tomislav <qwerty@hotmail.com>;\r\n"
         "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
         "Subject: Hello, World!\r\n"
         "\r\n"
@@ -3063,7 +3065,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.format(msg_str);
         BOOST_CHECK(msg_str ==
             "From: =?UTF-8?B?0KLQvtC80LjRgdC70LDQsiAgICAgINCa0LDRgNCw0YHRgtC+0ZjQutC+0LLQ?=\r\n"
-            "  =?UTF-8?B?uNGb?= <tomislavkarastojkovic@hotmail.com>\r\n"
+            " =?UTF-8?B?uNGb?= <tomislavkarastojkovic@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
             "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
@@ -3085,12 +3087,12 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.format(msg_str);
         BOOST_CHECK(msg_str ==
             "From: \"Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! Zdravo,Svete! \r\n"
-            "  Zdravo,Svete!\" <zdravosvete@hotmail.com>\r\n"
+            " Zdravo,Svete!\" <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
             "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
             "\r\n"
-           "Hello, World!\r\n");
+            "Hello, World!\r\n");
     }
     {
         message msg;
@@ -3107,7 +3109,7 @@ BOOST_AUTO_TEST_CASE(format_long_from)
         msg.format(msg_str);
         BOOST_CHECK(msg_str ==
             "From: ZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravoSveteZdravo\r\n"
-            "  SveteZdravo <zdravosvete@hotmail.com>\r\n"
+            " SveteZdravo <zdravosvete@hotmail.com>\r\n"
             "To: mailio <adresa@mailio.dev>\r\n"
             "Date: Thu, 11 Feb 2016 22:56:22 +0000\r\n"
             "Subject: =?ASCII?B?WmRyYXZvLFN2ZXRlIQ==?=\r\n"
@@ -3357,7 +3359,7 @@ BOOST_AUTO_TEST_CASE(parse_addresses)
     msg.parse(msg_str);
     BOOST_CHECK(msg.from().addresses.at(0).name == "mail io" && msg.from().addresses.at(0).address == "adresa@mailio.dev" &&
         msg.recipients().addresses.size() == 4 &&
-        msg.recipients_to_string() == "info,\r\n  <kontakt@mailio.dev>,\r\n  all,\r\n  mail io <adresa@mailio.dev>" &&
+        msg.recipients_to_string() == "info,\r\n <kontakt@mailio.dev>,\r\n all,\r\n mail io <adresa@mailio.dev>" &&
         msg.recipients().addresses.at(0).name == "info" && msg.recipients().addresses.at(1).address == "kontakt@mailio.dev" &&
         msg.recipients().addresses.at(2).name == "all" &&
         msg.recipients().addresses.at(3).name == "mail io" && msg.recipients().addresses.at(3).address == "adresa@mailio.dev" &&

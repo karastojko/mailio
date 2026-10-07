@@ -598,11 +598,6 @@ protected:
     static const std::string CONTENT_DISPOSITION_INLINE;
 
     /**
-    Indentation used by headers for the continuation.
-    **/
-    static const std::string NEW_LINE_INDENT;
-
-    /**
     Content type and subtype separator.
     **/
     static const char CONTENT_SUBTYPE_SEPARATOR{'/'};
