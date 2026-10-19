@@ -426,20 +426,6 @@ public:
     content_disposition_t content_disposition() const;
 
     /**
-    Setting the boundary of the mime part.
-
-    @param bound String to be used as the boundary.
-    **/
-    void boundary(const std::string& bound);
-
-    /**
-    Getting the boundary of the mime part.
-
-    @return Boundary of the mime part.
-    **/
-    std::string boundary() const;
-
-    /**
     Setting the content given as string.
 
     @param content_str Content to set.
