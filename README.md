@@ -219,6 +219,7 @@ in case I missed someone please let me know.
 * [Luigi Masdea](luigimasdea0[at]gmail.com): Typo error.
 * [Charlie Wolf](charlie[at]wolf.is): Additional attributes in the content type.
 * [Mateusz Golebiewski](https://github.com/ubinoob1): Fix for EHLO not being sent after STARTTLS.
+* [javier](mailto:mr-j0nes[at]users.noreply.github.com): Fix stale asynchronous handler after timeout.
 
 
 # References #
