@@ -29,4 +29,4 @@ foreach(file ${TEST_FILES})
     make_test("${file}")
 endforeach()
 
-target_link_libraries("test_dialog_stale_handler" PRIVATE "Threads::Threads")
+target_link_libraries("test_dialog" PRIVATE "Threads::Threads")

@@ -1,6 +1,6 @@
 /*
-test_dialog_stale_handler.cpp
------------------------------
+test_dialog.cpp
+---------------
 
 Copyright (C) 2026, Tomislav Karastojkovic (http://www.alepho.com).
 
