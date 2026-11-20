@@ -46,7 +46,6 @@ using mailio::mail_group;
 using mailio::mime;
 using mailio::message;
 using mailio::mime_error;
-using mailio::message_error;
 using mailio::codec_error;
 
 
@@ -123,7 +122,7 @@ BOOST_AUTO_TEST_CASE(format_no_from)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format no from");
     string msg_str;
-    BOOST_CHECK_THROW(msg.format(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
 }
 
 
@@ -141,7 +140,7 @@ BOOST_AUTO_TEST_CASE(format_no_sender_two_authors)
     msg.add_recipient(mail_address("mailio", "adresa@mailio.dev"));
     msg.subject("format no sender two authors");
     string msg_str;
-    BOOST_CHECK_THROW(msg.format(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
 }
 
 /**
@@ -2058,7 +2057,7 @@ BOOST_AUTO_TEST_CASE(format_mime_no_content_type)
     msg.add_part(m1);
     msg.add_part(m2);
     string msg_str;
-    BOOST_CHECK_THROW(msg.format(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.format(msg_str), mime_error);
 }
 
 
@@ -2742,7 +2741,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_no_monkey_strict)
     msg.date_time(ldt);
     msg.subject("Proba");
     msg.content("Zdravo, Svete!");
-    BOOST_CHECK_THROW(msg.message_id("1234567890mailio.dev"), message_error);
+    BOOST_CHECK_THROW(msg.message_id("1234567890mailio.dev"), mime_error);
 }
 
 
@@ -2795,7 +2794,7 @@ BOOST_AUTO_TEST_CASE(format_message_id_with_space_strict)
     msg.date_time(ldt);
     msg.subject("Proba");
     msg.content("Zdravo, Svete!");
-    BOOST_CHECK_THROW(msg.message_id("1234567890@ mailio.dev"), message_error);
+    BOOST_CHECK_THROW(msg.message_id("1234567890@ mailio.dev"), mime_error);
 }
 
 
@@ -3447,7 +3446,7 @@ BOOST_AUTO_TEST_CASE(parse_bad_author_address)
         "hello\r\n";
     message msg;
 
-    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 
@@ -3467,7 +3466,7 @@ BOOST_AUTO_TEST_CASE(parse_no_author_address)
         "hello\r\n";
     message msg;
 
-    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 
@@ -3486,7 +3485,7 @@ BOOST_AUTO_TEST_CASE(parse_bad_mail_group)
         "hello\r\n";
     message msg;
 
-    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 
@@ -3506,7 +3505,7 @@ BOOST_AUTO_TEST_CASE(parse_bad_recipient_address)
         "hello\r\n";
     message msg;
 
-    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 
@@ -3595,7 +3594,7 @@ BOOST_AUTO_TEST_CASE(parse_double_address_strict)
     message msg;
     msg.strict_mode(true);
     msg.line_policy(codec::line_len_policy_t::MANDATORY);
-    BOOST_CHECK_THROW(msg.parse(msg_str), message_error);
+    BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
 }
 
 

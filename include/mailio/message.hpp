@@ -134,10 +134,10 @@ public:
 
     Essentially, the method calls the same one from `mime` and checks for errors.
 
-    @param message_str   String to parse.
-    @param dot_escape    Flag if the leading dot should be escaped.
-    @throw message_error No author address.
-    @throw *             `mime::parse(const string&, bool)`.
+    @param message_str String to parse.
+    @param dot_escape  Flag if the leading dot should be escaped.
+    @throw mime_error  No author address.
+    @throw *           `mime::parse(const string&, bool)`.
     **/
     void parse(const std::string& message_str, bool dot_escape = false);
 
@@ -344,8 +344,8 @@ public:
     /**
     Setting the message ID.
 
-    @param id            The message ID in the format `string1@string2`.
-    @throw message_error Invalid message ID.
+    @param id         The message ID in the format `string1@string2`.
+    @throw mime_error Invalid message ID.
     **/
     void message_id(std::string id);
 
@@ -467,11 +467,11 @@ public:
     /**
     Getting the attachment at the given index.
 
-    @param index         Index of the attachment.
-    @param att_strm      Stream to write the attachment.
-    @param att_name      Name of the attachment.
-    @throw message_error Bad attachment index.
-    @todo                The attachment name should be also `string_t`.
+    @param index      Index of the attachment.
+    @param att_strm   Stream to write the attachment.
+    @param att_name   Name of the attachment.
+    @throw mime_error Bad attachment index.
+    @todo             The attachment name should be also `string_t`.
     **/
     void attachment(std::size_t index, std::ostream& att_strm, string_t& att_name) const;
 
@@ -603,22 +603,22 @@ protected:
     /**
     Formatting the header to a string.
 
-    @return              Header as string.
-    @throw message_error No boundary for multipart message.
-    @throw message_error No author.
-    @throw message_error No sender for multiple authors.
-    @throw *             `mime::format_header()`.
+    @return           Header as string.
+    @throw mime_error No boundary for multipart message.
+    @throw mime_error No author.
+    @throw mime_error No sender for multiple authors.
+    @throw *          `mime::format_header()`.
     **/
     virtual std::string format_header(bool add_bcc_header) const;
 
     /**
     Parsing a header line for a specific header.
 
-    @param header_line   Header line to be parsed.
-    @throw message_error Line policy overflow in a header.
-    @throw message_error Empty author header.
-    @throw *             `mime::parse_header_line(const string&)`, `mime::parse_header_name_value(const string&, string&, string&)`,
-                         `parse_address_list(const string&)`, `parse_subject(const string&)`, `parse_date(const string&)`.
+    @param header_line Header line to be parsed.
+    @throw mime_error Line policy overflow in a header.
+    @throw mime_error Empty author header.
+    @throw *          `mime::parse_header_line(const string&)`, `mime::parse_header_name_value(const string&, string&, string&)`,
+                      `parse_address_list(const string&)`, `parse_subject(const string&)`, `parse_date(const string&)`.
     **/
     virtual void parse_header_line(const std::string& header_line);
 
@@ -627,10 +627,10 @@ protected:
 
     Multiple addresses are put into separate lines.
 
-    @param mailbox_list  Mailbox to format.
-    @return              Mailbox as string.
-    @throw message_error Formatting failure of address list, bad group name.
-    @throw *             `format_address(const string&, const string&)`.
+    @param mailbox_list Mailbox to format.
+    @return           Mailbox as string.
+    @throw mime_error Formatting failure of address list, bad group name.
+    @throw *          `format_address(const string&, const string&)`.
     **/
     std::string format_address_list(const mailboxes& mailbox_list, const std::string& header_name = "") const;
 
@@ -640,12 +640,12 @@ protected:
     If the name is in ASCII or the header codec set to UTF8, then it is written in raw format. Otherwise, the encoding is performed. The header folding is
     performed if necessary.
 
-    @param name          Mail name.
-    @param address       Mail address.
-    @param header_name   Header name of the address header.
-    @return              The mail name and address formatted.
-    @throw message_error Formatting failure of name.
-    @throw message_error Formatting failure of address.
+    @param name        Mail name.
+    @param address     Mail address.
+    @param header_name Header name of the address header.
+    @return            The mail name and address formatted.
+    @throw mime_error  Formatting failure of name.
+    @throw mime_error  Formatting failure of address.
     **/
     std::string format_address(const string_t& name, const std::string& address, const std::string& header_name) const;
 
@@ -666,23 +666,23 @@ protected:
     /**
     Parsing a string into vector of names and addresses.
 
-    @param address_list  String to parse.
-    @return              Vector of names and addresses.
-    @throw message_error Parsing failure of address or group at.
-    @throw message_error Parsing failure of group at.
-    @throw message_error Parsing failure of name or address at.
-    @throw message_error Parsing failure of address at.
-    @throw message_error Parsing failure of name at.
-    @throw message_error Parsing failure of comment at.
+    @param address_list String to parse.
+    @return           Vector of names and addresses.
+    @throw mime_error Parsing failure of address or group at.
+    @throw mime_error Parsing failure of group at.
+    @throw mime_error Parsing failure of name or address at.
+    @throw mime_error Parsing failure of address at.
+    @throw mime_error Parsing failure of name at.
+    @throw mime_error Parsing failure of comment at.
     **/
     mailboxes parse_address_list(const std::string& address_list);
 
     /**
     Parsing a string into date and time.
 
-    @param date_str      Date string to parse.
-    @return              Date and time translated to local time zone.
-    @throw message_error Parsing failure of date.
+    @param date_str   Date string to parse.
+    @return           Date and time translated to local time zone.
+    @throw mime_error Parsing failure of date.
     **/
     boost::local_time::local_date_time parse_date(const std::string& date_str) const;
 
@@ -699,10 +699,10 @@ protected:
 
     The result is string either ASCII or UTF-8 encoded. If another encoding is used like ISO-8859-X, then the result is undefined.
 
-    @param subject       Subject to parse.
-    @return              Parsed subject and charset.
-    @throw message_error Parsing failure of Q encoding.
-    @throw *             `q_codec::decode(const string&)`.
+    @param subject    Subject to parse.
+    @return           Parsed subject and charset.
+    @throw mime_error Parsing failure of Q encoding.
+    @throw *          `q_codec::decode(const string&)`.
     **/
     std::tuple<std::string, std::string, codec::codec_t>
     parse_subject(const std::string& subject);
@@ -712,11 +712,11 @@ protected:
 
     The result is string ASCII or UTF-8 encoded. If another encoding is used, then it should be decoded by the method caller.
 
-    @param address_name  Name part of mail.
-    @return              Parsed name part of the address.
-    @throw message_error Inconsistent Q encodings.
-    @todo                Not tested with charsets different than ASCII and UTF-8.
-    @todo                Throwing errors when Q codec is invalid?
+    @param address_name Name part of mail.
+    @return             Parsed name part of the address.
+    @throw mime_error   Inconsistent Q encodings.
+    @todo               Not tested with charsets different than ASCII and UTF-8.
+    @todo               Throwing errors when Q codec is invalid?
     **/
     string_t parse_address_name(const std::string& address_name);
 
@@ -790,9 +790,6 @@ protected:
     **/
     std::vector<std::string> flags_;
 };
-
-[[deprecated]]
-typedef mime_error message_error;
 
 
 } // namespace mailio
