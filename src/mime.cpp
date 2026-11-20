@@ -197,9 +197,8 @@ const string mime::CONTENT_HEADER_VALUE_ALPHABET{"!#$%&*+-./^_`|~"};
 
 
 mime::mime() : version_("1.0"), line_policy_(codec::line_len_policy_t::MANDATORY),
-    strict_mode_(false), strict_codec_mode_(false), header_codec_(header_codec_t::UTF8), content_type_(media_type_t::NONE, ""),
-    encoding_(content_transfer_encoding_t::NONE), disposition_(content_disposition_t::NONE), parsing_header_(true),
-    mime_status_(mime_parsing_status_t::NONE)
+    strict_mode_(false), strict_codec_mode_(false), content_type_(media_type_t::NONE, ""), encoding_(content_transfer_encoding_t::NONE),
+    disposition_(content_disposition_t::NONE), parsing_header_(true), mime_status_(mime_parsing_status_t::NONE)
 {
 }
 
@@ -489,18 +488,6 @@ void mime::strict_codec_mode(bool mode)
 bool mime::strict_codec_mode() const
 {
     return strict_codec_mode_;
-}
-
-
-void mime::header_codec(header_codec_t hdr_codec)
-{
-    header_codec_ = hdr_codec;
-}
-
-
-mime::header_codec_t mime::header_codec() const
-{
-    return header_codec_;
 }
 
 

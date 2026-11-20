@@ -508,24 +508,6 @@ public:
     **/
     bool strict_codec_mode() const;
 
-    using header_codec_t = codec::codec_t;
-
-    /**
-    Setting the headers codec.
-
-    @param hdr_codec Codec to set.
-    **/
-    [[deprecated]]
-    void header_codec(header_codec_t hdr_codec);
-
-    /**
-    Getting the headers codec.
-
-    @return Codec set.
-    **/
-    [[deprecated]]
-    header_codec_t header_codec() const;
-
 protected:
 
     /**
@@ -908,12 +890,6 @@ protected:
     Strict mode for encoding/decoding.
     **/
     bool strict_codec_mode_;
-
-    /**
-    Codec used for headers.
-    **/
-    [[deprecated]]
-    header_codec_t header_codec_;
 
     /**
     Content type as a pair of top level media type and media subtype.
