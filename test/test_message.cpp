@@ -5106,7 +5106,7 @@ BOOST_AUTO_TEST_CASE(parse_long_multipart)
 
 
 /**
-Parsing multipart message with a content.
+Parsing a multipart message with content.
 
 @pre  None.
 @post None.
@@ -5157,6 +5157,84 @@ BOOST_AUTO_TEST_CASE(parse_multipart_content)
         msg.parts().at(1).content_transfer_encoding() == mime::content_transfer_encoding_t::QUOTED_PRINTABLE &&
         msg.parts().at(1).content_type().charset() == "utf-8" && msg.parts().at(1).content_id() == "<second@mailio.dev>" &&
         msg.parts().at(1).content() == "Здраво, Свете!");
+}
+
+
+/**
+Parsing a multipart message with the incorrect transfer encoding of the multipart itself.
+
+@pre  None.
+@post None.
+@todo It should throw because of the wrong transfer encoding in the multipart message itself.
+**/
+BOOST_AUTO_TEST_CASE(parse_multipart_with_wrong_encoding)
+{
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+            "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+            "To: mailio <adresa@mailio.dev>, <qwerty@gmail.com>, Tomislav Karastojkovic <asdfgh@outlook.com>\r\n"
+            "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+            "MIME-Version: 1.0\r\n"
+            "Content-Type: multipart/alternative; boundary=\"my_bound\"\r\n"
+            "Content-Transfer-Encoding: Base64\r\n"
+            "Content-ID: <zero@mailio.dev>\r\n"
+            "Subject: parse multipart content\r\n"
+            "\r\n"
+            "0J7QstC+INGY0LUg0L/QvtGA0YPQutCwINC40Lcg0LLQuNGI0LUg0LTQtdC70L7QstCwLg==\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/html; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Base64\r\n"
+            "Content-ID: <first@mailio.dev>\r\n"
+            "\r\n"
+            "PGh0bWw+PGhlYWQ+PC9oZWFkPjxib2R5PjxoMT7EhmFvLCBTdmV0ZSE8L2gxPjwvYm9keT48L2h0bWw+\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "Content-ID: <second@mailio.dev>\r\n"
+            "\r\n"
+            "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+            "--my_bound--\r\n";
+        msg.parse(msg_str);
+
+        BOOST_CHECK(msg.content() == "Ово је порука из више делова.");
+    }
+    {
+        message msg;
+        msg.line_policy(codec::line_len_policy_t::MANDATORY);
+        string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
+            "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
+            "To: mailio <adresa@mailio.dev>, <qwerty@gmail.com>, Tomislav Karastojkovic <asdfgh@outlook.com>\r\n"
+            "Date: Fri, 17 Jan 2014 05:39:22 -0730\r\n"
+            "MIME-Version: 1.0\r\n"
+            "Content-Type: multipart/alternative; boundary=\"my_bound\"\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "Content-ID: <zero@mailio.dev>\r\n"
+            "Subject: parse multipart content\r\n"
+            "\r\n"
+            "=D0=9E=D0=B2=D0=BE =D1=98=D0=B5 =D0=BF=D0=BE=D1=80=D1=83=D0=BA=D0=B0 =D0=B8=D0=B7 =D0=B2=D0=B8=D1=88=D0=B5 =D0=B4=D0=B5=D0=BB=D0=BE=D0=B2=D0=B0.\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/html; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Base64\r\n"
+            "Content-ID: <first@mailio.dev>\r\n"
+            "\r\n"
+            "PGh0bWw+PGhlYWQ+PC9oZWFkPjxib2R5PjxoMT7EhmFvLCBTdmV0ZSE8L2gxPjwvYm9keT48L2h0bWw+\r\n"
+            "\r\n"
+            "--my_bound\r\n"
+            "Content-Type: text/plain; charset=utf-8\r\n"
+            "Content-Transfer-Encoding: Quoted-Printable\r\n"
+            "Content-ID: <second@mailio.dev>\r\n"
+            "\r\n"
+            "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
+            "--my_bound--\r\n";
+        msg.parse(msg_str);
+
+        BOOST_CHECK(msg.content() == "Ово је порука из више делова.");
+    }
 }
 
 
