@@ -5165,12 +5165,12 @@ Parsing a multipart message with the incorrect transfer encoding of the multipar
 
 @pre  None.
 @post None.
-@todo It should throw because of the wrong transfer encoding in the multipart message itself.
 **/
 BOOST_AUTO_TEST_CASE(parse_multipart_with_wrong_encoding)
 {
     {
         message msg;
+        msg.strict_mode(true);
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -5198,12 +5198,12 @@ BOOST_AUTO_TEST_CASE(parse_multipart_with_wrong_encoding)
             "\r\n"
             "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
             "--my_bound--\r\n";
-        msg.parse(msg_str);
 
-        BOOST_CHECK(msg.content() == "Ово је порука из више делова.");
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
     {
         message msg;
+        msg.strict_mode(true);
         msg.line_policy(codec::line_len_policy_t::MANDATORY);
         string msg_str = "From: mailio <adresa@mailio.dev>\r\n"
             "Reply-To: Tomislav Karastojkovic <adresa@mailio.dev>\r\n"
@@ -5231,9 +5231,8 @@ BOOST_AUTO_TEST_CASE(parse_multipart_with_wrong_encoding)
             "\r\n"
             "=D0=97=D0=B4=D1=80=D0=B0=D0=B2=D0=BE, =D0=A1=D0=B2=D0=B5=D1=82=D0=B5!\r\n"
             "--my_bound--\r\n";
-        msg.parse(msg_str);
 
-        BOOST_CHECK(msg.content() == "Ово је порука из више делова.");
+        BOOST_CHECK_THROW(msg.parse(msg_str), mime_error);
     }
 }
 
@@ -5345,7 +5344,7 @@ BOOST_AUTO_TEST_CASE(parse_html_attachment)
     msg.subject("parse html attachment");
     msg.content_type(message::media_type_t::TEXT, "html", "utf-8");
     msg.content_type().boundary("mybnd");
-    msg.content_transfer_encoding(mime::content_transfer_encoding_t::QUOTED_PRINTABLE);
+    msg.content_transfer_encoding(mime::content_transfer_encoding_t::BIT_7);
     msg.content("<h1>Naslov</h1><p>Ovo je poruka.</p>");
 
     ifstream ifs1("cv.txt");

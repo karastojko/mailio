@@ -153,6 +153,12 @@ void message::parse(const string& message_str, bool dot_escape)
     if (from_.addresses.size() == 0)
         throw mime_error("No author address.", "");
 
+    // Apply the RFC 2045, section 6.4.
+
+    if (content_type_.media_type() == media_type_t::MULTIPART)
+        if (encoding_ == content_transfer_encoding_t::BASE_64 || encoding_ == content_transfer_encoding_t::QUOTED_PRINTABLE)
+            throw mime_error("Incorrect transfer encoding for the multipart message", "");
+
     // There is no check if there is a sender in case of multiple authors, not sure if that logic is needed.
 }
 
