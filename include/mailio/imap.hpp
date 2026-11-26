@@ -383,6 +383,7 @@ public:
     **/
     void append(const std::list<std::string>& folder_name, const message& msg);
 
+
     /**
     Appending a message to the given folder.
 
@@ -392,6 +393,19 @@ public:
                        `message::format(std::string&, bool)`.
     **/
     void append(const std::string& folder_name, const message& msg);
+
+
+    /**
+    Copying messages to the given folder.
+
+    @param messages_range List of messages to copy.
+    @param folder_name    Folder to copy the given messages.
+    @param is_uid         Using a message uid number instead of a message sequence number.
+    @throw imap_error     `Message copying failure.`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`,
+                          `message::format(std::string&, bool)`.
+    **/
+    void copy(const messages_range_t& messages_range, const std::string& folder_name, bool is_uid = false);
+
 
     /**
     Getting the mailbox statistics.

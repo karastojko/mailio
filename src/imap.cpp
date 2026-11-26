@@ -547,6 +547,24 @@ void imap::append(const string& folder_name, const message& msg)
 }
 
 
+void imap::copy(const messages_range_t& messages_range, const string& folder_name, bool is_uid)
+{
+    string cmd;
+    if (is_uid)
+        cmd.append("UID" + TOKEN_SEPARATOR_STR);
+    cmd.append("COPY" + TOKEN_SEPARATOR_STR);
+    cmd.append(messages_range_to_string(messages_range) + TOKEN_SEPARATOR_STR);
+    cmd.append(folder_name);
+
+    string cmds = format(cmd);
+    dlg_->send(cmds);
+    string line = dlg_->receive();
+    tag_result_response_t parsed_line = parse_tag_result(line);
+    if (parsed_line.result == tag_result_response_t::BAD || parsed_line.result == tag_result_response_t::NO)
+        throw imap_error("Message copying failure.", "Response=`" + parsed_line.response + "`.");
+}
+
+
 auto imap::statistics(const string& mailbox, unsigned int info) -> mailbox_stat_t
 {
     // It doesn't like search terms it doesn't recognize.

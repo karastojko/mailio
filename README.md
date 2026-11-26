@@ -184,7 +184,6 @@ contact me. Here is a list of issues known so far and planned to be fixed in the
 * Editing parts of a message.
 * Asynchronous I/O.
 * External initialization of the SSL context.
-* IMAP copy command.
 
 
 # Contributors #
