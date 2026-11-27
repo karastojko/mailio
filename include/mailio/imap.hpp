@@ -401,10 +401,21 @@ public:
     @param messages_range List of messages to copy.
     @param folder_name    Folder to copy the given messages.
     @param is_uid         Using a message uid number instead of a message sequence number.
+    @throw imap_error     `copy(const string&, const messages_range_t&, bool)`.
+    **/
+    void copy(const std::list<std::string>& folder_name, const messages_range_t& messages_range, bool is_uid = false);
+
+
+    /**
+    Copying messages to the given folder.
+
+    @param messages_range List of messages to copy.
+    @param folder_name    Folder to copy the given messages.
+    @param is_uid         Using a message uid number instead of a message sequence number.
     @throw imap_error     `Message copying failure.`, `parse_tag_result(const string&)`, `dialog::send(const string&)`, `dialog::receive()`,
                           `message::format(std::string&, bool)`.
     **/
-    void copy(const messages_range_t& messages_range, const std::string& folder_name, bool is_uid = false);
+    void copy(const std::string& folder_name, const messages_range_t& messages_range, bool is_uid = false);
 
 
     /**

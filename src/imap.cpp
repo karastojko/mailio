@@ -547,7 +547,15 @@ void imap::append(const string& folder_name, const message& msg)
 }
 
 
-void imap::copy(const messages_range_t& messages_range, const string& folder_name, bool is_uid)
+void imap::copy(const list<string>& folder_name, const messages_range_t& messages_range, bool is_uid)
+{
+    string delim = folder_delimiter();
+    string folder_name_s = folder_tree_to_string(folder_name, delim);
+    copy(folder_name_s, messages_range, is_uid);
+}
+
+
+void imap::copy(const string& folder_name, const messages_range_t& messages_range, bool is_uid)
 {
     string cmd;
     if (is_uid)
